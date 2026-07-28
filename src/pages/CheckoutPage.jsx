@@ -393,10 +393,10 @@ export default function CheckoutPage() {
             }
 
             const cleanHandle = String(handle).replace(/^\$/, '').trim() || 'merakimodafeminina2026'
-            const cents = Math.round((total || 0) * 100)
+            const formattedAmount = (total || 0).toFixed(2)
 
-            // Redireciona diretamente para a página oficial de checkout da InfinitePay com a carteira cadastrada
-            window.location.href = `https://pay.infinitepay.io/${cleanHandle}/${cents}`
+            // Redireciona diretamente para a página oficial de checkout da InfinitePay com a carteira cadastrada e o valor em reais
+            window.location.href = `https://pay.infinitepay.io/${cleanHandle}/${formattedAmount}`
         } else {
             // Se for PIX, gera o QR Code e chave Pix Copia e Cola na tela de Sucesso do site
             navigate(`/order-success/${orderId}`)

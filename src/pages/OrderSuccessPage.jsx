@@ -267,8 +267,9 @@ export default function OrderSuccessPage() {
                             <button
                                 type="button"
                                 onClick={() => {
-                                    const cents = Math.round((order.total || 0) * 100)
-                                    window.location.href = `https://pay.infinitepay.io/${infinitePayHandle}/${cents}`
+                                    const cleanHandle = String(infinitePayHandle).replace(/^\$/, '').trim() || 'merakimodafeminina2026'
+                                    const formattedAmount = (order.total || 0).toFixed(2)
+                                    window.location.href = `https://pay.infinitepay.io/${cleanHandle}/${formattedAmount}`
                                 }}
                                 className="w-full py-4 px-6 bg-gradient-to-r from-[#7A3E4A] to-[#603039] hover:from-[#603039] text-white text-xs font-black uppercase tracking-widest rounded-2xl transition-all cursor-pointer shadow-lg hover:shadow-[#7A3E4A]/30 flex items-center justify-center gap-2 active:scale-98"
                             >
