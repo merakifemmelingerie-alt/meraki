@@ -1949,10 +1949,10 @@ export default function AdminPage() {
                                             {kitOptions.map((kit, index) => {
                                                 const unitPrice = (kit.price && kit.qty) ? (parseFloat(kit.price) / parseInt(kit.qty)).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0,00'
                                                 return (
-                                                    <div key={index} className="flex items-center gap-2 bg-white p-2.5 rounded-lg border border-gray-200 shadow-xs">
+                                                    <div key={index} className="flex items-end gap-2 bg-white p-3 rounded-xl border border-gray-200 shadow-xs">
                                                         <div className="flex-1 grid grid-cols-3 gap-2">
                                                             <div>
-                                                                <label className="text-[10px] text-gray-500 font-bold uppercase block mb-0.5">Nome do Kit</label>
+                                                                <label className="text-[10px] text-gray-500 font-bold uppercase block mb-1 whitespace-nowrap truncate">Nome do Kit</label>
                                                                 <input
                                                                     type="text"
                                                                     value={kit.name || ''}
@@ -1960,12 +1960,12 @@ export default function AdminPage() {
                                                                         const val = e.target.value
                                                                         setKitOptions(prev => prev.map((k, i) => i === index ? { ...k, name: val } : k))
                                                                     }}
-                                                                    className="w-full text-xs p-1.5 border border-gray-300 rounded font-medium"
+                                                                    className="w-full text-xs p-2 border border-gray-300 rounded-lg font-medium outline-none focus:border-[#7A3E4A]"
                                                                     placeholder="Ex: Kit com 5"
                                                                 />
                                                             </div>
                                                             <div>
-                                                                <label className="text-[10px] text-gray-500 font-bold uppercase block mb-0.5">Qtd. Itens</label>
+                                                                <label className="text-[10px] text-gray-500 font-bold uppercase block mb-1 whitespace-nowrap truncate">Qtd. Itens</label>
                                                                 <input
                                                                     type="number"
                                                                     min="1"
@@ -1974,12 +1974,12 @@ export default function AdminPage() {
                                                                         const val = parseInt(e.target.value) || 1
                                                                         setKitOptions(prev => prev.map((k, i) => i === index ? { ...k, qty: val } : k))
                                                                     }}
-                                                                    className="w-full text-xs p-1.5 border border-gray-300 rounded font-medium"
+                                                                    className="w-full text-xs p-2 border border-gray-300 rounded-lg font-medium outline-none focus:border-[#7A3E4A]"
                                                                     placeholder="5"
                                                                 />
                                                             </div>
                                                             <div>
-                                                                <label className="text-[10px] text-gray-500 font-bold uppercase block mb-0.5">Preço Total (R$)</label>
+                                                                <label className="text-[10px] text-gray-500 font-bold uppercase block mb-1 whitespace-nowrap truncate" title="Preço Total do Kit (R$)">Preço Total (R$)</label>
                                                                 <input
                                                                     type="number"
                                                                     step="0.01"
@@ -1989,19 +1989,19 @@ export default function AdminPage() {
                                                                         const val = parseFloat(e.target.value) || 0
                                                                         setKitOptions(prev => prev.map((k, i) => i === index ? { ...k, price: val } : k))
                                                                     }}
-                                                                    className="w-full text-xs p-1.5 border border-gray-300 rounded font-bold text-[#7A3E4A]"
+                                                                    className="w-full text-xs p-2 border border-gray-300 rounded-lg font-bold text-[#7A3E4A] outline-none focus:border-[#7A3E4A]"
                                                                     placeholder="199.90"
                                                                 />
                                                             </div>
                                                         </div>
-                                                        <div className="flex flex-col items-end gap-1 shrink-0">
-                                                            <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 whitespace-nowrap">
+                                                        <div className="flex items-center gap-1.5 shrink-0 pb-0.5">
+                                                            <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2 py-1.5 rounded-lg border border-emerald-200 whitespace-nowrap">
                                                                 R$ {unitPrice} / un
                                                             </span>
                                                             <button
                                                                 type="button"
                                                                 onClick={() => setKitOptions(prev => prev.filter((_, i) => i !== index))}
-                                                                className="text-red-500 hover:text-red-700 text-xs font-bold px-1"
+                                                                className="text-gray-400 hover:text-red-500 transition-colors p-1.5 rounded-lg hover:bg-red-50 text-xs font-bold cursor-pointer"
                                                                 title="Remover este Kit"
                                                             >
                                                                 ✕
