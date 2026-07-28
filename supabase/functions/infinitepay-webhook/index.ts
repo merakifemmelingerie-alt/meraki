@@ -45,6 +45,48 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ""
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
+    // Fetch order from database to check original total
+    const { data: dbOrder, error: fetchError } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('id', orderId)
+      .maybeSingle()
+
+    if (fetchError || !dbOrder) {
+      console.warn(`Order ${orderId} not found in DB.`)
+      return new Response(JSON.stringify({ error: "Order not found" }), {
+        status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      })
+    }
+
+    // Extract paid amount from payload (InfinitePay sends amount in cents or reais)
+    const rawPaid = payload.amount || payload.paid_amount || payload.data?.amount || 0
+    let paidReais = Number(rawPaid)
+    if (paidReais > 1000 && Number(dbOrder.total) < 1000) {
+      paidReais = paidReais / 100 // Convert cents to Reais
+    }
+
+    const expectedTotal = Number(dbOrder.total || 0)
+
+    // Security Check: Verify if paid amount matches expected order total
+    if (paidReais > 0 && paidReais < (expectedTotal - 0.05)) {
+      console.warn(`SECURITY ALERT: Order ${orderId} expected R$ ${expectedTotal}, but received payment of R$ ${paidReais}! Marking as Valor Incorreto.`)
+      await supabase
+        .from('orders')
+        .update({ status: 'Valor Incorreto / Suspeita de Burlar' })
+        .eq('id', orderId)
+
+      return new Response(JSON.stringify({
+        warning: "Payment amount does not match order total.",
+        expected: expectedTotal,
+        received: paidReais
+      }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      })
+    }
+
     // Update order status to 'Pago' (Paid)
     const { data, error } = await supabase
       .from('orders')
