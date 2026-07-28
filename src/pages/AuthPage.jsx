@@ -191,7 +191,7 @@ export default function AuthPage() {
             supabase
                 .from('orders')
                 .select('*')
-                .or(`customeremail.ilike.${cleanEmail},customerEmail.ilike.${cleanEmail}`)
+                .ilike('customeremail', cleanEmail)
                 .order('created_at', { ascending: false })
                 .then(({ data, error }) => {
                     if (!error && data && data.length > 0) {
