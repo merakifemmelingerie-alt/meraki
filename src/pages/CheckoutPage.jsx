@@ -35,8 +35,18 @@ export default function CheckoutPage() {
     const [neighborhood, setNeighborhood] = useState('')
     const [city, setCity] = useState('')
     const [state, setState] = useState('')
-    const [shippingMethod, setShippingMethod] = useState('pac') // pac, sedex
+    const [shippingMethod, setShippingMethod] = useState('pac') // pac, sedex, pickup
     const [availableShipping, setAvailableShipping] = useState([])
+    const [deliveryType, setDeliveryType] = useState(() => {
+        try {
+            const saved = localStorage.getItem('meraki_cart_shipping')
+            if (saved) {
+                const parsed = JSON.parse(saved)
+                if (parsed.isPickup || parsed.id === 'pickup') return 'pickup'
+            }
+        } catch {}
+        return 'delivery'
+    })
 
     // Address selection states
     const [savedAddresses, setSavedAddresses] = useState([])
@@ -149,7 +159,7 @@ export default function CheckoutPage() {
     }, [state, subtotal])
 
     const selectedShippingOption = availableShipping.find(s => s.id === shippingMethod)
-    const shipping = selectedShippingOption ? selectedShippingOption.price : (subtotal >= 299 ? 0 : 19.90)
+    const shipping = deliveryType === 'pickup' ? 0 : (selectedShippingOption ? selectedShippingOption.price : (subtotal >= 299 ? 0 : 19.90))
     
     // Calculate subtotal of non-kit items (Kits already have special factory discount)
     const nonKitSubtotal = cart
@@ -285,7 +295,16 @@ export default function CheckoutPage() {
             customerEmail: email.trim().toLowerCase(),
             customerPhone: phone,
             customerCpf: cpf,
-            shippingAddress: {
+            shippingAddress: deliveryType === 'pickup' ? {
+                cep: '75195-000',
+                street: 'Avenida Alfredo Nasser, Qd. 14, Lt. 05',
+                number: 'S/N',
+                complement: 'Loja Física Meraki (Retirada na Loja)',
+                neighborhood: 'Centro',
+                city: 'Bonfinópolis',
+                state: 'GO',
+                isPickup: true
+            } : {
                 cep,
                 street,
                 number,
@@ -294,13 +313,18 @@ export default function CheckoutPage() {
                 city,
                 state
             },
+            shippingMethod: deliveryType === 'pickup' ? 'Retirada na Loja (Grátis)' : (selectedShippingOption ? (selectedShippingOption.name || selectedShippingOption.label) : 'PAC (Correios)'),
+            deliveryType,
             items: cart.map(item => ({
                 id: item.id,
                 name: item.name,
                 price: item.price,
                 quantity: item.quantity,
                 size: item.size,
-                image: item.image
+                color: item.color || '',
+                image: item.image,
+                isKit: Boolean(item.isKit),
+                kitName: item.kitName || ''
             })),
             paymentMethod,
             subtotal,
@@ -462,169 +486,238 @@ export default function CheckoutPage() {
                             </div>
                         </div>
 
-                        {/* Shipping Address */}
+                        {/* Shipping & Delivery Modality */}
                         <div className="bg-white rounded-2xl p-6 md:p-8 border border-gray-100 shadow-sm space-y-4">
                             <h2 className="!font-sans text-base font-semibold text-[#1A1A1A] flex items-center gap-2.5 border-b border-gray-100 pb-3 antialiased">
                                 <span className="w-5.5 h-5.5 rounded-full bg-[#7A3E4A] text-white flex items-center justify-center text-[11px] font-bold font-sans antialiased">2</span>
-                                Endereço de Entrega
+                                Modalidade de Envio / Entrega
                             </h2>
 
-                            {/* Address Selector */}
-                            {user && savedAddresses.length > 0 && (
-                                <div className="space-y-3 mb-6 pb-4 border-b border-gray-100">
-                                    <label className="text-xs text-gray-500 font-semibold">Selecione o Endereço de Entrega:</label>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                        {savedAddresses.map(addr => (
-                                            <button
-                                                key={addr.id}
-                                                type="button"
-                                                onClick={() => handleSelectAddress(addr.id)}
-                                                className={`text-left p-3.5 border transition-all rounded-xl cursor-pointer ${
-                                                    selectedAddressId === addr.id
-                                                        ? 'border-[#C6A76A] bg-[#FDF8F6] ring-1 ring-[#C6A76A]/20 shadow-xs'
-                                                        : 'border-gray-200 hover:border-gray-300 bg-white'
-                                                }`}
-                                            >
-                                                <div className="flex items-center justify-between mb-1.5">
-                                                    <span className="text-[11px] font-bold text-[#C6A76A] uppercase tracking-wider">{addr.label}</span>
-                                                    {selectedAddressId === addr.id && (
-                                                        <span className="w-2.5 h-2.5 rounded-full bg-[#C6A76A]"></span>
-                                                    )}
-                                                </div>
-                                                <div className="font-sans not-italic text-[11px] font-semibold text-gray-800 truncate">{addr.street}, {addr.number}</div>
-                                                <div className="font-sans not-italic text-[10px] text-gray-500 truncate">{addr.neighborhood} - {addr.city}/{addr.state}</div>
-                                            </button>
-                                        ))}
-                                        <button
-                                            type="button"
-                                            onClick={() => handleSelectAddress('new')}
-                                            className={`text-center p-3.5 border border-dashed transition-all rounded-xl flex flex-col items-center justify-center min-h-[90px] cursor-pointer ${
-                                                selectedAddressId === 'new'
-                                                    ? 'border-[#C6A76A] bg-[#FDF8F6]'
-                                                    : 'border-gray-300 hover:border-gray-400 bg-white'
-                                            }`}
-                                        >
-                                            <span className="text-xs font-bold text-gray-600">+ Adicionar Novo</span>
-                                            <span className="text-[10px] text-gray-400 mt-1">Entregar em outro endereço</span>
-                                        </button>
+                            {/* Delivery Type Selector */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setDeliveryType('delivery')
+                                        setShippingMethod('pac')
+                                    }}
+                                    className={`p-4 border rounded-2xl flex items-center gap-3 transition-all text-left cursor-pointer ${
+                                        deliveryType === 'delivery'
+                                            ? 'border-[#7A3E4A] bg-[#FDF8F6] text-[#7A3E4A] ring-2 ring-[#7A3E4A]/10 font-bold shadow-xs'
+                                            : 'border-gray-200 bg-white hover:border-gray-300 text-gray-600 font-semibold'
+                                    }`}
+                                >
+                                    <span className="text-xl">🚚</span>
+                                    <div>
+                                        <div className="text-xs">Entrega no Endereço</div>
+                                        <div className="text-[10px] text-gray-400 font-normal">Via Correios (PAC / SEDEX)</div>
                                     </div>
-                                </div>
-                            )}
+                                </button>
 
-                            {/* Label for new address */}
-                            {user && selectedAddressId === 'new' && (
-                                <div className="flex flex-col mb-4">
-                                    <label className="text-xs text-gray-500 font-semibold mb-1">Identificação do Endereço (ex: Trabalho, Casa 2, etc.):</label>
-                                    <input 
-                                        type="text" 
-                                        required 
-                                        placeholder="Ex: Trabalho, Casa, etc."
-                                        value={addressLabel} 
-                                        onChange={(e) => setAddressLabel(e.target.value)}
-                                        className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:bg-white focus:border-[#7A3E4A] transition-all" 
-                                    />
-                                </div>
-                            )}
-
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                <div className="flex flex-col">
-                                    <label className="text-xs text-gray-500 font-semibold mb-1">CEP</label>
-                                    <input 
-                                        type="text" 
-                                        required 
-                                        placeholder="00000-000"
-                                        value={cep} 
-                                        onChange={handleCepChange}
-                                        className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:bg-white focus:border-[#7A3E4A] transition-all" 
-                                    />
-                                </div>
-                                <div className="flex flex-col sm:col-span-2">
-                                    <label className="text-xs text-gray-500 font-semibold mb-1">Rua / Avenida</label>
-                                    <input 
-                                        type="text" 
-                                        required 
-                                        value={street} 
-                                        onChange={(e) => setStreet(e.target.value)}
-                                        className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:bg-white focus:border-[#7A3E4A] transition-all" 
-                                    />
-                                </div>
-                                <div className="flex flex-col">
-                                    <label className="text-xs text-gray-500 font-semibold mb-1">Número</label>
-                                    <input 
-                                        type="text" 
-                                        required 
-                                        value={number} 
-                                        onChange={(e) => setNumber(e.target.value)}
-                                        className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:bg-white focus:border-[#7A3E4A] transition-all" 
-                                    />
-                                </div>
-                                <div className="flex flex-col">
-                                    <label className="text-xs text-gray-500 font-semibold mb-1">Complemento</label>
-                                    <input 
-                                        type="text" 
-                                        value={complement} 
-                                        onChange={(e) => setComplement(e.target.value)}
-                                        className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:bg-white focus:border-[#7A3E4A] transition-all" 
-                                    />
-                                </div>
-                                <div className="flex flex-col">
-                                    <label className="text-xs text-gray-500 font-semibold mb-1">Bairro</label>
-                                    <input 
-                                        type="text" 
-                                        required 
-                                        value={neighborhood} 
-                                        onChange={(e) => setNeighborhood(e.target.value)}
-                                        className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:bg-white focus:border-[#7A3E4A] transition-all" 
-                                    />
-                                </div>
-                                <div className="flex flex-col sm:col-span-2">
-                                    <label className="text-xs text-gray-500 font-semibold mb-1">Cidade</label>
-                                    <input 
-                                        type="text" 
-                                        required 
-                                        value={city} 
-                                        onChange={(e) => setCity(e.target.value)}
-                                        className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:bg-white focus:border-[#7A3E4A] transition-all" 
-                                    />
-                                </div>
-                                <div className="flex flex-col">
-                                    <label className="text-xs text-gray-500 font-semibold mb-1">Estado</label>
-                                    <input 
-                                        type="text" 
-                                        required 
-                                        value={state} 
-                                        onChange={(e) => setState(e.target.value)}
-                                        className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:bg-white focus:border-[#7A3E4A] transition-all" 
-                                    />
-                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setDeliveryType('pickup')
+                                        setShippingMethod('pickup')
+                                    }}
+                                    className={`p-4 border rounded-2xl flex items-center justify-between transition-all text-left cursor-pointer ${
+                                        deliveryType === 'pickup'
+                                            ? 'border-[#7A3E4A] bg-[#FDF8F6] text-[#7A3E4A] ring-2 ring-[#7A3E4A]/10 font-bold shadow-xs'
+                                            : 'border-gray-200 bg-white hover:border-gray-300 text-gray-600 font-semibold'
+                                    }`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-xl">🏪</span>
+                                        <div>
+                                            <div className="text-xs">Retirada na Loja</div>
+                                            <div className="text-[10px] text-gray-400 font-normal">Bonfinópolis - GO</div>
+                                        </div>
+                                    </div>
+                                    <span className="text-[10px] font-black text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full uppercase">
+                                        Grátis
+                                    </span>
+                                </button>
                             </div>
 
-                            {availableShipping.length > 0 && (
-                                <div className="mt-6 pt-6 border-t border-gray-100 animate-[fadeIn_200ms_ease-out]">
-                                    <label className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-3 block">Opções de Envio</label>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                        {availableShipping.map(option => (
-                                            <button
-                                                key={option.id}
-                                                type="button"
-                                                onClick={() => setShippingMethod(option.id)}
-                                                className={`p-4 border rounded-2xl flex items-center justify-between transition-all text-left cursor-pointer ${
-                                                    shippingMethod === option.id
-                                                        ? 'border-[#7A3E4A] bg-[#FDF8F6] text-[#7A3E4A] ring-2 ring-[#7A3E4A]/5'
-                                                        : 'border-gray-200 bg-white hover:border-gray-300 text-gray-600'
-                                                }`}
-                                            >
-                                                <div>
-                                                    <div className="font-sans not-italic text-xs font-bold">{option.label}</div>
-                                                    <div className="font-sans not-italic text-[10px] text-gray-400 font-medium mt-0.5">Prazo: {option.days}</div>
-                                                </div>
-                                                <span className="text-sm font-black">
-                                                    {option.price === 0 ? 'Grátis' : formatCurrency(option.price)}
-                                                </span>
-                                            </button>
-                                        ))}
+                            {/* Store Pickup Card View */}
+                            {deliveryType === 'pickup' ? (
+                                <div className="bg-emerald-50/80 border border-emerald-200 p-5 rounded-2xl space-y-3 animate-[fadeIn_200ms_ease-out]">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-xs font-extrabold text-emerald-800 uppercase tracking-wider flex items-center gap-1.5">
+                                            <span>📍</span> Loja Física para Retirada
+                                        </span>
+                                        <span className="text-[10px] font-extrabold text-emerald-800 bg-emerald-100 px-2.5 py-1 rounded-full">
+                                            FRETE R$ 0,00
+                                        </span>
+                                    </div>
+                                    <p className="text-xs text-emerald-900 font-bold leading-relaxed">
+                                        Meraki Moda Feminina — Avenida Alfredo Nasser, Qd. 14, Lt. 05 - Centro, Bonfinópolis - GO, CEP: 75195-000
+                                    </p>
+                                    <div className="pt-2 border-t border-emerald-200/60 text-[11px] text-emerald-800 space-y-1 font-medium">
+                                        <p>⏱️ <strong>Prazo de Retirada:</strong> Pronto em até 1 dia útil após a confirmação do pagamento.</p>
+                                        <p>📄 <strong>Requisitos:</strong> Apresentar documento de identificação com foto e o número do pedido.</p>
                                     </div>
                                 </div>
+                            ) : (
+                                <>
+                                    {/* Address Selector */}
+                                    {user && savedAddresses.length > 0 && (
+                                        <div className="space-y-3 mb-6 pb-4 border-b border-gray-100">
+                                            <label className="text-xs text-gray-500 font-semibold">Selecione o Endereço de Entrega:</label>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                {savedAddresses.map(addr => (
+                                                    <button
+                                                        key={addr.id}
+                                                        type="button"
+                                                        onClick={() => handleSelectAddress(addr.id)}
+                                                        className={`text-left p-3.5 border transition-all rounded-xl cursor-pointer ${
+                                                            selectedAddressId === addr.id
+                                                                ? 'border-[#C6A76A] bg-[#FDF8F6] ring-1 ring-[#C6A76A]/20 shadow-xs'
+                                                                : 'border-gray-200 hover:border-gray-300 bg-white'
+                                                        }`}
+                                                    >
+                                                        <div className="flex items-center justify-between mb-1.5">
+                                                            <span className="text-[11px] font-bold text-[#C6A76A] uppercase tracking-wider">{addr.label}</span>
+                                                            {selectedAddressId === addr.id && (
+                                                                <span className="w-2.5 h-2.5 rounded-full bg-[#C6A76A]"></span>
+                                                            )}
+                                                        </div>
+                                                        <div className="font-sans not-italic text-[11px] font-semibold text-gray-800 truncate">{addr.street}, {addr.number}</div>
+                                                        <div className="font-sans not-italic text-[10px] text-gray-500 truncate">{addr.neighborhood} - {addr.city}/{addr.state}</div>
+                                                    </button>
+                                                ))}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleSelectAddress('new')}
+                                                    className={`text-center p-3.5 border border-dashed transition-all rounded-xl flex flex-col items-center justify-center min-h-[90px] cursor-pointer ${
+                                                        selectedAddressId === 'new'
+                                                            ? 'border-[#C6A76A] bg-[#FDF8F6]'
+                                                            : 'border-gray-300 hover:border-gray-400 bg-white'
+                                                    }`}
+                                                >
+                                                    <span className="text-xs font-bold text-gray-600">+ Adicionar Novo</span>
+                                                    <span className="text-[10px] text-gray-400 mt-1">Entregar em outro endereço</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Label for new address */}
+                                    {user && selectedAddressId === 'new' && (
+                                        <div className="flex flex-col mb-4">
+                                            <label className="text-xs text-gray-500 font-semibold mb-1">Identificação do Endereço (ex: Trabalho, Casa 2, etc.):</label>
+                                            <input 
+                                                type="text" 
+                                                required 
+                                                placeholder="Ex: Trabalho, Casa, etc."
+                                                value={addressLabel} 
+                                                onChange={(e) => setAddressLabel(e.target.value)}
+                                                className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:bg-white focus:border-[#7A3E4A] transition-all" 
+                                            />
+                                        </div>
+                                    )}
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                        <div className="flex flex-col">
+                                            <label className="text-xs text-gray-500 font-semibold mb-1">CEP</label>
+                                            <input 
+                                                type="text" 
+                                                required={deliveryType === 'delivery'} 
+                                                placeholder="00000-000"
+                                                value={cep} 
+                                                onChange={handleCepChange}
+                                                className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:bg-white focus:border-[#7A3E4A] transition-all" 
+                                            />
+                                        </div>
+                                        <div className="flex flex-col sm:col-span-2">
+                                            <label className="text-xs text-gray-500 font-semibold mb-1">Rua / Avenida</label>
+                                            <input 
+                                                type="text" 
+                                                required={deliveryType === 'delivery'} 
+                                                value={street} 
+                                                onChange={(e) => setStreet(e.target.value)}
+                                                className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:bg-white focus:border-[#7A3E4A] transition-all" 
+                                            />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <label className="text-xs text-gray-500 font-semibold mb-1">Número</label>
+                                            <input 
+                                                type="text" 
+                                                required={deliveryType === 'delivery'} 
+                                                value={number} 
+                                                onChange={(e) => setNumber(e.target.value)}
+                                                className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:bg-white focus:border-[#7A3E4A] transition-all" 
+                                            />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <label className="text-xs text-gray-500 font-semibold mb-1">Complemento</label>
+                                            <input 
+                                                type="text" 
+                                                value={complement} 
+                                                onChange={(e) => setComplement(e.target.value)}
+                                                className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:bg-white focus:border-[#7A3E4A] transition-all" 
+                                            />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <label className="text-xs text-gray-500 font-semibold mb-1">Bairro</label>
+                                            <input 
+                                                type="text" 
+                                                required={deliveryType === 'delivery'} 
+                                                value={neighborhood} 
+                                                onChange={(e) => setNeighborhood(e.target.value)}
+                                                className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:bg-white focus:border-[#7A3E4A] transition-all" 
+                                            />
+                                        </div>
+                                        <div className="flex flex-col sm:col-span-2">
+                                            <label className="text-xs text-gray-500 font-semibold mb-1">Cidade</label>
+                                            <input 
+                                                type="text" 
+                                                required={deliveryType === 'delivery'} 
+                                                value={city} 
+                                                onChange={(e) => setCity(e.target.value)}
+                                                className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:bg-white focus:border-[#7A3E4A] transition-all" 
+                                            />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <label className="text-xs text-gray-500 font-semibold mb-1">Estado</label>
+                                            <input 
+                                                type="text" 
+                                                required={deliveryType === 'delivery'} 
+                                                value={state} 
+                                                onChange={(e) => setState(e.target.value)}
+                                                className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:bg-white focus:border-[#7A3E4A] transition-all" 
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {availableShipping.length > 0 && (
+                                        <div className="mt-6 pt-6 border-t border-gray-100 animate-[fadeIn_200ms_ease-out]">
+                                            <label className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-3 block">Opções de Envio</label>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                {availableShipping.map(option => (
+                                                    <button
+                                                        key={option.id}
+                                                        type="button"
+                                                        onClick={() => setShippingMethod(option.id)}
+                                                        className={`p-4 border rounded-2xl flex items-center justify-between transition-all text-left cursor-pointer ${
+                                                            shippingMethod === option.id
+                                                                ? 'border-[#7A3E4A] bg-[#FDF8F6] text-[#7A3E4A] ring-2 ring-[#7A3E4A]/5'
+                                                                : 'border-gray-200 bg-white hover:border-gray-300 text-gray-600'
+                                                        }`}
+                                                    >
+                                                        <div>
+                                                            <div className="font-sans not-italic text-xs font-bold">{option.label}</div>
+                                                            <div className="font-sans not-italic text-[10px] text-gray-400 font-medium mt-0.5">Prazo: {option.days}</div>
+                                                        </div>
+                                                        <span className="text-sm font-black">
+                                                            {option.price === 0 ? 'Grátis' : formatCurrency(option.price)}
+                                                        </span>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </>
                             )}
                         </div>
 

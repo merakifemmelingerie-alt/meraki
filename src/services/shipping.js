@@ -24,6 +24,16 @@ export async function fetchAddressByCep(cep) {
     }
 }
 
+export const STORE_PICKUP_OPTION = {
+    id: 'pickup',
+    name: 'Retirada na Loja Física',
+    label: 'Retirada na Loja (Grátis)',
+    price: 0,
+    days: 'Pronto em até 1 dia útil',
+    formattedPrice: 'GRÁTIS',
+    address: 'Avenida Alfredo Nasser, Qd. 14, Lt. 05 - Centro, Bonfinópolis - GO, CEP: 75195-000'
+}
+
 /**
  * Calculates shipping options based on customer state & subtotal
  */
@@ -83,15 +93,17 @@ export function calculateShippingOptions(uf, subtotal = 0) {
         {
             id: 'pac',
             name: isFreeShippingEligible ? 'Frete Grátis (PAC)' : 'Entrega Normal (PAC)',
+            label: isFreeShippingEligible ? 'Frete Grátis (PAC)' : 'PAC (Correios)',
             price: pacPrice,
-            days: pacDays,
+            days: isFreeShippingEligible ? '3 a 5 dias úteis' : `${pacDays} a ${pacDays + 3} dias úteis`,
             formattedPrice: pacPrice === 0 ? 'GRÁTIS' : `R$ ${pacPrice.toFixed(2).replace('.', ',')}`
         },
         {
             id: 'sedex',
             name: 'Entrega Expressa (SEDEX)',
+            label: 'SEDEX (Expresso)',
             price: sedexPrice,
-            days: sedexDays,
+            days: `${sedexDays} a ${sedexDays + 2} dias úteis`,
             formattedPrice: `R$ ${sedexPrice.toFixed(2).replace('.', ',')}`
         }
     ]

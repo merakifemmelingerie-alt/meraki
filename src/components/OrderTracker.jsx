@@ -339,15 +339,22 @@ export default function OrderTracker({ order, onCopyPix, pixCopied }) {
                         </div>
                     </div>
 
-                    {/* Delivery Address Card */}
+                    {/* Delivery Address / Pickup Card */}
                     {order.shippingAddress && (
                         <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-3">
-                            <h3 className="text-sm font-black text-gray-900 uppercase tracking-wider border-b border-gray-100 pb-3 flex items-center gap-2">
-                                <svg className="w-4 h-4 text-[#7A3E4A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                </svg>
-                                Endereço de Entrega
+                            <h3 className="text-sm font-black text-gray-900 uppercase tracking-wider border-b border-gray-100 pb-3 flex items-center justify-between">
+                                <span className="flex items-center gap-2">
+                                    <svg className="w-4 h-4 text-[#7A3E4A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                    {order.shippingAddress.isPickup || order.deliveryType === 'pickup' ? 'Local de Retirada' : 'Endereço de Entrega'}
+                                </span>
+                                {(order.shippingAddress.isPickup || order.deliveryType === 'pickup') && (
+                                    <span className="text-[10px] font-black text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full">
+                                        RETIRADA NA LOJA
+                                    </span>
+                                )}
                             </h3>
                             <div className="text-xs text-gray-600 space-y-1">
                                 <p className="font-bold text-gray-900">{order.customerName}</p>
@@ -355,6 +362,12 @@ export default function OrderTracker({ order, onCopyPix, pixCopied }) {
                                 <p>{order.shippingAddress.neighborhood} — {order.shippingAddress.city}/{order.shippingAddress.state}</p>
                                 <p className="font-mono text-gray-500">CEP: {order.shippingAddress.cep}</p>
                             </div>
+                            {(order.shippingAddress.isPickup || order.deliveryType === 'pickup') && (
+                                <div className="mt-3 bg-emerald-50 border border-emerald-200 p-3 rounded-xl text-[11px] text-emerald-900 space-y-0.5">
+                                    <p className="font-bold">📍 Meraki Moda Feminina - Loja Física</p>
+                                    <p>Retirada disponível em até 1 dia útil após a aprovação do pagamento. Apresentar documento com foto ou número do pedido.</p>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>
