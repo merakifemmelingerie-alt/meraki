@@ -181,6 +181,7 @@ export default function AdminPage() {
 
     const [selectedModalColors, setSelectedModalColors] = useState([])
     const [modalColorStock, setModalColorStock] = useState({})
+    const [modalVariantStock, setModalVariantStock] = useState({})
     const [isCustomizable, setIsCustomizable] = useState(false)
     const [customPriceWith, setCustomPriceWith] = useState('')
     const [customPriceWithout, setCustomPriceWithout] = useState('')
@@ -504,6 +505,10 @@ export default function AdminPage() {
             const parsedColorStock = typeof rawColorStock === 'string' ? (JSON.parse(rawColorStock) || {}) : (rawColorStock || {})
             setModalColorStock(parsedColorStock)
 
+            const rawVariantStock = product?.variantStock || product?.variant_stock || {}
+            const parsedVariantStock = typeof rawVariantStock === 'string' ? (JSON.parse(rawVariantStock) || {}) : (rawVariantStock || {})
+            setModalVariantStock(parsedVariantStock)
+
             // Badge: se o produto já tem badge que não está na lista, adiciona
             const prodBadge = product?.badge || ''
             setSelectedModalBadge(prodBadge)
@@ -537,6 +542,7 @@ export default function AdminPage() {
             setSelectedModalSection(sections[0]?.id || 'best-sellers')
             setSelectedModalColors([])
             setModalColorStock({})
+            setModalVariantStock({})
             setSelectedModalBadge('')
             setIsCustomizable(false)
             setCustomPriceWith('')
@@ -715,15 +721,41 @@ export default function AdminPage() {
         }
         const allImages = [...existingImages, ...uploadedUrls].filter(Boolean)
 
-        // Calculate total stock from selected colors stock
+        // Calculate size+color variant stock matrix
+        const cleanedVariantStock = {}
+        let totalVariantStockSum = 0
+        const hasVariantMatrix = selectedModalSizes.length > 0 && selectedModalColors.length > 0
+
+        if (hasVariantMatrix) {
+            selectedModalSizes.forEach(s => {
+                selectedModalColors.forEach(c => {
+                    const key = `${s}_${c}`
+                    const qty = parseInt(modalVariantStock[key]) || 0
+                    cleanedVariantStock[key] = qty
+                    totalVariantStockSum += qty
+                })
+            })
+        }
+
+        // Calculate fallback color stock
         const cleanedColorStock = {}
         let totalColorStockSum = 0
         selectedModalColors.forEach(c => {
-            const qty = parseInt(modalColorStock[c]) || 0
-            cleanedColorStock[c] = qty
-            totalColorStockSum += qty
+            let colorSum = 0
+            if (hasVariantMatrix) {
+                selectedModalSizes.forEach(s => {
+                    colorSum += (parseInt(modalVariantStock[`${s}_${c}`]) || 0)
+                })
+            } else {
+                colorSum = parseInt(modalColorStock[c]) || 0
+            }
+            cleanedColorStock[c] = colorSum
+            totalColorStockSum += colorSum
         })
-        const finalStock = selectedModalColors.length > 0 ? totalColorStockSum : (parseInt(form.pStock.value) || 0)
+
+        const finalStock = hasVariantMatrix 
+            ? totalVariantStockSum 
+            : (selectedModalColors.length > 0 ? totalColorStockSum : (parseInt(form.pStock.value) || 0))
 
         const productData = {
             name: form.pName.value, category: selectedModalCategory,
@@ -734,6 +766,8 @@ export default function AdminPage() {
             colors: selectedModalColors,
             color_stock: cleanedColorStock,
             colorStock: cleanedColorStock,
+            variant_stock: cleanedVariantStock,
+            variantStock: cleanedVariantStock,
             inPromoCombo: form.pInPromoCombo?.checked || false,
             isCustomizable: isCustomizable || selectedModalCategory?.toLowerCase() === 'personalizaveis' || selectedModalCategory?.toLowerCase() === 'personalizáveis',
             customPriceWith: parseFloat(form.pCustomPriceWith?.value || '0') || 0,
@@ -1950,8 +1984,69 @@ export default function AdminPage() {
                                     </div>
                                 </div>
 
-                                {/* Seção de Estoque por Cor Selecionada */}
-                                {selectedModalColors.length > 0 && (
+                                {/* Seção de Estoque por Tamanho e Cor (Matriz de Variações) */}
+                                {selectedModalSizes.length > 0 && selectedModalColors.length > 0 ? (
+                                    <div className="p-4 bg-[#FAF9F5] rounded-xl border border-[#7A3E4A]/30 space-y-3 animate-[fadeIn_200ms_ease-out]">
+                                        <div className="flex items-center justify-between border-b border-gray-200/80 pb-2">
+                                            <label className="text-xs font-extrabold text-[#7A3E4A] uppercase tracking-wider flex items-center gap-1.5">
+                                                <span>📦</span> Estoque por Tamanho e Cor
+                                            </label>
+                                            <span className="text-[10px] text-gray-500 font-medium">
+                                                Defina o estoque exato para cada combinação
+                                            </span>
+                                        </div>
+
+                                        <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
+                                            {selectedModalSizes.map(size => (
+                                                <div key={size} className="bg-white p-3 rounded-xl border border-gray-200 shadow-2xs space-y-2">
+                                                    <div className="flex items-center gap-2 border-b border-gray-100 pb-1.5">
+                                                        <span className="px-2 py-0.5 bg-[#7A3E4A] text-white text-[10px] font-black rounded-md uppercase">
+                                                            Tamanho {size}
+                                                        </span>
+                                                    </div>
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                                                        {selectedModalColors.map(color => {
+                                                            const hex = colorHexMap[color] || '#CCCCCC'
+                                                            const key = `${size}_${color}`
+                                                            const qty = modalVariantStock[key] !== undefined ? modalVariantStock[key] : ''
+                                                            return (
+                                                                <div key={key} className="flex items-center justify-between bg-gray-50/80 p-2 rounded-lg border border-gray-200/80">
+                                                                    <div className="flex items-center gap-1.5 min-w-0 pr-1">
+                                                                        <span className="w-3 h-3 rounded-full border border-gray-300 shrink-0" style={{ backgroundColor: hex }} />
+                                                                        <span className="text-[11px] font-bold text-gray-800 truncate">{color}</span>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-1 shrink-0">
+                                                                        <input
+                                                                            type="number"
+                                                                            min="0"
+                                                                            placeholder="0"
+                                                                            value={qty}
+                                                                            onChange={(e) => {
+                                                                                const val = Math.max(0, parseInt(e.target.value) || 0)
+                                                                                setModalVariantStock(prev => ({ ...prev, [key]: val }))
+                                                                            }}
+                                                                            className="w-14 px-1.5 py-0.5 border border-gray-300 rounded-md text-xs font-bold text-center outline-none focus:border-[#7A3E4A] bg-white"
+                                                                        />
+                                                                        <span className="text-[9px] text-gray-400 font-semibold">un.</span>
+                                                                    </div>
+                                                                </div>
+                                                            )
+                                                        })}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        <div className="flex items-center justify-between pt-2 border-t border-gray-200/60 text-xs">
+                                            <span className="text-gray-500 font-medium">Estoque Total Combinado:</span>
+                                            <span className="font-extrabold text-[#7A3E4A] text-sm">
+                                                {selectedModalSizes.reduce((totalSum, s) => {
+                                                    return totalSum + selectedModalColors.reduce((cSum, c) => cSum + (parseInt(modalVariantStock[`${s}_${c}`]) || 0), 0)
+                                                }, 0)} unidades
+                                            </span>
+                                        </div>
+                                    </div>
+                                ) : selectedModalColors.length > 0 ? (
                                     <div className="p-4 bg-[#FAF9F5] rounded-xl border border-[#C6A76A]/40 space-y-3 animate-[fadeIn_200ms_ease-out]">
                                         <div className="flex items-center justify-between">
                                             <label className="text-xs font-extrabold text-gray-800 uppercase tracking-wider flex items-center gap-1.5">
@@ -1998,7 +2093,7 @@ export default function AdminPage() {
                                             </span>
                                         </div>
                                     </div>
-                                )}
+                                ) : null}
 
                                 <div className="p-4 bg-[#FAF9F5] rounded-xl border border-[#EEEEEE] space-y-4">
                                     <label className="flex items-center gap-2.5 cursor-pointer">

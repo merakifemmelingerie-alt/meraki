@@ -16,7 +16,7 @@ const TABLE_COLUMNS = {
     products: [
         'id', 'name', 'category', 'subcategory', 'price', 'original_price', 'image', 'badge', 'section', 'sizes', 'description', 'stock', 'created_at',
         'colors', 'inpromocombo', 'iscustomizable', 'custompricewith', 'custompricewithout', 'customfeeletter', 'customfeenumber', 'customfeeemoji', 'customizable_emojis',
-        'has_kits', 'kit_options', 'color_stock'
+        'has_kits', 'kit_options', 'color_stock', 'variant_stock'
     ],
     store_config: [
         'id', 'whatsapp', 'sac_phone', 'address', 'cnpj', 'razao_social', 'origin_cep', 'meta_pixel_id', 'ga_tracking_id', 'infinitepay_handle', 'pix_key',
@@ -128,6 +128,16 @@ export function mapDbToFrontend(table, item) {
             }
         }
         mapped.colorStock = (parsedColorStock && typeof parsedColorStock === 'object') ? parsedColorStock : {}
+
+        let parsedVariantStock = item.variant_stock || item.variantStock || item.variantstock
+        if (parsedVariantStock && typeof parsedVariantStock === 'string') {
+            try {
+                parsedVariantStock = JSON.parse(parsedVariantStock)
+            } catch {
+                parsedVariantStock = {}
+            }
+        }
+        mapped.variantStock = (parsedVariantStock && typeof parsedVariantStock === 'object') ? parsedVariantStock : {}
         
         // Normaliza colors e sizes do banco de dados (PG text array ou string delimitada por vírgula)
         if (item.colors) {

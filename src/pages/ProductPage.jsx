@@ -471,9 +471,16 @@ export default function ProductPage() {
                                             else if (lower.includes('bordô') || lower.includes('bordo')) hex = '#800020'
                                         }
 
+                                        const variantStockMap = product.variantStock || product.variant_stock || {}
                                         const colorStockMap = product.colorStock || product.color_stock || {}
-                                        const colorQty = colorStockMap[color]
-                                        const isOut = colorQty !== undefined && parseInt(colorQty) <= 0
+
+                                        let colorQty
+                                        if (selectedSize && variantStockMap[`${selectedSize}_${color}`] !== undefined) {
+                                            colorQty = parseInt(variantStockMap[`${selectedSize}_${color}`])
+                                        } else {
+                                            colorQty = colorStockMap[color] !== undefined ? parseInt(colorStockMap[color]) : undefined
+                                        }
+                                        const isOut = colorQty !== undefined && colorQty <= 0
 
                                         return (
                                             <button
@@ -517,10 +524,21 @@ export default function ProductPage() {
 
                         {/* Stock Banner */}
                         {(() => {
+                            const variantStockMap = product.variantStock || product.variant_stock || {}
                             const colorStockMap = product.colorStock || product.color_stock || {}
-                            const currentStock = selectedColor && colorStockMap[selectedColor] !== undefined
-                                ? parseInt(colorStockMap[selectedColor])
-                                : (product.stock !== undefined ? parseInt(product.stock) : undefined)
+
+                            let currentStock
+                            let stockLabel = ''
+
+                            if (selectedSize && selectedColor && variantStockMap[`${selectedSize}_${selectedColor}`] !== undefined) {
+                                currentStock = parseInt(variantStockMap[`${selectedSize}_${selectedColor}`])
+                                stockLabel = `Tamanho ${selectedSize} / Cor ${selectedColor}`
+                            } else if (selectedColor && colorStockMap[selectedColor] !== undefined) {
+                                currentStock = parseInt(colorStockMap[selectedColor])
+                                stockLabel = `Cor ${selectedColor}`
+                            } else {
+                                currentStock = product.stock !== undefined ? parseInt(product.stock) : undefined
+                            }
 
                             if (currentStock === undefined) return null
 
@@ -537,9 +555,9 @@ export default function ProductPage() {
                                     </svg>
                                     <span>
                                         {currentStock === 0 
-                                            ? (selectedColor ? `A cor ${selectedColor} está esgotada no momento.` : 'Produto esgotado no momento.')
-                                            : selectedColor
-                                                ? `Estoque da cor ${selectedColor}: apenas ${currentStock} unidade${currentStock > 1 ? 's' : ''} disponível${currentStock > 1 ? 'is' : ''}!`
+                                            ? (stockLabel ? `A variação ${stockLabel} está esgotada no momento.` : 'Produto esgotado no momento.')
+                                            : stockLabel
+                                                ? `Estoque para ${stockLabel}: apenas ${currentStock} unidade${currentStock > 1 ? 's' : ''} disponível${currentStock > 1 ? 'is' : ''}!`
                                                 : `Restam apenas ${currentStock} unidade${currentStock > 1 ? 's' : ''} em estoque!`
                                         }
                                     </span>
@@ -555,18 +573,43 @@ export default function ProductPage() {
                                     {errorMsg && <span className="text-red-500 text-xs font-bold animate-[pulse_1.5s_infinite]">{errorMsg}</span>}
                                 </div>
                                 <div className="flex flex-wrap gap-2.5">
-                                    {sizes.map(size => (
-                                        <button
-                                            key={size}
-                                            onClick={() => {
-                                                setSelectedSize(size)
-                                                setErrorMsg('')
-                                            }}
-                                            className={`w-12 h-12 rounded-full border text-xs uppercase font-extrabold flex items-center justify-center transition-all ${selectedSize === size ? 'border-[#7A3E4A] text-[#7A3E4A] border-2 bg-transparent scale-105 shadow-xs' : 'border-gray-300 text-gray-650 hover:border-gray-450 bg-white'}`}
-                                        >
-                                            {size}
-                                        </button>
-                                    ))}
+                                    {sizes.map(size => {
+                                        const variantStockMap = product.variantStock || product.variant_stock || {}
+                                        let sizeQty
+                                        if (selectedColor && variantStockMap[`${size}_${selectedColor}`] !== undefined) {
+                                            sizeQty = parseInt(variantStockMap[`${size}_${selectedColor}`])
+                                        }
+                                        const isSizeOut = sizeQty !== undefined && sizeQty <= 0
+
+                                        return (
+                                            <button
+                                                key={size}
+                                                disabled={isSizeOut}
+                                                onClick={() => {
+                                                    if (!isSizeOut) {
+                                                        setSelectedSize(size)
+                                                        setErrorMsg('')
+                                                    }
+                                                }}
+                                                className={`px-3 py-2 rounded-xl border text-xs uppercase font-extrabold flex items-center gap-1.5 transition-all ${
+                                                    isSizeOut
+                                                        ? 'opacity-40 line-through border-gray-200 text-gray-400 bg-gray-100 cursor-not-allowed'
+                                                        : selectedSize === size
+                                                            ? 'border-[#7A3E4A] text-[#7A3E4A] border-2 bg-transparent scale-105 shadow-xs cursor-pointer'
+                                                            : 'border-gray-300 text-gray-650 hover:border-gray-450 bg-white cursor-pointer'
+                                                }`}
+                                            >
+                                                <span>{size}</span>
+                                                {sizeQty !== undefined && (
+                                                    <span className={`text-[9px] px-1 py-0.2 rounded-md ${
+                                                        isSizeOut ? 'bg-red-100 text-red-600 no-underline font-normal' : 'bg-gray-100 text-gray-600 font-normal'
+                                                    }`}>
+                                                        {isSizeOut ? 'Esgotado' : `${sizeQty} un.`}
+                                                    </span>
+                                                )}
+                                            </button>
+                                        )
+                                    })}
                                 </div>
                             </div>
                         )}
