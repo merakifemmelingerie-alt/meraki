@@ -376,13 +376,17 @@ export default function CheckoutPage() {
         // Clear cart
         clearCart()
 
-        // Check if customer is from Bonfinópolis (CEP 75195..., 75198..., 75225... or city Bonfinópolis)
-        const cleanCep = (cep || '').replace(/\D/g, '')
-        const normCity = (city || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-        const isBonfinopolis = cleanCep.startsWith('75195') || cleanCep.startsWith('75198') || cleanCep.startsWith('75225') || cleanCep.startsWith('7519') || normCity.includes('bonfinopolis')
-
-        // Redireciona diretamente para a tela de Sucesso / Rastreio & Pagamento PIX no próprio site
-        navigate(`/order-success/${orderId}`)
+        if (paymentMethod === 'card') {
+            const storeConfig = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
+            const handle = storeConfig.infinitepay_handle || storeConfig.infinitepayhandle || 'merakimodafeminina2026'
+            const cents = Math.round((total || 0) * 100)
+            
+            // Redireciona diretamente para a página oficial de checkout da InfinitePay
+            window.location.href = `https://pay.infinitepay.io/${handle}/${cents}`
+        } else {
+            // Se for PIX, gera o QR Code e chave Pix Copia e Cola na tela de Sucesso do site
+            navigate(`/order-success/${orderId}`)
+        }
     }
 
     if (cart.length === 0) {

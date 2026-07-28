@@ -56,13 +56,12 @@ export default function OrderSuccessPage() {
     const [copied, setCopied] = useState(false)
     const [notification, setNotification] = useState({ message: '', visible: false })
     const [showFireworks, setShowFireworks] = useState(false)
-    const [infinitePayModalOpen, setInfinitePayModalOpen] = useState(false)
     const [infinitePayHandle, setInfinitePayHandle] = useState(() => {
         try {
             const config = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
-            return config.infinitepay_handle || 'nicolly_gomes'
+            return config.infinitepay_handle || config.infinitepayhandle || 'merakimodafeminina2026'
         } catch {
-            return 'nicolly_gomes'
+            return 'merakimodafeminina2026'
         }
     })
 
@@ -382,34 +381,6 @@ export default function OrderSuccessPage() {
             <Footer />
             <WhatsAppButton />
             <Notification message={notification.message} visible={notification.visible} onHide={() => setNotification({ message: '', visible: false })} />
-
-            {/* Modal de Pagamento Embutido InfinitePay */}
-            {infinitePayModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-[fadeIn_150ms_ease-out]">
-                    <div className="bg-white rounded-3xl max-w-2xl w-full p-4 sm:p-6 border border-gray-100 shadow-2xl relative space-y-4 animate-[scaleUp_200ms_ease-out]">
-                        <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-                            <div className="flex items-center gap-2">
-                                <span className="text-xs font-black uppercase text-[#7A3E4A]">Pagamento Seguro</span>
-                                <span className="text-[10px] font-bold text-gray-400">| InfinitePay ({infinitePayHandle})</span>
-                            </div>
-                            <button
-                                type="button"
-                                onClick={() => setInfinitePayModalOpen(false)}
-                                className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold flex items-center justify-center cursor-pointer transition-all"
-                            >
-                                ✕
-                            </button>
-                        </div>
-                        <div className="w-full h-[550px] rounded-2xl overflow-hidden border border-gray-200 bg-gray-50 relative">
-                            <iframe
-                                src={`https://pay.infinitepay.io/${infinitePayHandle}?amount=${order.total}&order_id=${order.id}`}
-                                className="w-full h-full border-0"
-                                title="Pagamento InfinitePay"
-                            />
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     )
 }
