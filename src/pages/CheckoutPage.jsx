@@ -393,7 +393,8 @@ export default function CheckoutPage() {
             }
 
             const cleanHandle = String(handle).replace(/^\$/, '').trim() || 'merakimodafeminina2026'
-            const formattedAmount = (total || 0).toFixed(2)
+            const rawTotal = Number(total) || 0
+            const formattedAmount = (rawTotal % 1 === 0) ? Math.round(rawTotal) : rawTotal.toFixed(2)
 
             // Redireciona diretamente para a página oficial de checkout da InfinitePay com a carteira cadastrada e o valor em reais
             window.location.href = `https://pay.infinitepay.io/${cleanHandle}/${formattedAmount}`
