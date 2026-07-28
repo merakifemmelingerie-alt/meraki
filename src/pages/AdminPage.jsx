@@ -180,6 +180,7 @@ export default function AdminPage() {
     const [selectedModalSubcategory, setSelectedModalSubcategory] = useState('')
 
     const [selectedModalColors, setSelectedModalColors] = useState([])
+    const [modalColorStock, setModalColorStock] = useState({})
     const [isCustomizable, setIsCustomizable] = useState(false)
     const [customPriceWith, setCustomPriceWith] = useState('')
     const [customPriceWithout, setCustomPriceWithout] = useState('')
@@ -302,6 +303,53 @@ export default function AdminPage() {
     const saveColorsToConfig = async (newColorsList, newHexMap) => {
         const serialized = newColorsList.map(name => `${name}:${newHexMap[name] || '#CCCCCC'}`).join(',')
         await updateStoreConfig({ available_colors: serialized })
+    }
+
+    const handleDeleteGlobalColor = async (colorToDelete) => {
+        if (!colorToDelete) return
+        const confirmDel = window.confirm(`Tem certeza que deseja excluir a cor "${colorToDelete}" definitivamente do sistema e de todos os produtos?`)
+        if (!confirmDel) return
+
+        const updatedList = colorsList.filter(c => c !== colorToDelete)
+        setColorsList(updatedList)
+
+        const updatedHexMap = { ...colorHexMap }
+        delete updatedHexMap[colorToDelete]
+        setColorHexMap(updatedHexMap)
+
+        await saveColorsToConfig(updatedList, updatedHexMap)
+
+        // Remove color from currently open product modal
+        setSelectedModalColors(prev => prev.filter(c => c !== colorToDelete))
+        setModalColorStock(prev => {
+            const copy = { ...prev }
+            delete copy[colorToDelete]
+            return copy
+        })
+
+        // Remove color from all products in state & database
+        const updatedProducts = products.map(prod => {
+            if (prod.colors && prod.colors.includes(colorToDelete)) {
+                const newColors = prod.colors.filter(c => c !== colorToDelete)
+                const newStock = { ...(prod.colorStock || {}) }
+                delete newStock[colorToDelete]
+
+                // Async update in DB
+                updateProduct(prod.id, {
+                    colors: newColors,
+                    color_stock: newStock
+                }).catch(console.error)
+
+                return {
+                    ...prod,
+                    colors: newColors,
+                    colorStock: newStock,
+                    color_stock: newStock
+                }
+            }
+            return prod
+        })
+        setProducts(updatedProducts)
     }
 
     const saveEmojisToConfig = async (newEmojisList) => {
@@ -451,19 +499,10 @@ export default function AdminPage() {
             setSelectedModalSection(product?.section || 'best-sellers')
             const prodColors = product?.colors || []
             setSelectedModalColors(prodColors)
-            if (prodColors.length > 0) {
-                setColorsList(prev => {
-                    const updated = [...prev]
-                    let changed = false
-                    prodColors.forEach(c => {
-                        if (!updated.includes(c)) {
-                            updated.push(c)
-                            changed = true
-                        }
-                    })
-                    return changed ? updated : prev
-                })
-            }
+            
+            const rawColorStock = product?.colorStock || product?.color_stock || {}
+            const parsedColorStock = typeof rawColorStock === 'string' ? (JSON.parse(rawColorStock) || {}) : (rawColorStock || {})
+            setModalColorStock(parsedColorStock)
 
             // Badge: se o produto já tem badge que não está na lista, adiciona
             const prodBadge = product?.badge || ''
@@ -497,6 +536,7 @@ export default function AdminPage() {
             setSelectedModalSizes(['P', 'M', 'G', 'GG'])
             setSelectedModalSection(sections[0]?.id || 'best-sellers')
             setSelectedModalColors([])
+            setModalColorStock({})
             setSelectedModalBadge('')
             setIsCustomizable(false)
             setCustomPriceWith('')
@@ -674,13 +714,26 @@ export default function AdminPage() {
             uploadedUrls = urls
         }
         const allImages = [...existingImages, ...uploadedUrls].filter(Boolean)
+
+        // Calculate total stock from selected colors stock
+        const cleanedColorStock = {}
+        let totalColorStockSum = 0
+        selectedModalColors.forEach(c => {
+            const qty = parseInt(modalColorStock[c]) || 0
+            cleanedColorStock[c] = qty
+            totalColorStockSum += qty
+        })
+        const finalStock = selectedModalColors.length > 0 ? totalColorStockSum : (parseInt(form.pStock.value) || 0)
+
         const productData = {
             name: form.pName.value, category: selectedModalCategory,
             subcategory: selectedModalSubcategory || '',
             price: parseFloat(form.pPrice.value), original_price: parseFloat(form.pOriginalPrice.value) || 0,
-            stock: parseInt(form.pStock.value) || 0,
+            stock: finalStock,
             badge: form.pBadge.value, section: selectedModalSection, sizes: selectedModalSizes, image: allImages, description: form.pDescription.value,
             colors: selectedModalColors,
+            color_stock: cleanedColorStock,
+            colorStock: cleanedColorStock,
             inPromoCombo: form.pInPromoCombo?.checked || false,
             isCustomizable: isCustomizable || selectedModalCategory?.toLowerCase() === 'personalizaveis' || selectedModalCategory?.toLowerCase() === 'personalizáveis',
             customPriceWith: parseFloat(form.pCustomPriceWith?.value || '0') || 0,
@@ -1776,86 +1829,80 @@ export default function AdminPage() {
                                     </div>
                                 </div>
 
-                                <div>
-                                    <label className={labelCls}>Tamanhos Disponíveis</label>
-                                    <div className="flex flex-wrap gap-1.5 bg-[#FAF9F5] p-3 rounded-xl border border-[#EEEEEE]">
-                                        {['U', 'Único', 'P', 'M', 'G', 'GG', 'EGG', 'XG', '34', '36', '38', '40', '42', '44', '46', '48', '50'].map(size => {
-                                            const isSelected = selectedModalSizes.includes(size)
-                                            return (
-                                                <button
-                                                    key={size}
-                                                    type="button"
-                                                    onClick={() => {
-                                                        if (isSelected) {
-                                                            setSelectedModalSizes(prev => prev.filter(s => s !== size))
-                                                        } else {
-                                                            setSelectedModalSizes(prev => [...prev, size])
-                                                        }
-                                                    }}
-                                                    className={`w-9 h-9 text-xs font-bold rounded-lg border transition-all flex items-center justify-center cursor-pointer ${
-                                                        isSelected
-                                                            ? 'bg-[#C6A76A] text-white border-[#C6A76A] shadow-xs'
-                                                            : 'bg-white text-gray-400 border-[#EEEEEE] hover:bg-gray-150'
-                                                    }`}
-                                                >
-                                                    {size}
-                                                </button>
-                                            )
-                                        })}
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className={labelCls}>Cores Disponíveis</label>
-                                    <div className="flex flex-wrap gap-1.5 bg-[#FAF9F5] p-3 rounded-xl border border-[#EEEEEE]">
-                                        {colorsList.map(color => {
-                                            const isSelected = selectedModalColors.includes(color)
-                                            const hex = colorHexMap[color] || '#CCCCCC'
-                                            return (
-                                                <div 
-                                                    key={color} 
-                                                    className={`inline-flex items-center gap-1 pl-2.5 pr-1.5 py-1 rounded-xl border text-xs font-bold transition-all ${
-                                                        isSelected 
-                                                            ? 'bg-[#C6A76A]/10 text-[#C6A76A] border-[#C6A76A]' 
-                                                            : 'bg-white text-gray-500 border-[#EEEEEE] hover:border-gray-300'
-                                                    }`}
-                                                >
+                                    <div>
+                                        <label className={labelCls}>Tamanhos Disponíveis</label>
+                                        <div className="flex flex-wrap gap-1.5 bg-[#FAF9F5] p-3 rounded-xl border border-[#EEEEEE]">
+                                            {['U', 'Único', 'P', 'M', 'G', 'GG', 'EGG', 'XG', '34', '36', '38', '40', '42', '44', '46', '48', '50'].map(size => {
+                                                const isSelected = selectedModalSizes.includes(size)
+                                                return (
                                                     <button
+                                                        key={size}
                                                         type="button"
                                                         onClick={() => {
                                                             if (isSelected) {
-                                                                setSelectedModalColors(prev => prev.filter(c => c !== color))
+                                                                setSelectedModalSizes(prev => prev.filter(s => s !== size))
                                                             } else {
-                                                                setSelectedModalColors(prev => [...prev, color])
+                                                                setSelectedModalSizes(prev => [...prev, size])
                                                             }
                                                         }}
-                                                        className="flex items-center gap-1.5 cursor-pointer text-left focus:outline-none"
+                                                        className={`w-9 h-9 text-xs font-bold rounded-lg border transition-all flex items-center justify-center cursor-pointer ${
+                                                            isSelected
+                                                                ? 'bg-[#C6A76A] text-white border-[#C6A76A] shadow-xs'
+                                                                : 'bg-white text-gray-400 border-[#EEEEEE] hover:bg-gray-150'
+                                                        }`}
                                                     >
-                                                        <span className="w-3 h-3 rounded-full border border-gray-300/40 shrink-0" style={{ backgroundColor: hex }} />
-                                                        <span>{color}</span>
+                                                        {size}
                                                     </button>
-                                                    <span className="w-[1px] h-3 bg-gray-200 mx-1 shrink-0" />
-                                                    <button
-                                                        type="button"
-                                                        onClick={async (e) => {
-                                                            e.stopPropagation()
-                                                            setSelectedModalColors(prev => prev.filter(c => c !== color))
-                                                            const updatedList = colorsList.filter(c => c !== color)
-                                                            setColorsList(updatedList)
-                                                            const updatedHexMap = { ...colorHexMap }
-                                                            delete updatedHexMap[color]
-                                                            setColorHexMap(updatedHexMap)
-                                                            await saveColorsToConfig(updatedList, updatedHexMap)
-                                                        }}
-                                                        className="w-4 h-4 rounded-md hover:bg-red-50 hover:text-red-500 text-gray-405 flex items-center justify-center text-[9px] cursor-pointer transition-colors"
-                                                        title="Excluir Cor"
-                                                    >
-                                                        ✕
-                                                    </button>
-                                                </div>
-                                            )
-                                        })}
+                                                )
+                                            })}
+                                        </div>
                                     </div>
+
+                                    <div>
+                                        <label className={labelCls}>Cores Disponíveis</label>
+                                        <div className="flex flex-wrap gap-1.5 bg-[#FAF9F5] p-3 rounded-xl border border-[#EEEEEE]">
+                                            {colorsList.map(color => {
+                                                const isSelected = selectedModalColors.includes(color)
+                                                const hex = colorHexMap[color] || '#CCCCCC'
+                                                return (
+                                                    <div 
+                                                        key={color} 
+                                                        className={`inline-flex items-center gap-1 pl-2.5 pr-1.5 py-1 rounded-xl border text-xs font-bold transition-all ${
+                                                            isSelected 
+                                                                ? 'bg-[#C6A76A]/10 text-[#C6A76A] border-[#C6A76A]' 
+                                                                : 'bg-white text-gray-500 border-[#EEEEEE] hover:border-gray-300'
+                                                        }`}
+                                                    >
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                if (isSelected) {
+                                                                    setSelectedModalColors(prev => prev.filter(c => c !== color))
+                                                                } else {
+                                                                    setSelectedModalColors(prev => [...prev, color])
+                                                                }
+                                                            }}
+                                                            className="flex items-center gap-1.5 cursor-pointer text-left focus:outline-none"
+                                                        >
+                                                            <span className="w-3 h-3 rounded-full border border-gray-300/40 shrink-0" style={{ backgroundColor: hex }} />
+                                                            <span>{color}</span>
+                                                        </button>
+                                                        <span className="w-[1px] h-3 bg-gray-200 mx-1 shrink-0" />
+                                                        <button
+                                                            type="button"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation()
+                                                                handleDeleteGlobalColor(color)
+                                                            }}
+                                                            className="w-4 h-4 rounded-md hover:bg-red-50 hover:text-red-500 text-gray-400 flex items-center justify-center text-[9px] cursor-pointer transition-colors"
+                                                            title="Excluir Cor Globalmente"
+                                                        >
+                                                            ✕
+                                                        </button>
+                                                    </div>
+                                                )
+                                            })}
+                                        </div>
 
                                     {/* Inseridor de Nova Cor */}
                                     <div className="flex gap-2 items-center mt-2 bg-white p-2.5 rounded-xl border border-[#EEEEEE]">
@@ -1902,6 +1949,56 @@ export default function AdminPage() {
                                         </button>
                                     </div>
                                 </div>
+
+                                {/* Seção de Estoque por Cor Selecionada */}
+                                {selectedModalColors.length > 0 && (
+                                    <div className="p-4 bg-[#FAF9F5] rounded-xl border border-[#C6A76A]/40 space-y-3 animate-[fadeIn_200ms_ease-out]">
+                                        <div className="flex items-center justify-between">
+                                            <label className="text-xs font-extrabold text-gray-800 uppercase tracking-wider flex items-center gap-1.5">
+                                                <span>📦</span> Estoque por Cor do Produto
+                                            </label>
+                                            <span className="text-[10px] text-gray-500 font-medium">
+                                                Defina a quantidade para cada cor
+                                            </span>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+                                            {selectedModalColors.map(color => {
+                                                const hex = colorHexMap[color] || '#CCCCCC'
+                                                const qty = modalColorStock[color] !== undefined ? modalColorStock[color] : ''
+                                                return (
+                                                    <div key={color} className="flex items-center justify-between bg-white p-2.5 rounded-xl border border-gray-200 shadow-xs">
+                                                        <div className="flex items-center gap-2 min-w-0 pr-2">
+                                                            <span className="w-3.5 h-3.5 rounded-full border border-gray-300 shrink-0" style={{ backgroundColor: hex }} />
+                                                            <span className="text-xs font-bold text-gray-800 truncate">{color}</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-1 shrink-0">
+                                                            <input
+                                                                type="number"
+                                                                min="0"
+                                                                placeholder="0"
+                                                                value={qty}
+                                                                onChange={(e) => {
+                                                                    const val = Math.max(0, parseInt(e.target.value) || 0)
+                                                                    setModalColorStock(prev => ({ ...prev, [color]: val }))
+                                                                }}
+                                                                className="w-16 px-2 py-1 border border-gray-300 rounded-lg text-xs font-bold text-center outline-none focus:border-[#7A3E4A] bg-gray-50/50"
+                                                            />
+                                                            <span className="text-[10px] text-gray-400 font-semibold">un.</span>
+                                                        </div>
+                                                    </div>
+                                                )
+                                            })}
+                                        </div>
+
+                                        <div className="flex items-center justify-between pt-2 border-t border-gray-200/60 text-xs">
+                                            <span className="text-gray-500 font-medium">Estoque Total (Soma das Cores):</span>
+                                            <span className="font-extrabold text-[#7A3E4A] text-sm">
+                                                {selectedModalColors.reduce((sum, c) => sum + (parseInt(modalColorStock[c]) || 0), 0)} unidades
+                                            </span>
+                                        </div>
+                                    </div>
+                                )}
 
                                 <div className="p-4 bg-[#FAF9F5] rounded-xl border border-[#EEEEEE] space-y-4">
                                     <label className="flex items-center gap-2.5 cursor-pointer">

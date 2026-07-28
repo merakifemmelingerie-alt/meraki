@@ -16,7 +16,7 @@ const TABLE_COLUMNS = {
     products: [
         'id', 'name', 'category', 'subcategory', 'price', 'original_price', 'image', 'badge', 'section', 'sizes', 'description', 'stock', 'created_at',
         'colors', 'inpromocombo', 'iscustomizable', 'custompricewith', 'custompricewithout', 'customfeeletter', 'customfeenumber', 'customfeeemoji', 'customizable_emojis',
-        'has_kits', 'kit_options'
+        'has_kits', 'kit_options', 'color_stock'
     ],
     store_config: [
         'id', 'whatsapp', 'sac_phone', 'address', 'cnpj', 'razao_social', 'origin_cep', 'meta_pixel_id', 'ga_tracking_id', 'infinitepay_handle', 'pix_key',
@@ -48,6 +48,7 @@ const FIELD_MAPPING = {
     customizable_emojis: ['customizableEmojis', 'customizable_emojis'],
     has_kits: ['hasKits', 'has_kits', 'haskits'],
     kit_options: ['kitOptions', 'kit_options', 'kitoptions'],
+    color_stock: ['colorStock', 'color_stock', 'colorstock'],
     topbarmessages: ['topbarMessages', 'topbarmessages'],
     topbarstyle: ['topbarStyle', 'topbarstyle'],
     promocombo: ['promoCombo', 'promocombo'],
@@ -117,6 +118,16 @@ export function mapDbToFrontend(table, item) {
             }
         }
         mapped.kitOptions = Array.isArray(parsedKits) ? parsedKits : []
+
+        let parsedColorStock = item.color_stock || item.colorStock || item.colorstock
+        if (parsedColorStock && typeof parsedColorStock === 'string') {
+            try {
+                parsedColorStock = JSON.parse(parsedColorStock)
+            } catch {
+                parsedColorStock = {}
+            }
+        }
+        mapped.colorStock = (parsedColorStock && typeof parsedColorStock === 'object') ? parsedColorStock : {}
         
         // Normaliza colors e sizes do banco de dados (PG text array ou string delimitada por vírgula)
         if (item.colors) {
