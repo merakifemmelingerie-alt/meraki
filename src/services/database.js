@@ -15,7 +15,8 @@ const TABLE_COLUMNS = {
     categories: ['id', 'name', 'group', 'description', 'image', 'created_at'],
     products: [
         'id', 'name', 'category', 'subcategory', 'price', 'original_price', 'image', 'badge', 'section', 'sizes', 'description', 'stock', 'created_at',
-        'colors', 'inpromocombo', 'iscustomizable', 'custompricewith', 'custompricewithout', 'customfeeletter', 'customfeenumber', 'customfeeemoji', 'customizable_emojis'
+        'colors', 'inpromocombo', 'iscustomizable', 'custompricewith', 'custompricewithout', 'customfeeletter', 'customfeenumber', 'customfeeemoji', 'customizable_emojis',
+        'has_kits', 'kit_options'
     ],
     store_config: [
         'id', 'whatsapp', 'sac_phone', 'address', 'cnpj', 'razao_social', 'origin_cep', 'meta_pixel_id', 'ga_tracking_id', 'infinitepay_handle', 'pix_key',
@@ -45,6 +46,8 @@ const FIELD_MAPPING = {
     customfeenumber: ['customFeeNumber', 'customfeenumber'],
     customfeeemoji: ['customFeeEmoji', 'customfeeemoji'],
     customizable_emojis: ['customizableEmojis', 'customizable_emojis'],
+    has_kits: ['hasKits', 'has_kits', 'haskits'],
+    kit_options: ['kitOptions', 'kit_options', 'kitoptions'],
     topbarmessages: ['topbarMessages', 'topbarmessages'],
     topbarstyle: ['topbarStyle', 'topbarstyle'],
     promocombo: ['promoCombo', 'promocombo'],
@@ -103,6 +106,17 @@ function mapDbToFrontend(table, item) {
         if (item.customfeenumber !== undefined) mapped.customFeeNumber = item.customfeenumber
         if (item.customfeeemoji !== undefined) mapped.customFeeEmoji = item.customfeeemoji
         if (item.customizable_emojis !== undefined) mapped.customizableEmojis = item.customizable_emojis
+        mapped.hasKits = item.has_kits !== undefined ? Boolean(item.has_kits) : (item.hasKits !== undefined ? Boolean(item.hasKits) : false)
+        
+        let parsedKits = item.kit_options || item.kitOptions || item.kitoptions
+        if (parsedKits && typeof parsedKits === 'string') {
+            try {
+                parsedKits = JSON.parse(parsedKits)
+            } catch {
+                parsedKits = []
+            }
+        }
+        mapped.kitOptions = Array.isArray(parsedKits) ? parsedKits : []
         
         // Normaliza colors e sizes do banco de dados (PG text array ou string delimitada por vírgula)
         if (item.colors) {

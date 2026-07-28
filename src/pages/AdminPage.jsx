@@ -189,6 +189,9 @@ export default function AdminPage() {
     const [customizableEmojis, setCustomizableEmojis] = useState(['🍎', '💛', '👄', '🍒', '😍', '🌶️', '🐰', '🌟'])
     const [newEmojiInput, setNewEmojiInput] = useState('')
 
+    const [hasKits, setHasKits] = useState(false)
+    const [kitOptions, setKitOptions] = useState([])
+
     // Badge (Etiqueta) states
     const [selectedModalBadge, setSelectedModalBadge] = useState('')
     const [newBadgeInput, setNewBadgeInput] = useState('')
@@ -686,6 +689,8 @@ export default function AdminPage() {
             customFeeNumber: parseFloat(form.pCustomFeeNumber?.value || '2.50') || 2.50,
             customFeeEmoji: parseFloat(form.pCustomFeeEmoji?.value || '3.00') || 3.00,
             customizable_emojis: customizableEmojis.join(','),
+            has_kits: hasKits,
+            kit_options: kitOptions,
         }
         if (modal.editing) {
             const { data, error } = await updateProduct(modal.editing, productData)
@@ -1908,6 +1913,105 @@ export default function AdminPage() {
                                         />
                                         <span className="text-xs font-bold text-gray-700 uppercase tracking-wider">Destacar no Combo da Home Page</span>
                                     </label>
+
+                                    {/* Configuração de Kits do Produto */}
+                                    <label className="flex items-center gap-2.5 cursor-pointer pt-2 border-t border-[#EEEEEE] border-dashed">
+                                        <input
+                                            type="checkbox"
+                                            checked={hasKits}
+                                            onChange={e => {
+                                                const checked = e.target.checked
+                                                setHasKits(checked)
+                                                if (checked && kitOptions.length === 0) {
+                                                    setKitOptions([
+                                                        { name: 'Kit com 5', qty: 5, price: 0 },
+                                                        { name: 'Kit com 10', qty: 10, price: 0 }
+                                                    ])
+                                                }
+                                            }}
+                                            className="w-4 h-4 text-[#7A3E4A] focus:ring-[#7A3E4A] border-gray-300 rounded"
+                                        />
+                                        <span className="text-xs font-bold text-gray-700 uppercase tracking-wider">Ativar Modalidade Kit</span>
+                                    </label>
+
+                                    {hasKits && (
+                                        <div className="space-y-3 p-3 rounded-xl border border-pink-100 bg-[#FAF9F5] animate-[fadeIn_200ms_ease-out]">
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-[11px] font-bold text-[#7A3E4A] uppercase tracking-wider">Opções de Kits Disponíveis</span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setKitOptions(prev => [...prev, { name: `Kit com ${prev.length > 0 ? (prev[prev.length - 1].qty || 5) + 5 : 5}`, qty: prev.length > 0 ? (prev[prev.length - 1].qty || 5) + 5 : 5, price: 0 }])}
+                                                    className="text-xs text-[#7A3E4A] font-bold underline cursor-pointer hover:opacity-80"
+                                                >
+                                                    + Adicionar Kit
+                                                </button>
+                                            </div>
+                                            {kitOptions.map((kit, index) => {
+                                                const unitPrice = (kit.price && kit.qty) ? (parseFloat(kit.price) / parseInt(kit.qty)).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0,00'
+                                                return (
+                                                    <div key={index} className="flex items-center gap-2 bg-white p-2.5 rounded-lg border border-gray-200 shadow-xs">
+                                                        <div className="flex-1 grid grid-cols-3 gap-2">
+                                                            <div>
+                                                                <label className="text-[10px] text-gray-500 font-bold uppercase block mb-0.5">Nome do Kit</label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={kit.name || ''}
+                                                                    onChange={e => {
+                                                                        const val = e.target.value
+                                                                        setKitOptions(prev => prev.map((k, i) => i === index ? { ...k, name: val } : k))
+                                                                    }}
+                                                                    className="w-full text-xs p-1.5 border border-gray-300 rounded font-medium"
+                                                                    placeholder="Ex: Kit com 5"
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <label className="text-[10px] text-gray-500 font-bold uppercase block mb-0.5">Qtd. Itens</label>
+                                                                <input
+                                                                    type="number"
+                                                                    min="1"
+                                                                    value={kit.qty || ''}
+                                                                    onChange={e => {
+                                                                        const val = parseInt(e.target.value) || 1
+                                                                        setKitOptions(prev => prev.map((k, i) => i === index ? { ...k, qty: val } : k))
+                                                                    }}
+                                                                    className="w-full text-xs p-1.5 border border-gray-300 rounded font-medium"
+                                                                    placeholder="5"
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <label className="text-[10px] text-gray-500 font-bold uppercase block mb-0.5">Preço Total (R$)</label>
+                                                                <input
+                                                                    type="number"
+                                                                    step="0.01"
+                                                                    min="0"
+                                                                    value={kit.price !== undefined ? kit.price : ''}
+                                                                    onChange={e => {
+                                                                        const val = parseFloat(e.target.value) || 0
+                                                                        setKitOptions(prev => prev.map((k, i) => i === index ? { ...k, price: val } : k))
+                                                                    }}
+                                                                    className="w-full text-xs p-1.5 border border-gray-300 rounded font-bold text-[#7A3E4A]"
+                                                                    placeholder="199.90"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex flex-col items-end gap-1 shrink-0">
+                                                            <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 whitespace-nowrap">
+                                                                R$ {unitPrice} / un
+                                                            </span>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setKitOptions(prev => prev.filter((_, i) => i !== index))}
+                                                                className="text-red-500 hover:text-red-700 text-xs font-bold px-1"
+                                                                title="Remover este Kit"
+                                                            >
+                                                                ✕
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                )
+                                            })}
+                                        </div>
+                                    )}
 
                                     <label className="flex items-center gap-2.5 cursor-pointer pt-2 border-t border-[#EEEEEE] border-dashed">
                                         <input

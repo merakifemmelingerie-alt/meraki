@@ -33,6 +33,7 @@ export default function ProductPage() {
     const [reviewSuccess, setReviewSuccess] = useState(false)
 
     const [selectedColor, setSelectedColor] = useState(null)
+    const [selectedKit, setSelectedKit] = useState(null)
     const [wantsCustomization, setWantsCustomization] = useState(false)
     const [customText, setCustomText] = useState('')
     const [activeImageIndex, setActiveImageIndex] = useState(0)
@@ -67,6 +68,7 @@ export default function ProductPage() {
         window.scrollTo({ top: 0, behavior: 'smooth' })
         setSelectedSize(null)
         setSelectedColor(null)
+        setSelectedKit(null)
         setQuantity(1)
         setErrorMsg('')
         setWantsCustomization(false)
@@ -103,13 +105,16 @@ export default function ProductPage() {
 
     const displayedPrice = useMemo(() => {
         if (!product) return 0
+        if (selectedKit) {
+            return parseFloat(selectedKit.price) || 0
+        }
         if (wantsCustomization) {
             const basePrice = product.customPriceWith ? parseFloat(product.customPriceWith) : product.price
             return basePrice + customPrice
         } else {
             return product.customPriceWithout ? parseFloat(product.customPriceWithout) : product.price
         }
-    }, [wantsCustomization, customPrice, product])
+    }, [selectedKit, wantsCustomization, customPrice, product])
 
     // Fallback/related products
     const relatedProducts = useMemo(() => {
@@ -204,6 +209,22 @@ export default function ProductPage() {
             return
         }
         setErrorMsg('')
+
+        if (selectedKit) {
+            const kitProduct = {
+                ...product,
+                name: `${product.name} (${selectedKit.name || `Kit com ${selectedKit.qty}`})`,
+                price: parseFloat(selectedKit.price) || 0,
+                isKit: true,
+                kitName: selectedKit.name || `Kit com ${selectedKit.qty}`,
+                kitQty: selectedKit.qty
+            }
+            for (let i = 0; i < quantity; i++) {
+                addToCart(kitProduct, selectedSize, selectedColor || '', '', 0)
+            }
+            setNotification({ message: `${quantity}x ${selectedKit.name || 'Kit'} de ${product.name} adicionado ao carrinho!`, visible: true })
+            return
+        }
 
         const basePrice = wantsCustomization
             ? (product.customPriceWith ? parseFloat(product.customPriceWith) : product.price)
@@ -328,15 +349,86 @@ export default function ProductPage() {
                         {/* Pricing and payments */}
                         <div className="mb-6 pb-6 border-b border-gray-100">
                             <div className="flex items-baseline gap-3 mb-2">
-                                {product.original_price > 0 && product.original_price > product.price && (
+                                {product.original_price > 0 && product.original_price > product.price && !selectedKit && (
                                     <span className="text-base sm:text-lg text-gray-400 line-through font-light">{formatPrice(product.original_price)}</span>
                                 )}
                                 <span className="text-3xl font-extrabold text-[#7A3E4A]">{formatPrice(displayedPrice)}</span>
+                                {selectedKit && (
+                                    <span className="text-xs bg-emerald-100 text-emerald-800 font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
+                                        Preço Promocional do Kit
+                                    </span>
+                                )}
                             </div>
                             <p className="text-xs text-gray-500 font-medium">
                                 <span className="text-[#D11A6E] font-bold">{formatPrice(displayedPrice * 0.95)}</span> à vista no PIX ou 6x de {formatPrice(displayedPrice / 6)} sem juros no cartão.
                             </p>
                         </div>
+
+                        {/* Seletor de Modalidade Kit */}
+                        {product.hasKits && product.kitOptions && product.kitOptions.length > 0 && (
+                            <div className="mb-6 bg-gradient-to-r from-[#FAF9F5] to-[#FFF8F8] p-4 rounded-2xl border border-[#EEEEEE] space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider flex items-center gap-1.5">
+                                        <span>🎁</span> Opções de Compras / Kits
+                                    </h4>
+                                    {selectedKit && (
+                                        <span className="text-[10px] text-emerald-800 bg-emerald-100 font-bold px-2 py-0.5 rounded-full">
+                                            Kit Selecionado
+                                        </span>
+                                    )}
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                                    {/* Opção 1 Unidade */}
+                                    <button
+                                        type="button"
+                                        onClick={() => setSelectedKit(null)}
+                                        className={`py-3 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer text-center ${
+                                            !selectedKit
+                                                ? 'border-[#7A3E4A] text-[#7A3E4A] bg-white ring-2 ring-[#7A3E4A]/10 scale-[1.02] shadow-xs'
+                                                : 'border-gray-200 text-gray-600 bg-white hover:border-gray-400'
+                                        }`}
+                                    >
+                                        <div>1 Unidade</div>
+                                        <div className="text-[10px] font-medium text-gray-400 mt-0.5">
+                                            {formatPrice(product.customPriceWithout || product.price)}
+                                        </div>
+                                    </button>
+
+                                    {/* Opções de Kits Cadastrados */}
+                                    {product.kitOptions.map((kit, idx) => {
+                                        const isSelected = selectedKit?.name === kit.name && Number(selectedKit?.qty) === Number(kit.qty)
+                                        const unitPrice = (kit.price && kit.qty) ? (parseFloat(kit.price) / parseInt(kit.qty)) : 0
+                                        return (
+                                            <button
+                                                key={idx}
+                                                type="button"
+                                                onClick={() => setSelectedKit(kit)}
+                                                className={`py-3 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer text-center relative overflow-hidden ${
+                                                    isSelected
+                                                        ? 'border-[#7A3E4A] text-[#7A3E4A] bg-white ring-2 ring-[#7A3E4A]/10 scale-[1.02] shadow-xs'
+                                                        : 'border-gray-200 text-gray-600 bg-white hover:border-gray-400'
+                                                }`}
+                                            >
+                                                <div>{kit.name || `Kit com ${kit.qty}`}</div>
+                                                <div className="text-[10px] font-semibold text-emerald-700 mt-0.5">
+                                                    {formatPrice(kit.price)} <span className="font-normal text-gray-400">({formatPrice(unitPrice)}/un)</span>
+                                                </div>
+                                            </button>
+                                        )
+                                    })}
+                                </div>
+
+                                {selectedKit && (
+                                    <div className="text-[11px] text-[#7A3E4A] font-medium bg-[#7A3E4A]/5 p-2.5 rounded-xl border border-[#7A3E4A]/10 text-center flex items-center justify-center gap-1.5">
+                                        <svg className="w-3.5 h-3.5 shrink-0 fill-[#7A3E4A]" viewBox="0 0 20 20">
+                                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                                        </svg>
+                                        <span>Os kits possuem valor promocional e não acumulam com cupons de desconto.</span>
+                                    </div>
+                                )}
+                            </div>
+                        )}
 
                         {/* Seletor de Cores Dinâmico */}
                         {colors.length > 0 && (

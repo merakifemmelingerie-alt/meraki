@@ -301,7 +301,7 @@ export default function CartDrawer() {
                 <div className="flex-1 overflow-y-auto p-6 space-y-6">
                     {cart.length > 0 ? (
                         cart.map((item) => (
-                            <div key={`${item.id}-${item.size}-${item.color || ''}-${item.customText || ''}`} className="flex gap-4 pb-6 border-b border-gray-50 last:border-0">
+                            <div key={`${item.id}-${item.size}-${item.color || ''}-${item.customText || ''}-${item.isKit ? 'kit' : 'norm'}-${item.kitName || ''}`} className="flex gap-4 pb-6 border-b border-gray-50 last:border-0">
                                 {/* Thumbnail */}
                                 <div className="w-20 h-24 bg-gray-50 rounded-lg overflow-hidden flex-shrink-0 border border-gray-100">
                                     <img 
@@ -320,7 +320,7 @@ export default function CartDrawer() {
                                                 {item.name}
                                             </h3>
                                             <button 
-                                                onClick={() => removeFromCart(item.id, item.size, item.color, item.customText)}
+                                                onClick={() => removeFromCart(item.id, item.size, item.color, item.customText, item.isKit, item.kitName)}
                                                 className="text-gray-400 hover:text-red-500 transition-colors p-1 cursor-pointer"
                                                 aria-label="Remover item"
                                             >
@@ -335,6 +335,11 @@ export default function CartDrawer() {
                                                 <p className="text-xs text-gray-400">Cor: <span className="font-bold text-[#1A1A1A]">{item.color}</span></p>
                                             )}
                                         </div>
+                                        {item.isKit && (
+                                            <div className="mt-1 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-lg text-[10px] text-emerald-800 font-bold inline-block">
+                                                🎁 KIT PROMOCIONAL ({item.kitName || 'Kit'})
+                                            </div>
+                                        )}
                                         {item.customText && (
                                             <div className="mt-1 bg-[#7A3E4A]/5 border border-[#7A3E4A]/10 px-2.5 py-1 rounded-lg text-[10px] text-[#7A3E4A] font-bold">
                                                 Personalização: <span className="text-gray-800 font-semibold">"{item.customText}"</span>
@@ -346,14 +351,14 @@ export default function CartDrawer() {
                                         {/* Quantity Controls */}
                                         <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-gray-50/50">
                                             <button 
-                                                onClick={() => updateQuantity(item.id, item.size, item.quantity - 1, item.color, item.customText)}
+                                                onClick={() => updateQuantity(item.id, item.size, item.quantity - 1, item.color, item.customText, item.isKit, item.kitName)}
                                                 className="px-2.5 py-1 text-gray-500 hover:bg-gray-100 transition-colors text-sm cursor-pointer"
                                             >
                                                 -
                                             </button>
                                             <span className="px-3 text-xs font-semibold text-gray-700">{item.quantity}</span>
                                             <button 
-                                                onClick={() => updateQuantity(item.id, item.size, item.quantity + 1, item.color, item.customText)}
+                                                onClick={() => updateQuantity(item.id, item.size, item.quantity + 1, item.color, item.customText, item.isKit, item.kitName)}
                                                 className="px-2.5 py-1 text-gray-500 hover:bg-gray-100 transition-colors text-sm cursor-pointer"
                                             >
                                                 +

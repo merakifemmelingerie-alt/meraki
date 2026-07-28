@@ -54,7 +54,9 @@ export function useCart() {
             item => item.id === product.id && 
                     item.size === size && 
                     (item.color || '') === (color || '') && 
-                    (item.customText || '') === (customText || '')
+                    (item.customText || '') === (customText || '') &&
+                    Boolean(item.isKit) === Boolean(product.isKit) &&
+                    (item.kitName || '') === (product.kitName || '')
         )
         let updated
         if (existingIndex >= 0) {
@@ -69,13 +71,15 @@ export function useCart() {
         updateCartState(updated)
     }
 
-    function removeFromCart(productId, size, color = '', customText = '') {
+    function removeFromCart(productId, size, color = '', customText = '', isKit = false, kitName = '') {
         const currentCart = loadFromStorage()
         const updated = currentCart.filter(item => !(
             item.id === productId && 
             item.size === size && 
             (item.color || '') === (color || '') && 
-            (item.customText || '') === (customText || '')
+            (item.customText || '') === (customText || '') &&
+            Boolean(item.isKit) === Boolean(isKit) &&
+            (item.kitName || '') === (kitName || '')
         ))
         updateCartState(updated)
     }
@@ -84,9 +88,9 @@ export function useCart() {
         updateCartState([])
     }
 
-    function updateQuantity(productId, size, quantity, color = '', customText = '') {
+    function updateQuantity(productId, size, quantity, color = '', customText = '', isKit = false, kitName = '') {
         if (quantity <= 0) {
-            removeFromCart(productId, size, color, customText)
+            removeFromCart(productId, size, color, customText, isKit, kitName)
             return
         }
         const currentCart = loadFromStorage()
@@ -94,7 +98,9 @@ export function useCart() {
             (item.id === productId && 
              item.size === size && 
              (item.color || '') === (color || '') && 
-             (item.customText || '') === (customText || ''))
+             (item.customText || '') === (customText || '') &&
+             Boolean(item.isKit) === Boolean(isKit) &&
+             (item.kitName || '') === (kitName || ''))
                 ? { ...item, quantity }
                 : item
         )
@@ -120,7 +126,7 @@ export function useCart() {
 
         const promoItems = []
         cart.forEach(item => {
-            if (item.inPromoCombo) {
+            if (item.inPromoCombo && !item.isKit) {
                 for (let i = 0; i < item.quantity; i++) {
                     promoItems.push(item.price)
                 }

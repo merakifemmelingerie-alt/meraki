@@ -151,16 +151,23 @@ export default function CheckoutPage() {
     const selectedShippingOption = availableShipping.find(s => s.id === shippingMethod)
     const shipping = selectedShippingOption ? selectedShippingOption.price : (subtotal >= 299 ? 0 : 19.90)
     
-    // Pix discount is 5% off subtotal
-    const pixDiscount = paymentMethod === 'pix' ? subtotal * 0.05 : 0
+    // Calculate subtotal of non-kit items (Kits already have special factory discount)
+    const nonKitSubtotal = cart
+        .filter(item => !item.isKit)
+        .reduce((acc, item) => acc + (item.price + (item.customPrice || 0)) * item.quantity, 0)
     
-    // Coupon discount calculation
+    const hasKitsInCart = cart.some(item => item.isKit)
+
+    // Pix discount is 5% off non-kit subtotal
+    const pixDiscount = paymentMethod === 'pix' ? nonKitSubtotal * 0.05 : 0
+    
+    // Coupon discount calculation (only applies to non-kit subtotal)
     let couponDiscount = 0
     if (appliedCoupon) {
         if (appliedCoupon.type === 'percentage') {
-            couponDiscount = subtotal * (appliedCoupon.value / 100)
+            couponDiscount = nonKitSubtotal * (appliedCoupon.value / 100)
         } else {
-            couponDiscount = appliedCoupon.value
+            couponDiscount = Math.min(nonKitSubtotal, appliedCoupon.value)
         }
     }
     
@@ -841,6 +848,11 @@ export default function CheckoutPage() {
                                             Remover
                                         </button>
                                     </div>
+                                )}
+                                {hasKitsInCart && (
+                                    <p className="text-[10px] text-amber-700 font-medium mt-2 bg-amber-50 p-2 rounded-lg border border-amber-200/60">
+                                        ℹ️ Produtos da modalidade Kit já possuem desconto especial e não acumulam com cupons adicionais.
+                                    </p>
                                 )}
                             </div>
 
