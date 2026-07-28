@@ -47,9 +47,28 @@ export function useCart() {
         window.dispatchEvent(new Event('cart-updated'))
     }
 
-    function addToCart(product, size, color = '', customText = '', customPrice = 0) {
+    function getMaxStockForItem(product, size, color) {
+        if (!product) return Infinity
+        const variantStockMap = product.variantStock || product.variant_stock || {}
+        const colorStockMap = product.colorStock || product.color_stock || {}
+
+        if (size && color && variantStockMap[`${size}_${color}`] !== undefined) {
+            return parseInt(variantStockMap[`${size}_${color}`])
+        }
+        if (color && colorStockMap[color] !== undefined) {
+            return parseInt(colorStockMap[color])
+        }
+        if (product.stock !== undefined) {
+            return parseInt(product.stock)
+        }
+        return Infinity
+    }
+
+    function addToCart(product, size, color = '', customText = '', customPrice = 0, addQty = 1) {
         trackAddToCart(product)
         const currentCart = loadFromStorage()
+        const maxStock = getMaxStockForItem(product, size, color)
+
         const existingIndex = currentCart.findIndex(
             item => item.id === product.id && 
                     item.size === size && 
@@ -58,17 +77,34 @@ export function useCart() {
                     Boolean(item.isKit) === Boolean(product.isKit) &&
                     (item.kitName || '') === (product.kitName || '')
         )
+        
         let updated
         if (existingIndex >= 0) {
+            const currentQty = currentCart[existingIndex].quantity
+            const targetQty = Math.min(currentQty + addQty, maxStock)
+            if (targetQty <= currentQty && maxStock !== Infinity) {
+                window.dispatchEvent(new CustomEvent('cart-stock-warning', { 
+                    detail: { message: `Estoque máximo (${maxStock} un.) já atingido no carrinho para esta variação.` }
+                }))
+                return false
+            }
             updated = [...currentCart]
             updated[existingIndex] = {
                 ...updated[existingIndex],
-                quantity: updated[existingIndex].quantity + 1,
+                quantity: targetQty,
             }
         } else {
-            updated = [...currentCart, { ...product, size, color, customText, customPrice, quantity: 1 }]
+            const initialQty = Math.min(addQty, maxStock)
+            if (initialQty <= 0 && maxStock !== Infinity) {
+                window.dispatchEvent(new CustomEvent('cart-stock-warning', { 
+                    detail: { message: `Desculpe! Produto esgotado para o Tamanho ${size} na cor ${color}.` }
+                }))
+                return false
+            }
+            updated = [...currentCart, { ...product, size, color, customText, customPrice, quantity: initialQty }]
         }
         updateCartState(updated)
+        return true
     }
 
     function removeFromCart(productId, size, color = '', customText = '', isKit = false, kitName = '') {
@@ -94,6 +130,26 @@ export function useCart() {
             return
         }
         const currentCart = loadFromStorage()
+        const targetItem = currentCart.find(
+            item => item.id === productId && 
+                    item.size === size && 
+                    (item.color || '') === (color || '') && 
+                    (item.customText || '') === (customText || '') &&
+                    Boolean(item.isKit) === Boolean(isKit) &&
+                    (item.kitName || '') === (kitName || '')
+        )
+
+        let targetQty = quantity
+        if (targetItem) {
+            const maxStock = getMaxStockForItem(targetItem, size, color)
+            targetQty = Math.min(quantity, maxStock)
+            if (targetQty < quantity && maxStock !== Infinity) {
+                window.dispatchEvent(new CustomEvent('cart-stock-warning', { 
+                    detail: { message: `Apenas ${maxStock} unidade(s) disponível(is) em estoque para este tamanho/cor.` }
+                }))
+            }
+        }
+
         const updated = currentCart.map(item => 
             (item.id === productId && 
              item.size === size && 
@@ -101,7 +157,7 @@ export function useCart() {
              (item.customText || '') === (customText || '') &&
              Boolean(item.isKit) === Boolean(isKit) &&
              (item.kitName || '') === (kitName || ''))
-                ? { ...item, quantity }
+                ? { ...item, quantity: targetQty }
                 : item
         )
         updateCartState(updated)

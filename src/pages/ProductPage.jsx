@@ -199,6 +199,41 @@ export default function ProductPage() {
         return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(price)
     }
 
+    useEffect(() => {
+        const handleStockWarning = (e) => {
+            if (e.detail?.message) {
+                setNotification({ message: e.detail.message, visible: true })
+            }
+        }
+        window.addEventListener('cart-stock-warning', handleStockWarning)
+        return () => window.removeEventListener('cart-stock-warning', handleStockWarning)
+    }, [])
+
+    const getAvailableStockForSelected = () => {
+        if (!product) return 0
+        const variantStockMap = product.variantStock || product.variant_stock || {}
+        const colorStockMap = product.colorStock || product.color_stock || {}
+
+        if (selectedSize && selectedColor && variantStockMap[`${selectedSize}_${selectedColor}`] !== undefined) {
+            return Math.max(0, parseInt(variantStockMap[`${selectedSize}_${selectedColor}`]))
+        }
+        if (selectedColor && colorStockMap[selectedColor] !== undefined) {
+            return Math.max(0, parseInt(colorStockMap[selectedColor]))
+        }
+        if (product.stock !== undefined) {
+            return Math.max(0, parseInt(product.stock))
+        }
+        return 99
+    }
+
+    // Auto-adjust quantity if user selects a size/color combination with lower stock
+    useEffect(() => {
+        const maxStock = getAvailableStockForSelected()
+        if (maxStock > 0 && quantity > maxStock) {
+            setQuantity(maxStock)
+        }
+    }, [selectedSize, selectedColor, product])
+
     const handleAddToCart = () => {
         if (sizes.length > 0 && !selectedSize) {
             setErrorMsg('Por favor, selecione um tamanho.')
@@ -210,6 +245,20 @@ export default function ProductPage() {
         }
         setErrorMsg('')
 
+        const maxStock = getAvailableStockForSelected()
+        if (maxStock <= 0) {
+            setErrorMsg('Desculpe, esta variação está esgotada no momento.')
+            setNotification({ message: 'Esgotado nesta variação (Tamanho/Cor).', visible: true })
+            return
+        }
+
+        if (quantity > maxStock) {
+            setErrorMsg(`Apenas ${maxStock} un. disponível(is) para esta variação.`)
+            setNotification({ message: `Não é possível adicionar ${quantity} un. Estoque disponível: ${maxStock} un.`, visible: true })
+            setQuantity(maxStock)
+            return
+        }
+
         if (selectedKit) {
             const kitProduct = {
                 ...product,
@@ -219,10 +268,10 @@ export default function ProductPage() {
                 kitName: selectedKit.name || `Kit com ${selectedKit.qty}`,
                 kitQty: selectedKit.qty
             }
-            for (let i = 0; i < quantity; i++) {
-                addToCart(kitProduct, selectedSize, selectedColor || '', '', 0)
+            const success = addToCart(kitProduct, selectedSize, selectedColor || '', '', 0, quantity)
+            if (success !== false) {
+                setNotification({ message: `${quantity}x ${selectedKit.name || 'Kit'} de ${product.name} adicionado ao carrinho!`, visible: true })
             }
-            setNotification({ message: `${quantity}x ${selectedKit.name || 'Kit'} de ${product.name} adicionado ao carrinho!`, visible: true })
             return
         }
 
@@ -235,11 +284,10 @@ export default function ProductPage() {
             price: basePrice
         }
 
-        // Add multiple quantity
-        for (let i = 0; i < quantity; i++) {
-            addToCart(productWithPricing, selectedSize, selectedColor || '', wantsCustomization ? customText : '', wantsCustomization ? customPrice : 0)
+        const success = addToCart(productWithPricing, selectedSize, selectedColor || '', wantsCustomization ? customText : '', wantsCustomization ? customPrice : 0, quantity)
+        if (success !== false) {
+            setNotification({ message: `${quantity}x ${product.name} adicionado ao carrinho!`, visible: true })
         }
-        setNotification({ message: `${quantity}x ${product.name} adicionado ao carrinho!`, visible: true })
     }
 
     const handleAddReview = async (e) => {
@@ -780,11 +828,18 @@ export default function ProductPage() {
                                 <span className="font-extrabold text-gray-900 w-8 text-center text-sm">{product.stock === 0 ? 0 : quantity}</span>
                                 <button 
                                     onClick={() => setQuantity(q => {
-                                        const maxStock = product.stock !== undefined ? product.stock : 99
-                                        return Math.min(maxStock, q + 1)
+                                        const maxStock = getAvailableStockForSelected()
+                                        if (q >= maxStock) {
+                                            setNotification({
+                                                message: `Estoque máximo para esta variação é de ${maxStock} un.`,
+                                                visible: true
+                                            })
+                                            return maxStock
+                                        }
+                                        return q + 1
                                     })}
                                     className="text-gray-500 hover:text-gray-900 font-bold px-2 text-lg focus:outline-none"
-                                    disabled={product.stock === 0}
+                                    disabled={getAvailableStockForSelected() <= 0}
                                 >
                                     +
                                 </button>
