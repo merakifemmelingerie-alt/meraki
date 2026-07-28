@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth.js'
 import { updateUserProfile } from '../services/auth.js'
+import { mapDbToFrontend } from '../services/database.js'
+import { supabase } from '../services/supabase.js'
 import Header from '../components/Header.jsx'
 import Footer from '../components/Footer.jsx'
 import WhatsAppButton from '../components/WhatsAppButton.jsx'
@@ -113,10 +115,29 @@ export default function ProfilePage() {
             setAddresses(loadedAddrs)
         })
 
-        // Load orders
+        // Load initial cached orders from local storage
         const allOrders = JSON.parse(localStorage.getItem('meraki_orders') || '[]')
         const userOrders = allOrders.filter(o => o.customerEmail?.trim().toLowerCase() === cleanEmail)
         setOrders(userOrders)
+
+        // Fetch live orders directly from Supabase Database
+        supabase
+            .from('orders')
+            .select('*')
+            .or(`customeremail.ilike.${cleanEmail},customerEmail.ilike.${cleanEmail}`)
+            .order('created_at', { ascending: false })
+            .then(({ data, error }) => {
+                if (!error && data && data.length > 0) {
+                    const mapped = data.map(o => mapDbToFrontend('orders', o))
+                    setOrders(mapped)
+
+                    const currentLocal = JSON.parse(localStorage.getItem('meraki_orders') || '[]')
+                    const otherOrders = currentLocal.filter(o => o.customerEmail?.trim().toLowerCase() !== cleanEmail)
+                    const mergedAll = [...mapped, ...otherOrders]
+                    localStorage.setItem('meraki_orders', JSON.stringify(mergedAll))
+                }
+            })
+            .catch(console.error)
     }, [user, profile, navigate])
 
     const handleSignOutClick = async () => {

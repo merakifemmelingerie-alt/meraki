@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { createReturnInDb } from '../services/database.js'
+import { createReturnInDb, mapDbToFrontend } from '../services/database.js'
+import { supabase } from '../services/supabase.js'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth.js'
 import { signIn, signUp, signOut, getUserProfile, updateUserProfile, signInWithProvider, resetPasswordForEmail, updatePassword } from '../services/auth.js'
@@ -36,6 +36,8 @@ export default function AuthPage() {
     const [wishlistCount, setWishlistCount] = useState(0)
     const [searchOpen, setSearchOpen] = useState(false)
     const [dashboardTab, setDashboardTab] = useState('orders')
+    const [clientOrders, setClientOrders] = useState([])
+    const [loadingOrders, setLoadingOrders] = useState(false)
     
     // Profile Edit States
     const [editName, setEditName] = useState('')
@@ -177,6 +179,33 @@ export default function AuthPage() {
                 }
                 setUserAddresses(loadedAddrs)
             })
+
+            // Load initial orders from local cache immediately
+            const allLocal = JSON.parse(localStorage.getItem('meraki_orders') || '[]')
+            const initialOrders = allLocal.filter(o => o.customerEmail?.trim().toLowerCase() === cleanEmail)
+            setClientOrders(initialOrders)
+
+            // Fetch live orders directly from Supabase Database for logged-in email
+            setLoadingOrders(true)
+            supabase
+                .from('orders')
+                .select('*')
+                .or(`customeremail.ilike.${cleanEmail},customerEmail.ilike.${cleanEmail}`)
+                .order('created_at', { ascending: false })
+                .then(({ data, error }) => {
+                    if (!error && data && data.length > 0) {
+                        const mapped = data.map(o => mapDbToFrontend('orders', o))
+                        setClientOrders(mapped)
+
+                        // Update localStorage cache
+                        const currentLocal = JSON.parse(localStorage.getItem('meraki_orders') || '[]')
+                        const otherOrders = currentLocal.filter(o => o.customerEmail?.trim().toLowerCase() !== cleanEmail)
+                        const mergedAll = [...mapped, ...otherOrders]
+                        localStorage.setItem('meraki_orders', JSON.stringify(mergedAll))
+                    }
+                })
+                .catch(console.error)
+                .finally(() => setLoadingOrders(false))
         }
     }, [profile, user])
 
@@ -557,8 +586,6 @@ export default function AuthPage() {
     const initials = userName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
 
     // Derived order data for dashboard
-    const allOrders = JSON.parse(localStorage.getItem('meraki_orders') || '[]')
-    const clientOrders = allOrders.filter(o => o.customerEmail?.trim().toLowerCase() === user?.email?.trim().toLowerCase())
     const paidOrders = clientOrders.filter(o => o.status === 'Pago')
     const selectedOrderItems = returnOrderId
         ? (clientOrders.find(o => o.id === returnOrderId)?.items || [])

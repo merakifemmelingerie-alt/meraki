@@ -73,7 +73,7 @@ function normalizeCategoryName(cat) {
 }
 
 // Translate database properties back to camelCase for frontend pages
-function mapDbToFrontend(table, item) {
+export function mapDbToFrontend(table, item) {
     if (!item) return item
     const mapped = { ...item }
     if (table === 'orders') {
