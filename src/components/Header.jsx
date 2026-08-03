@@ -5,8 +5,8 @@ import { useAuth } from '../hooks/useAuth.js'
 import { smoothScrollToTop } from '../utils/scroll.js'
 
 const defaultTopBarMessages = [
+    "🚚 TAXA DE ENTREGA PARA BONFINÓPOLIS-GO A PARTIR DE R$ 29,99",
     "✨ Frete Grátis acima de R$ 299 • Parcele em até 12x",
-    "Utilize o cupom BEMVIND010 em sua primeira compra!",
     "Ganhe 5% de desconto pagando no PIX!"
 ]
 
@@ -44,8 +44,8 @@ export default function Header({ cartCount = 0, wishlistCount = 0, onSearchOpen 
     const [topbarStyle, setTopbarStyle] = useState(() => {
         try {
             const stored = localStorage.getItem('meraki_topbar_style')
-            return stored ? JSON.parse(stored) : { bgColor: '#C6A76A', textColor: '#FFFFFF' }
-        } catch { return { bgColor: '#C6A76A', textColor: '#FFFFFF' } }
+            return stored ? JSON.parse(stored) : { bgColor: '#5B6E57', textColor: '#FFFFFF' }
+        } catch { return { bgColor: '#5B6E57', textColor: '#FFFFFF' } }
     })
 
     const [defaultCategoryImage, setDefaultCategoryImage] = useState(() => {
