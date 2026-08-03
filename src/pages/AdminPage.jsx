@@ -97,7 +97,9 @@ export default function AdminPage() {
         if (stored) {
             try {
                 const parsed = JSON.parse(stored)
-                return parsed.map(c => typeof c === 'string' ? { name: c, description: 'Coleção Meraki', image: '/placeholder.jpg', group: 'Lingerie' } : c)
+                return parsed
+                    .map(c => typeof c === 'string' ? { name: c, description: 'Coleção Meraki', image: '/placeholder.jpg', group: 'Lingerie' } : c)
+                    .filter(c => c && c.name)
             } catch (e) { console.error(e) }
         }
         return []
