@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { getAssetUrl } from '../utils/assets.js'
 import { useProducts } from '../hooks/useProducts.js'
@@ -170,6 +170,41 @@ export default function ProductPage() {
         }))
     }, [product])
 
+    const getAvailableStockForSelected = useCallback(() => {
+        if (!product) return 0
+        const variantStockMap = product.variantStock || product.variant_stock || {}
+        const colorStockMap = product.colorStock || product.color_stock || {}
+
+        if (selectedSize && selectedColor && variantStockMap[`${selectedSize}_${selectedColor}`] !== undefined) {
+            return Math.max(0, parseInt(variantStockMap[`${selectedSize}_${selectedColor}`]))
+        }
+        if (selectedColor && colorStockMap[selectedColor] !== undefined) {
+            return Math.max(0, parseInt(colorStockMap[selectedColor]))
+        }
+        if (product.stock !== undefined) {
+            return Math.max(0, parseInt(product.stock))
+        }
+        return 99
+    }, [product, selectedSize, selectedColor])
+
+    useEffect(() => {
+        const handleStockWarning = (e) => {
+            if (e.detail?.message) {
+                setNotification({ message: e.detail.message, visible: true })
+            }
+        }
+        window.addEventListener('cart-stock-warning', handleStockWarning)
+        return () => window.removeEventListener('cart-stock-warning', handleStockWarning)
+    }, [])
+
+    // Auto-adjust quantity if user selects a size/color combination with lower stock
+    useEffect(() => {
+        const maxStock = getAvailableStockForSelected()
+        if (maxStock > 0 && quantity > maxStock) {
+            setQuantity(maxStock)
+        }
+    }, [getAvailableStockForSelected, quantity])
+
     if (loading) {
         return (
             <div className="bg-[#FCFAFA] min-h-screen flex items-center justify-center">
@@ -197,41 +232,6 @@ export default function ProductPage() {
     const formatPrice = (price) => {
         return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(price)
     }
-
-    useEffect(() => {
-        const handleStockWarning = (e) => {
-            if (e.detail?.message) {
-                setNotification({ message: e.detail.message, visible: true })
-            }
-        }
-        window.addEventListener('cart-stock-warning', handleStockWarning)
-        return () => window.removeEventListener('cart-stock-warning', handleStockWarning)
-    }, [])
-
-    const getAvailableStockForSelected = () => {
-        if (!product) return 0
-        const variantStockMap = product.variantStock || product.variant_stock || {}
-        const colorStockMap = product.colorStock || product.color_stock || {}
-
-        if (selectedSize && selectedColor && variantStockMap[`${selectedSize}_${selectedColor}`] !== undefined) {
-            return Math.max(0, parseInt(variantStockMap[`${selectedSize}_${selectedColor}`]))
-        }
-        if (selectedColor && colorStockMap[selectedColor] !== undefined) {
-            return Math.max(0, parseInt(colorStockMap[selectedColor]))
-        }
-        if (product.stock !== undefined) {
-            return Math.max(0, parseInt(product.stock))
-        }
-        return 99
-    }
-
-    // Auto-adjust quantity if user selects a size/color combination with lower stock
-    useEffect(() => {
-        const maxStock = getAvailableStockForSelected()
-        if (maxStock > 0 && quantity > maxStock) {
-            setQuantity(maxStock)
-        }
-    }, [selectedSize, selectedColor, product])
 
     const handleAddToCart = () => {
         if (sizes.length > 0 && !selectedSize) {
