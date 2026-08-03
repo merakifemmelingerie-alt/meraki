@@ -74,7 +74,7 @@ export default function InfoPage({ tab: propTab }) {
         setWishlistCount(storedWishlist.length)
 
         const storedProducts = JSON.parse(localStorage.getItem('meraki_products') || '[]')
-        setProducts(storedProducts)
+        setProducts(storedProducts.filter(p => p && p.name))
 
         const storedCart = JSON.parse(localStorage.getItem('meraki_cart') || '[]')
         setCartCount(storedCart.reduce((acc, item) => acc + item.quantity, 0))

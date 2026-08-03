@@ -194,6 +194,44 @@ export function mapDbToFrontend(table, item) {
 export let isInitialSyncComplete = false
 let isSyncing = false
 
+/**
+ * Sanitize all known localStorage array keys to remove null/invalid entries.
+ * Runs once at startup to fix any previously corrupted data.
+ */
+function sanitizeLocalStorage() {
+    const arrayKeysWithName = ['meraki_categories', 'meraki_products', 'meraki_homepage_categories']
+    const plainArrayKeys = ['meraki_orders', 'meraki_coupons', 'meraki_banners', 'meraki_all_returns', 'meraki_cart']
+
+    for (const key of arrayKeysWithName) {
+        try {
+            const raw = localStorage.getItem(key)
+            if (!raw) continue
+            const parsed = JSON.parse(raw)
+            if (!Array.isArray(parsed)) continue
+            const cleaned = parsed.filter(item => item != null && typeof item === 'object' && item.name)
+            if (cleaned.length !== parsed.length) {
+                localStorage.setItem(key, JSON.stringify(cleaned))
+            }
+        } catch (_) { /* ignore corrupt JSON */ }
+    }
+
+    for (const key of plainArrayKeys) {
+        try {
+            const raw = localStorage.getItem(key)
+            if (!raw) continue
+            const parsed = JSON.parse(raw)
+            if (!Array.isArray(parsed)) continue
+            const cleaned = parsed.filter(item => item != null)
+            if (cleaned.length !== parsed.length) {
+                localStorage.setItem(key, JSON.stringify(cleaned))
+            }
+        } catch (_) { /* ignore corrupt JSON */ }
+    }
+}
+
+// Run sanitization immediately at module load, before any component reads localStorage
+sanitizeLocalStorage()
+
 export async function initSupabaseSync() {
     isSyncing = true
     try {

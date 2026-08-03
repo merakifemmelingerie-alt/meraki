@@ -319,7 +319,7 @@ export default function CartDrawer() {
                 {/* Items List */}
                 <div className="flex-1 overflow-y-auto p-6 space-y-6">
                     {cart.length > 0 ? (
-                        cart.map((item) => (
+                        cart.filter(item => item && item.id).map((item) => (
                             <div key={`${item.id}-${item.size}-${item.color || ''}-${item.customText || ''}-${item.isKit ? 'kit' : 'norm'}-${item.kitName || ''}`} className="flex gap-4 pb-6 border-b border-gray-50 last:border-0">
                                 {/* Thumbnail */}
                                 <div className="w-20 h-24 bg-gray-50 rounded-lg overflow-hidden flex-shrink-0 border border-gray-100">
