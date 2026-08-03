@@ -499,6 +499,48 @@ function filterPayloadForTable(table, item) {
             payload[col] = val
         }
     }
+
+    if (table === 'products') {
+        if (payload.image !== undefined) {
+            if (typeof payload.image === 'string') {
+                payload.image = payload.image.replace(/[\{\}]/g, '').split(',').map(i => i.trim()).filter(Boolean)
+            } else if (!Array.isArray(payload.image)) {
+                payload.image = payload.image ? [String(payload.image)] : []
+            }
+        }
+        if (payload.sizes !== undefined) {
+            if (typeof payload.sizes === 'string') {
+                payload.sizes = payload.sizes.replace(/[\{\}]/g, '').split(',').map(s => s.trim()).filter(Boolean)
+            } else if (!Array.isArray(payload.sizes)) {
+                payload.sizes = []
+            }
+        }
+        if (payload.colors !== undefined) {
+            if (typeof payload.colors === 'string') {
+                payload.colors = payload.colors.replace(/[\{\}]/g, '').split(',').map(c => c.trim()).filter(Boolean)
+            } else if (!Array.isArray(payload.colors)) {
+                payload.colors = []
+            }
+        }
+        if (payload.customizable_emojis !== undefined) {
+            if (typeof payload.customizable_emojis === 'string') {
+                payload.customizable_emojis = payload.customizable_emojis.replace(/[\{\}]/g, '').split(',').map(e => e.trim()).filter(Boolean)
+            } else if (!Array.isArray(payload.customizable_emojis)) {
+                payload.customizable_emojis = []
+            }
+        }
+
+        if (payload.price !== undefined) payload.price = parseFloat(payload.price) || 0
+        if (payload.original_price !== undefined) payload.original_price = parseFloat(payload.original_price) || 0
+        if (payload.custompricewith !== undefined) payload.custompricewith = parseFloat(payload.custompricewith) || 0
+        if (payload.custompricewithout !== undefined) payload.custompricewithout = parseFloat(payload.custompricewithout) || 0
+        if (payload.customfeeletter !== undefined) payload.customfeeletter = parseFloat(payload.customfeeletter) || 0
+        if (payload.customfeenumber !== undefined) payload.customfeenumber = parseFloat(payload.customfeenumber) || 0
+        if (payload.customfeeemoji !== undefined) payload.customfeeemoji = parseFloat(payload.customfeeemoji) || 0
+        if (payload.stock !== undefined) payload.stock = parseInt(payload.stock) || 0
+        if (payload.category !== undefined) payload.category = normalizeCategoryName(payload.category)
+    }
+
     return payload
 }
 
@@ -572,9 +614,21 @@ async function syncTableToSupabase(table, items) {
                 }
             }
 
-            const { error } = await supabase.from(table).upsert(payload, { onConflict: conflictKey })
+            let { error } = await supabase.from(table).upsert(payload, { onConflict: conflictKey })
             if (error) {
-                console.error(`Erro ao upsertar item na tabela ${table}:`, error.message, payload)
+                if (table === 'products') {
+                    const fallbackPayload = { ...payload }
+                    delete fallbackPayload.has_kits
+                    delete fallbackPayload.kit_options
+                    delete fallbackPayload.color_stock
+                    delete fallbackPayload.variant_stock
+                    const retry = await supabase.from(table).upsert(fallbackPayload, { onConflict: conflictKey })
+                    if (retry.error) {
+                        console.error(`Erro ao upsertar item na tabela ${table}:`, retry.error.message, fallbackPayload)
+                    }
+                } else {
+                    console.error(`Erro ao upsertar item na tabela ${table}:`, error.message, payload)
+                }
             }
         }
     } catch (e) {
@@ -628,17 +682,33 @@ export async function getProductsBySection(section) {
 export async function createProduct(product) {
     try {
         const payload = filterPayloadForTable('products', product)
-        const { data, error } = await supabase.from('products').insert([payload]).select().single()
-        if (error) throw error
+        let data = null
+        let error = null
+
+        const res = await supabase.from('products').insert([payload]).select().single()
+        data = res.data
+        error = res.error
+
+        if (error) {
+            console.warn('⚠️ Supabase createProduct falhou. Tentando payload compatível:', error.message)
+            const fallbackPayload = { ...payload }
+            delete fallbackPayload.has_kits
+            delete fallbackPayload.kit_options
+            delete fallbackPayload.color_stock
+            delete fallbackPayload.variant_stock
+            const retry = await supabase.from('products').insert([fallbackPayload]).select().single()
+            if (retry.error) throw retry.error
+            data = retry.data
+        }
         
         const mapped = mapDbToFrontend('products', data)
-        // Update local cache
         const current = JSON.parse(localStorage.getItem('meraki_products') || '[]')
-        current.unshift(mapped)
+        current.unshift({ ...mapped, ...product })
         originalSetItem('meraki_products', JSON.stringify(current))
 
         return { data: mapped, error: null }
     } catch (e) {
+        console.error('Erro ao criar produto no Supabase:', e)
         return { data: null, error: e }
     }
 }
@@ -646,20 +716,36 @@ export async function createProduct(product) {
 export async function updateProduct(id, updates) {
     try {
         const payload = filterPayloadForTable('products', updates)
-        const { data, error } = await supabase.from('products').update(payload).eq('id', id).select().single()
-        if (error) throw error
+        let data = null
+        let error = null
+
+        const res = await supabase.from('products').update(payload).eq('id', id).select().single()
+        data = res.data
+        error = res.error
+
+        if (error) {
+            console.warn('⚠️ Supabase updateProduct falhou. Tentando payload compatível:', error.message)
+            const fallbackPayload = { ...payload }
+            delete fallbackPayload.has_kits
+            delete fallbackPayload.kit_options
+            delete fallbackPayload.color_stock
+            delete fallbackPayload.variant_stock
+            const retry = await supabase.from('products').update(fallbackPayload).eq('id', id).select().single()
+            if (retry.error) throw retry.error
+            data = retry.data
+        }
 
         const mapped = mapDbToFrontend('products', data)
-        // Update local cache
         const current = JSON.parse(localStorage.getItem('meraki_products') || '[]')
         const idx = current.findIndex(p => p.id === id)
         if (idx !== -1) {
-            current[idx] = { ...current[idx], ...mapped }
+            current[idx] = { ...current[idx], ...updates, ...mapped }
             originalSetItem('meraki_products', JSON.stringify(current))
         }
 
         return { data: mapped, error: null }
     } catch (e) {
+        console.error('Erro ao atualizar produto no Supabase:', e)
         return { data: null, error: e }
     }
 }

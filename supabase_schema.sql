@@ -84,6 +84,10 @@ ALTER TABLE public.products ADD COLUMN IF NOT EXISTS customfeenumber NUMERIC(10,
 ALTER TABLE public.products ADD COLUMN IF NOT EXISTS customfeeemoji NUMERIC(10, 2) DEFAULT 0.00;
 ALTER TABLE public.products ADD COLUMN IF NOT EXISTS customizable_emojis TEXT[] DEFAULT '{}';
 ALTER TABLE public.products ADD COLUMN IF NOT EXISTS subcategory TEXT DEFAULT '';
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS has_kits BOOLEAN DEFAULT FALSE;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS kit_options JSONB DEFAULT '[]'::jsonb;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS color_stock JSONB DEFAULT '{}'::jsonb;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS variant_stock JSONB DEFAULT '{}'::jsonb;
 
 -- ====================================================================
 -- TABELA: categories (Categorias da Loja)
