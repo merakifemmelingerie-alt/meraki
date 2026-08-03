@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { getAssetUrl } from '../utils/assets.js'
 
 export default function ProductCard({ product, onQuickView, onToggleWishlist, isWishlisted }) {
-    if (!product || !product.name) return null
     const navigate = useNavigate()
 
     const [installmentText, setInstallmentText] = useState(() => {
@@ -80,12 +79,14 @@ export default function ProductCard({ product, onQuickView, onToggleWishlist, is
         return defaultMap
     }, [])
 
-    const imageSrc = getAssetUrl(Array.isArray(product.image) ? (product.image[0] || '/placeholder.jpg') : (product.image || '/placeholder.jpg'))
+    const imageSrc = getAssetUrl(Array.isArray(product?.image) ? (product.image[0] || '/placeholder.jpg') : (product?.image || '/placeholder.jpg'))
 
     const handleCardClick = (e) => {
         if (e.target.closest('button')) return
-        navigate(`/product/${product.id}`)
+        if (product?.id) navigate(`/product/${product.id}`)
     }
+
+    if (!product || !product.name) return null
 
     return (
         <div onClick={handleCardClick} className="group bg-white overflow-hidden transition-all duration-75 hover:shadow-premium relative flex flex-col h-full rounded-2xl border border-gray-100/50 cursor-pointer">
