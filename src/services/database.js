@@ -247,14 +247,14 @@ export async function initSupabaseSync() {
         // 2. Sync Orders — always overwrite to clear stale cache
         const { data: dbOrders, error: oError } = await supabase.from('orders').select('*')
         if (!oError) {
-            const mappedOrders = (dbOrders || []).map(o => mapDbToFrontend('orders', o))
+            const mappedOrders = (dbOrders || []).map(o => mapDbToFrontend('orders', o)).filter(o => o != null)
             localStorage.setItem('meraki_orders', JSON.stringify(mappedOrders))
         }
 
         // 3. Sync Coupons — always overwrite to clear stale cache
         const { data: dbCoupons, error: cError } = await supabase.from('coupons').select('*')
         if (!cError) {
-            const mappedCoupons = (dbCoupons || []).map(c => mapDbToFrontend('coupons', c))
+            const mappedCoupons = (dbCoupons || []).map(c => mapDbToFrontend('coupons', c)).filter(c => c != null)
             localStorage.setItem('meraki_coupons', JSON.stringify(mappedCoupons))
         }
 
@@ -281,7 +281,7 @@ export async function initSupabaseSync() {
         // 6. Sync Returns — always overwrite to clear stale cache
         const { data: dbReturns, error: rError } = await supabase.from('returns').select('*')
         if (!rError) {
-            const mappedReturns = (dbReturns || []).map(r => mapDbToFrontend('returns', r))
+            const mappedReturns = (dbReturns || []).map(r => mapDbToFrontend('returns', r)).filter(r => r != null)
             localStorage.setItem('meraki_all_returns', JSON.stringify(mappedReturns))
         }
 
@@ -306,12 +306,13 @@ export async function initSupabaseSync() {
                 if (dbConfig.topbarStyle.availableSections) {
                     localStorage.setItem('meraki_sections', JSON.stringify(dbConfig.topbarStyle.availableSections))
                 }
-                const homeCats = dbConfig.topbarStyle.homepageCategories || [
+                const rawHomeCats = dbConfig.topbarStyle.homepageCategories || [
                     { name: 'Home', description: 'Voltar para a página inicial', image: '/assets/categories/cat-conjuntos.jpg', link: '/' },
                     { name: 'Categorias', description: 'Navegar pelas nossas coleções', image: '/assets/categories/cat-noite.jpg', link: '/category/conjuntos' },
                     { name: 'Política de Troca', description: 'Regras e prazos para trocas de produtos', image: '/assets/categories/cat-sexy.jpg', link: '/returns' },
                     { name: 'Ofertas', description: 'Confira nossos produtos com descontos', image: '/assets/categories/cat-plus.jpg', link: '/category/ofertas' }
                 ]
+                const homeCats = Array.isArray(rawHomeCats) ? rawHomeCats.filter(c => c && c.name) : rawHomeCats
                 localStorage.setItem('meraki_homepage_categories', JSON.stringify(homeCats))
             }
             if (dbConfig.promoCombo) localStorage.setItem('meraki_promo_combo', JSON.stringify(dbConfig.promoCombo))
@@ -377,6 +378,10 @@ export async function initSupabaseSync() {
 
         console.log('✅ Sincronização concluída com sucesso.')
         
+        // Sanitize all arrays one final time before notifying React components,
+        // ensuring no null entries slip through regardless of Supabase data quality.
+        sanitizeLocalStorage()
+
         // Dispatch global events asynchronously to allow React to finish initial component mounting cleanly
         setTimeout(() => {
             window.dispatchEvent(new Event('categoriesUpdated'))

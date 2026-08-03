@@ -82,7 +82,7 @@ export function ProductsSection({
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-[#F8F8F8]">
-                                    {paginatedProducts.map(p => (
+                                    {paginatedProducts.filter(p => p && p.name).map(p => (
                                         <tr key={p.id} className="hover:bg-[#FAF9F5] transition-colors group">
                                             <td className="px-6 py-3">
                                                 <div className="flex items-center gap-3">
@@ -117,7 +117,7 @@ export function ProductsSection({
 
                     {/* Mobile Cards */}
                     <div className="md:hidden space-y-3">
-                        {paginatedProducts.map(p => (
+                        {paginatedProducts.filter(p => p && p.name).map(p => (
                             <div key={p.id} className="bg-white rounded-2xl border border-[#EEEEEE] p-4 flex items-center gap-4">
                                 <div className="w-14 h-18 bg-gray-50 rounded-xl overflow-hidden border border-[#EEEEEE] shrink-0">
                                     <img src={getProductImage(p)} alt="" className="w-full h-full object-cover" />

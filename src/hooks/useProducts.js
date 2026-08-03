@@ -16,7 +16,7 @@ export function useProducts(section = null) {
             if (err) {
                 setError(err.message)
             } else {
-                setProducts(data || [])
+                setProducts((data || []).filter(p => p && p.name))
             }
             setLoading(false)
         }
