@@ -48,10 +48,8 @@ export default function PromoModal({ onNotification }) {
         handleClose()
     }
 
-    if (!isOpen) return null
-
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-[fadeIn_300ms_ease-out]">
+        <div className={`fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
             {/* Backdrop click closer */}
             <div className="absolute inset-0" onClick={handleClose} />
 

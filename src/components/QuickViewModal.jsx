@@ -20,12 +20,11 @@ export default function QuickViewModal({ product, isOpen, onClose, onAddToCart, 
         return () => { isMounted = false }
     }, [product])
 
-    if (!isOpen || !product) return null
-
-    const formatPrice = (price) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(price)
+    const activeProduct = product || {}
+    const formatPrice = (price) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(price || 0)
     
     // Parse sizes safely
-    const rawSizes = product.sizes ? (typeof product.sizes === 'string' ? product.sizes.split(',').map(s => s.trim()) : product.sizes) : []
+    const rawSizes = activeProduct.sizes ? (typeof activeProduct.sizes === 'string' ? activeProduct.sizes.split(',').map(s => s.trim()) : activeProduct.sizes) : []
     const sizes = (() => {
         const unique = []
         const seen = new Set()
@@ -40,7 +39,7 @@ export default function QuickViewModal({ product, isOpen, onClose, onAddToCart, 
     })()
     
     // Gather all images safely
-    const images = Array.isArray(product.image) ? product.image : [product.image].filter(Boolean)
+    const images = Array.isArray(activeProduct.image) ? activeProduct.image : [activeProduct.image].filter(Boolean)
     const activeImageSrc = getAssetUrl(images[currentImageIndex] || '/placeholder.jpg')
 
     // Compute average rating
@@ -52,16 +51,18 @@ export default function QuickViewModal({ product, isOpen, onClose, onAddToCart, 
             return
         }
         setErrorMsg('')
-        onAddToCart?.(product, selectedSize)
+        onAddToCart?.(activeProduct, selectedSize)
     }
 
+    const showModal = isOpen && product
+
     return (
-        <>
+        <div className={`fixed inset-0 z-[95] transition-opacity duration-300 ${showModal ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
             {/* Backdrop overlay */}
-            <div className="fixed inset-0 z-[90] bg-black/60 backdrop-blur-xs transition-opacity duration-300" onClick={onClose} />
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity duration-300" onClick={onClose} />
             
             {/* Modal Container */}
-            <div className="fixed inset-3 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 z-[95] bg-white rounded-xl shadow-2xl md:max-w-3xl w-[calc(100%-1.5rem)] md:w-full max-h-[92vh] md:max-h-[85vh] overflow-y-auto animate-[fadeInUp_300ms_ease-out] flex flex-col md:flex-row font-sans">
+            <div className="fixed inset-3 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 bg-white rounded-xl shadow-2xl md:max-w-3xl w-[calc(100%-1.5rem)] md:w-full max-h-[92vh] md:max-h-[85vh] overflow-y-auto flex flex-col md:flex-row font-sans">
                 
                 {/* Floating Close Button */}
                 <button
@@ -226,6 +227,6 @@ export default function QuickViewModal({ product, isOpen, onClose, onAddToCart, 
                     </div>
                 </div>
             </div>
-        </>
+        </div>
     )
 }

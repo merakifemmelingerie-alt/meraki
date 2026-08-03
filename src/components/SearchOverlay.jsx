@@ -52,8 +52,6 @@ export default function SearchOverlay({ isOpen: externalIsOpen, onClose: externa
         return () => window.removeEventListener('keydown', handleKeyDown)
     }, [isVisible])
 
-    if (!isVisible) return null
-
     const cleanQuery = query.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
 
     const matchingProducts = cleanQuery
@@ -91,7 +89,7 @@ export default function SearchOverlay({ isOpen: externalIsOpen, onClose: externa
     }
 
     return (
-        <div className="fixed inset-0 z-[99999] bg-black/60 backdrop-blur-sm flex items-start justify-center pt-16 md:pt-24 px-4 animate-[fadeIn_200ms_ease-out]">
+        <div className={`fixed inset-0 z-[99999] bg-black/60 backdrop-blur-sm flex items-start justify-center pt-16 md:pt-24 px-4 transition-opacity duration-300 ${isVisible ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
             <div 
                 className="fixed inset-0"
                 onClick={handleClose}

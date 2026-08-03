@@ -232,10 +232,8 @@ export default function CartDrawer() {
         return () => window.removeEventListener('cart-stock-warning', handleWarning)
     }, [])
 
-    if (!isOpen) return null
-
     return (
-        <div className="fixed inset-0 z-[150] flex justify-end font-sans">
+        <div className={`fixed inset-0 z-[150] flex justify-end font-sans transition-opacity duration-300 ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
             {/* Backdrop */}
             <div 
                 className="absolute inset-0 bg-black/50 backdrop-blur-xs animate-[fadeIn_200ms_ease-out]"
