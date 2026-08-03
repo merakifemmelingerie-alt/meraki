@@ -171,13 +171,15 @@ export default function CartDrawer() {
 
             const city = data.localidade || ''
             const state = data.uf || ''
-            const isBonfinopolis = cleanCep.startsWith('75195') || cleanCep.startsWith('75198') || cleanCep.startsWith('75225') || cleanCep.startsWith('7519') || city.toLowerCase().includes('bonfinópolis') || city.toLowerCase().includes('bonfinopolis')
-
-            let calculatedOption = null
+            const isBonfinopolis = (
+                cleanCep.startsWith('75195') || 
+                city.toLowerCase().includes('bonfinópolis') || 
+                city.toLowerCase().includes('bonfinopolis')
+            ) && (state.toUpperCase() === 'GO' || !state)
 
             if (isBonfinopolis) {
                 const freeLocal = subtotal >= 29.99 || isFreeShippingBonusActive
-                calculatedOption = {
+                const calculatedOption = {
                     title: freeLocal ? 'Entrega Grátis (Bonfinópolis-GO)' : 'Entrega Local (Bonfinópolis)',
                     price: freeLocal ? 0 : 9.90,
                     deadline: 'Hoje ou próximo dia útil',
@@ -186,30 +188,14 @@ export default function CartDrawer() {
                     state,
                     label: addrLabel || 'Bonfinópolis'
                 }
-            } else if (isFreeShippingBonusActive) {
-                calculatedOption = {
-                    title: 'PAC Correios — Frete Grátis Bônus! 🎉',
-                    price: 0,
-                    deadline: '5 a 8 dias úteis',
-                    cep: cleanCep,
-                    city,
-                    state,
-                    label: addrLabel
-                }
+                setShippingOption(calculatedOption)
+                localStorage.setItem('meraki_cart_shipping', JSON.stringify(calculatedOption))
+                setShippingError('')
             } else {
-                calculatedOption = {
-                    title: `PAC Correios (${city}/${state})`,
-                    price: 19.90,
-                    deadline: '5 a 8 dias úteis',
-                    cep: cleanCep,
-                    city,
-                    state,
-                    label: addrLabel
-                }
+                setShippingOption(null)
+                localStorage.removeItem('meraki_cart_shipping')
+                setShippingError('Ainda não entregamos na sua região, mas em breve esperamos levar a Meraki até você. 💖')
             }
-
-            setShippingOption(calculatedOption)
-            localStorage.setItem('meraki_cart_shipping', JSON.stringify(calculatedOption))
         } catch (err) {
             console.error(err)
             setShippingError('Erro ao consultar CEP. Tente novamente.')
@@ -435,6 +421,7 @@ export default function CartDrawer() {
                                         cep: '75195-000'
                                     }
                                     setShippingOption(pickupOpt)
+                                    setShippingError('')
                                     localStorage.setItem('meraki_cart_shipping', JSON.stringify(pickupOpt))
                                 }}
                                 className={`w-full py-2 px-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-between cursor-pointer ${
@@ -515,7 +502,10 @@ export default function CartDrawer() {
                             </div>
 
                             {shippingError && (
-                                <p className="text-[10px] text-red-500 font-medium">{shippingError}</p>
+                                <div className="p-3.5 bg-[#FAF4F5] border border-[#7A3E4A]/25 rounded-xl flex items-start gap-2.5 text-xs text-[#7A3E4A] font-semibold leading-relaxed animate-[fadeIn_150ms_ease-out]">
+                                    <span className="text-base leading-none shrink-0">💖</span>
+                                    <span>{shippingError}</span>
+                                </div>
                             )}
 
                             {/* Calculated Shipping Result Banner */}
