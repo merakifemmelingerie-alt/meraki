@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
 import Header from '../components/Header.jsx'
 import Footer from '../components/Footer.jsx'
 import ProductCard from '../components/ProductCard.jsx'

@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { getAssetUrl } from '../utils/assets.js'
 import MediaDisplay from './MediaDisplay.jsx'
@@ -24,67 +23,23 @@ export const BANNER_TRANSITIONS = {
         emoji: '🌫️',
         description: 'Dissolve suavemente'
     },
-    slideLeft: {
-        id: 'slideLeft',
-        label: 'Deslizar →',
+    slide: {
+        id: 'slide',
+        label: 'Deslizar',
         emoji: '➡️',
-        description: 'Desliza da esquerda'
-    },
-    slideUp: {
-        id: 'slideUp',
-        label: 'Deslizar ↑',
-        emoji: '⬆️',
-        description: 'Sobe de baixo'
+        description: 'Desliza lateralmente'
     },
     zoom: {
         id: 'zoom',
-        label: 'Zoom',
+        label: 'Zoom Elegante',
         emoji: '🔍',
-        description: 'Zoom de entrada'
+        description: 'Aproximação suave'
     },
     flip: {
         id: 'flip',
-        label: 'Virar',
+        label: 'Giro 3D',
         emoji: '🔄',
-        description: 'Vira como uma página'
-    },
-}
-
-// ─── Framer Motion variants per transition ──────────────────────────────────
-const getVariants = (type) => {
-    switch (type) {
-        case 'fade':
-            return {
-                enter: { opacity: 0 },
-                center: { opacity: 1, transition: { duration: 0.8, ease: 'easeInOut' } },
-                exit: { opacity: 0, transition: { duration: 0.8, ease: 'easeInOut' } }
-            }
-        case 'slideLeft':
-            return {
-                enter: (dir) => ({ x: dir > 0 ? '100%' : '-100%', opacity: 0 }),
-                center: { x: 0, opacity: 1, transition: { duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] } },
-                exit: (dir) => ({ x: dir > 0 ? '-100%' : '100%', opacity: 0, transition: { duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] } })
-            }
-        case 'slideUp':
-            return {
-                enter: (dir) => ({ y: dir > 0 ? '100%' : '-100%', opacity: 0 }),
-                center: { y: 0, opacity: 1, transition: { duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] } },
-                exit: (dir) => ({ y: dir > 0 ? '-100%' : '100%', opacity: 0, transition: { duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] } })
-            }
-        case 'zoom':
-            return {
-                enter: { scale: 1.15, opacity: 0 },
-                center: { scale: 1, opacity: 1, transition: { duration: 0.9, ease: [0.25, 0.46, 0.45, 0.94] } },
-                exit: { scale: 0.88, opacity: 0, transition: { duration: 0.7, ease: 'easeIn' } }
-            }
-        case 'flip':
-            return {
-                enter: { rotateY: 90, opacity: 0 },
-                center: { rotateY: 0, opacity: 1, transition: { duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] } },
-                exit: { rotateY: -90, opacity: 0, transition: { duration: 0.6, ease: 'easeIn' } }
-            }
-        default: // shatter handled separately
-            return null
+        description: 'Efeito 3D flip'
     }
 }
 
@@ -141,9 +96,6 @@ export default function HeroBanner() {
         }
     }, [])
 
-    // Filter visible slides based on current viewport mode:
-    // On Desktop (!isMobile): show strictly slides with a non-empty desktop image (`image`). Mobile-only banners are excluded.
-    // On Mobile (isMobile): show slides with a mobile image (`mobile_image`) or desktop fallback.
     const visibleSlides = useMemo(() => {
         if (!Array.isArray(slides)) return []
         return slides.filter(s => {
@@ -158,7 +110,6 @@ export default function HeroBanner() {
         })
     }, [slides, isMobile])
 
-    // Safety effect: if current index exceeds visible slides count, reset to 0
     useEffect(() => {
         if (current >= visibleSlides.length && visibleSlides.length > 0) {
             setCurrent(0)
@@ -204,7 +155,6 @@ export default function HeroBanner() {
         }
     }, [current, previous])
 
-    // ─── Shatter cells ───────────────────────────────────────────────────────
     const COLS = 7, ROWS = 4
     const cells = useMemo(() => {
         return Array.from({ length: COLS * ROWS }).map((_, idx) => {
@@ -214,97 +164,42 @@ export default function HeroBanner() {
         })
     }, [current])
 
-    const shatterVariants = {
-        initial: { x: 0, y: 0, opacity: 1, scale: 1, rotate: 0 },
-        shatter: (cell) => {
-            const rad = (cell.angle * Math.PI) / 180
-            return { x: Math.cos(rad) * cell.distance, y: Math.sin(rad) * cell.distance, opacity: 0, scale: 0.1, rotate: cell.rotateSpeed, transition: { duration: 0.75, ease: [0.25, 0.46, 0.45, 0.94], delay: cell.delay } }
-        }
-    }
-
     if (!visibleSlides || visibleSlides.length === 0) {
         return <section className="relative w-full overflow-hidden bg-[#F5EDE3] transition-all duration-300 max-h-[800px] aspect-[1920/800] animate-pulse" />
     }
 
-    // Clamp current index safely within visible slides
     const safeIndex = Math.min(current, visibleSlides.length - 1)
     const currentSlide = visibleSlides[safeIndex]
-
     const hasMobileImage = !!currentSlide?.mobile_image
     const aspectClass = isMobile && hasMobileImage ? 'aspect-[4/5]' : 'aspect-[1920/800]'
-    const variants = getVariants(transition)
     const isShatter = transition === 'shatter'
-    const isAnimated = !isShatter && variants !== null
 
     return (
         <section className={`relative w-full overflow-hidden bg-[#F5EDE3] transition-all duration-300 max-h-[800px] ${aspectClass}`} style={{ perspective: '1200px' }}>
 
-            {/* ── SHATTER mode: manual grid overlay ── */}
-            {isShatter && (
-                <>
-                    <div className="absolute inset-0 z-0">
-                        <Link to={currentSlide.link} className="block w-full h-full">
+            {/* ── Slide images with native CSS transitions ── */}
+            {visibleSlides.map((slide, idx) => {
+                const isActive = idx === safeIndex
+                const isPrev = idx === previous && isTransitioning
+                const imageSrc = isMobile ? (slide.mobile_image || slide.image) : slide.image
+                
+                return (
+                    <div
+                        key={slide.id || idx}
+                        className={`absolute inset-0 z-0 transition-all duration-700 ease-in-out ${
+                            isActive ? 'opacity-100 scale-100 z-10 pointer-events-auto' : isPrev ? 'opacity-0 scale-95 z-0 pointer-events-none' : 'opacity-0 scale-95 z-0 pointer-events-none'
+                        }`}
+                    >
+                        <Link to={slide.link || '/shop'} className="block w-full h-full">
                             <MediaDisplay
-                                src={isMobile
-                                    ? (currentSlide.mobile_image || currentSlide.image)
-                                    : currentSlide.image
-                                }
-                                alt={currentSlide.alt}
+                                src={imageSrc}
+                                alt={slide.alt || 'Banner Meraki'}
                                 className="w-full h-full object-cover object-center"
                             />
                         </Link>
                     </div>
-                    {isTransitioning && previous !== null && (
-                        <div className="absolute inset-0 z-10 pointer-events-none overflow-hidden">
-                            <div className="relative w-full h-full">
-                                {cells.map(cell => {
-                                    const cellWidth = 100 / COLS, cellHeight = 100 / ROWS
-                                    const prevSlide = previous < visibleSlides.length ? visibleSlides[previous] : null
-                                    const imagePath = prevSlide ? (isMobile && prevSlide.mobile_image ? prevSlide.mobile_image : prevSlide.image) : ''
-                                    return (
-                                        <motion.div
-                                            key={cell.id}
-                                            className="absolute"
-                                            style={{ width: `${cellWidth}%`, height: `${cellHeight}%`, left: `${cell.col * cellWidth}%`, top: `${cell.row * cellHeight}%`, backgroundImage: `url(${getAssetUrl(imagePath)})`, backgroundSize: `${COLS * 100}% ${ROWS * 100}%`, backgroundPosition: `${(cell.col * 100) / (COLS - 1)}% ${(cell.row * 100) / (ROWS - 1)}%`, backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}
-                                            variants={shatterVariants}
-                                            initial="initial"
-                                            animate="shatter"
-                                            custom={cell}
-                                        />
-                                    )
-                                })}
-                            </div>
-                        </div>
-                    )}
-                </>
-            )}
-
-            {/* ── AnimatePresence mode for fade/slide/zoom/flip ── */}
-            {isAnimated && (
-                <AnimatePresence initial={false} custom={direction} mode="sync">
-                    <motion.div
-                        key={current}
-                        className="absolute inset-0 z-0"
-                        custom={direction}
-                        variants={variants}
-                        initial="enter"
-                        animate="center"
-                        exit="exit"
-                        style={{ transformStyle: 'preserve-3d' }}
-                    >
-                        <Link to={currentSlide.link} className="block w-full h-full">
-                            <MediaDisplay
-                                src={isMobile
-                                    ? (currentSlide.mobile_image || currentSlide.image)
-                                    : currentSlide.image
-                                }
-                                alt={currentSlide.alt}
-                                className="w-full h-full object-cover object-center"
-                            />
-                        </Link>
-                    </motion.div>
-                </AnimatePresence>
-            )}
+                )
+            })}
 
             {/* Pagination Dots */}
             <div className="absolute bottom-4 md:bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-4 z-20">

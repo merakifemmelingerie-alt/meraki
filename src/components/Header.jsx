@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../hooks/useAuth.js'
 import { smoothScrollToTop } from '../utils/scroll.js'
 
@@ -231,18 +230,12 @@ export default function Header({ cartCount = 0, wishlistCount = 0, onSearchOpen 
             >
                 <div className="relative h-4 flex items-center justify-center overflow-hidden">
                     {messages.length > 0 && (
-                        <AnimatePresence mode="wait">
-                            <motion.span
-                                key={currentMessageIndex}
-                                initial={{ y: 15, opacity: 0 }}
-                                animate={{ y: 0, opacity: 1 }}
-                                exit={{ y: -15, opacity: 0 }}
-                                transition={{ duration: 0.5, ease: "easeInOut" }}
-                                className="absolute whitespace-nowrap"
-                            >
-                                {messages[currentMessageIndex]}
-                            </motion.span>
-                        </AnimatePresence>
+                        <span
+                            key={currentMessageIndex}
+                            className="absolute whitespace-nowrap animate-[fadeInUp_400ms_ease-out]"
+                        >
+                            {messages[currentMessageIndex]}
+                        </span>
                     )}
                 </div>
             </div>
