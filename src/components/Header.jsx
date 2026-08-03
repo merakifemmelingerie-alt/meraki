@@ -311,7 +311,7 @@ export default function Header({ cartCount = 0, wishlistCount = 0, onSearchOpen 
                                 {/* Mega Menu Dropdown */}
                                 {isMegaMenuOpen && (
                                     <div
-                                        className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-white border border-[#E8E0D8]/65 shadow-2xl rounded-2xl p-6 z-50 flex gap-6 w-[650px] pointer-events-auto animate-[fadeIn_200ms_ease-out]"
+                                        className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-white border border-[#E8E0D8]/65 shadow-2xl rounded-2xl p-6 z-50 flex gap-6 w-[650px] pointer-events-auto animate-[fadeIn_200ms_ease-out] before:content-[''] before:absolute before:-top-3 before:left-0 before:w-full before:h-3"
                                     >
                                         <div className="flex-1 grid grid-cols-2 gap-x-6 gap-y-5 text-left">
                                             {/* Group 1: Lingerie */}
