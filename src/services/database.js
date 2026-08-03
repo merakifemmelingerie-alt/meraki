@@ -413,7 +413,19 @@ initSupabaseSync()
 const originalSetItem = localStorage.setItem.bind(localStorage)
 
 localStorage.setItem = function(key, value) {
-    originalSetItem(key, value)
+    // Sanitize known array-with-name keys BEFORE writing to storage
+    let sanitizedValue = value
+    const nameArrayKeys = ['meraki_categories', 'meraki_products', 'meraki_homepage_categories']
+    if (nameArrayKeys.includes(key)) {
+        try {
+            const parsed = JSON.parse(value)
+            if (Array.isArray(parsed)) {
+                const cleaned = parsed.filter(item => item != null && typeof item === 'object' && item.name)
+                sanitizedValue = JSON.stringify(cleaned)
+            }
+        } catch (_) { /* leave as-is if not JSON */ }
+    }
+    originalSetItem(key, sanitizedValue)
     
     if (isSyncing) return
     
