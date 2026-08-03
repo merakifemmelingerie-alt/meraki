@@ -303,153 +303,147 @@ export default function Header({ cartCount = 0, wishlistCount = 0, onSearchOpen 
                                 </button>
 
                                 {/* Mega Menu Dropdown */}
-                                <AnimatePresence>
-                                    {isMegaMenuOpen && (
-                                        <motion.div
-                                            initial={{ opacity: 0, y: 10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            exit={{ opacity: 0, y: 10 }}
-                                            transition={{ duration: 0.2, ease: "easeOut" }}
-                                            className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-white border border-[#E8E0D8]/65 shadow-2xl rounded-2xl p-6 z-50 flex gap-6 w-[650px] pointer-events-auto"
-                                        >
-                                            <div className="flex-1 grid grid-cols-2 gap-x-6 gap-y-5 text-left">
-                                                {/* Group 1: Lingerie */}
-                                                <div className="space-y-2">
-                                                    <div className="flex items-center gap-2 border-b border-gray-150 pb-1">
-                                                        <svg className="w-4 h-4 text-[#C6A76A]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 10c1.5 0 3 .5 3 2.5s-1.5 2.5-3 2.5-3-.5-3-2.5 1.5-2.5 3-2.5zM18 10c1.5 0 3 .5 3 2.5s-1.5 2.5-3 2.5-3-.5-3-2.5 1.5-2.5 3-2.5z" />
-                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 13.5h6M4.5 7.5L6 10M19.5 7.5L18 10M7 17.5h10M5.5 16l2.5 4.5h8l2.5-4.5" />
-                                                        </svg>
-                                                        <h4 className="text-[10px] font-bold text-[#7A3E4A] uppercase tracking-[0.2em]">Lingerie</h4>
-                                                    </div>
-                                                    <ul className="space-y-1.5">
-                                                        {groupedCategories['Lingerie'].map(item => (
-                                                            <li key={item.name}>
-                                                                <Link 
-                                                                    to={`/category/${slugifyCategory(item.name)}`} 
-                                                                    onClick={() => setIsMegaMenuOpen(false)} 
-                                                                    onMouseEnter={() => setHoveredCategory(item)}
-                                                                    onMouseLeave={() => setHoveredCategory(null)}
-                                                                    className="text-[11px] text-gray-500 hover:text-[#C6A76A] transition-colors font-semibold"
-                                                                >
-                                                                    {item.name}
-                                                                </Link>
-                                                            </li>
-                                                        ))}
-                                                    </ul>
+                                {isMegaMenuOpen && (
+                                    <div
+                                        className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-white border border-[#E8E0D8]/65 shadow-2xl rounded-2xl p-6 z-50 flex gap-6 w-[650px] pointer-events-auto animate-[fadeIn_200ms_ease-out]"
+                                    >
+                                        <div className="flex-1 grid grid-cols-2 gap-x-6 gap-y-5 text-left">
+                                            {/* Group 1: Lingerie */}
+                                            <div className="space-y-2">
+                                                <div className="flex items-center gap-2 border-b border-gray-150 pb-1">
+                                                    <svg className="w-4 h-4 text-[#C6A76A]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 10c1.5 0 3 .5 3 2.5s-1.5 2.5-3 2.5-3-.5-3-2.5 1.5-2.5 3-2.5zM18 10c1.5 0 3 .5 3 2.5s-1.5 2.5-3 2.5-3-.5-3-2.5 1.5-2.5 3-2.5z" />
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 13.5h6M4.5 7.5L6 10M19.5 7.5L18 10M7 17.5h10M5.5 16l2.5 4.5h8l2.5-4.5" />
+                                                    </svg>
+                                                    <h4 className="text-[10px] font-bold text-[#7A3E4A] uppercase tracking-[0.2em]">Lingerie</h4>
                                                 </div>
-
-                                                {/* Group 2: Noite & Especiais */}
-                                                <div className="space-y-2">
-                                                    <div className="flex items-center gap-2 border-b border-gray-150 pb-1">
-                                                        <svg className="w-4 h-4 text-[#C6A76A]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M8 5l1 3h6l1-3M6 8l2 11h8l2-11H6z" />
-                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v11" />
-                                                        </svg>
-                                                        <h4 className="text-[10px] font-bold text-[#7A3E4A] uppercase tracking-[0.2em]">Noite & Especiais</h4>
-                                                    </div>
-                                                    <ul className="space-y-1.5">
-                                                        {groupedCategories['Noite & Especiais'].map(item => (
-                                                            <li key={item.name}>
-                                                                <Link 
-                                                                    to={`/category/${slugifyCategory(item.name)}`} 
-                                                                    onClick={() => setIsMegaMenuOpen(false)} 
-                                                                    onMouseEnter={() => setHoveredCategory(item)}
-                                                                    onMouseLeave={() => setHoveredCategory(null)}
-                                                                    className="text-[11px] text-gray-500 hover:text-[#C6A76A] transition-colors font-semibold"
-                                                                >
-                                                                    {item.name}
-                                                                </Link>
-                                                            </li>
-                                                        ))}
-                                                    </ul>
-                                                </div>
-
-                                                {/* Group 3: Destaques */}
-                                                <div className="space-y-2">
-                                                    <div className="flex items-center gap-2 border-b border-gray-150 pb-1">
-                                                        <svg className="w-4 h-4 text-[#C6A76A]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.24 11.54a3 3 0 00-4.24 0l-.5.5-.5-.5a3 3 0 10-4.24 4.24l5.24 5.24 5.24-5.24a3 3 0 000-4.24z" />
-                                                        </svg>
-                                                        <h4 className="text-[10px] font-bold text-[#7A3E4A] uppercase tracking-[0.2em]">Destaques</h4>
-                                                    </div>
-                                                    <ul className="space-y-1.5">
-                                                        {groupedCategories['Destaques'].map(item => (
-                                                            <li key={item.name}>
-                                                                <Link 
-                                                                    to={`/category/${slugifyCategory(item.name)}`} 
-                                                                    onClick={() => setIsMegaMenuOpen(false)} 
-                                                                    onMouseEnter={() => setHoveredCategory(item)}
-                                                                    onMouseLeave={() => setHoveredCategory(null)}
-                                                                    className="text-[11px] text-gray-500 hover:text-[#C6A76A] transition-colors font-semibold"
-                                                                >
-                                                                    {item.name}
-                                                                </Link>
-                                                            </li>
-                                                        ))}
-                                                    </ul>
-                                                </div>
-
-                                                {/* Group 4: Sensual */}
-                                                <div className="space-y-2">
-                                                    <div className="flex items-center gap-2 border-b border-gray-150 pb-1">
-                                                        <svg className="w-4 h-4 text-[#C6A76A]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 21l-.813-5.096L3 15l5.187-.813L9 9l.813 5.187L15 15l-5.187.813zM19.071 4.929l-.353 2.122-.354-2.122L16.242 4.5l2.122-.354.354-2.122.353 2.122 2.122.354-2.122.354z" />
-                                                        </svg>
-                                                        <h4 className="text-[10px] font-bold text-[#7A3E4A] uppercase tracking-[0.2em]">Sensual</h4>
-                                                    </div>
-                                                    <ul className="space-y-1.5">
-                                                        {groupedCategories['Sensual'].map(item => (
-                                                            <li key={item.name}>
-                                                                <Link 
-                                                                    to={`/category/${slugifyCategory(item.name)}`} 
-                                                                    onClick={() => setIsMegaMenuOpen(false)} 
-                                                                    onMouseEnter={() => setHoveredCategory(item)}
-                                                                    onMouseLeave={() => setHoveredCategory(null)}
-                                                                    className="text-[11px] text-gray-500 hover:text-[#C6A76A] transition-colors font-semibold"
-                                                                >
-                                                                    {item.name}
-                                                                </Link>
-                                                            </li>
-                                                        ))}
-                                                    </ul>
-                                                </div>
+                                                <ul className="space-y-1.5">
+                                                    {groupedCategories['Lingerie'].map(item => (
+                                                        <li key={item.name}>
+                                                            <Link 
+                                                                to={`/category/${slugifyCategory(item.name)}`} 
+                                                                onClick={() => setIsMegaMenuOpen(false)} 
+                                                                onMouseEnter={() => setHoveredCategory(item)}
+                                                                onMouseLeave={() => setHoveredCategory(null)}
+                                                                className="text-[11px] text-gray-500 hover:text-[#C6A76A] transition-colors font-semibold"
+                                                            >
+                                                                {item.name}
+                                                            </Link>
+                                                        </li>
+                                                    ))}
+                                                </ul>
                                             </div>
 
-                                            {/* Promo Banner Column */}
-                                            <div className="w-48 bg-[#FAF9F5] border border-[#E8E0D8] rounded-xl p-4 flex flex-col justify-between relative overflow-hidden shrink-0 text-left min-h-[220px]">
-                                                {/* Imagem de Fundo - usa a da categoria ou uma imagem padrão premium para não ficar em branco */}
-                                                <div className="absolute inset-0 z-0 animate-[fadeIn_200ms_ease-out]">
-                                                    <img 
-                                                        src={hoveredCategory && hoveredCategory.image ? hoveredCategory.image : defaultCategoryImage} 
-                                                        alt={hoveredCategory ? hoveredCategory.name : 'Default'} 
-                                                        className="w-full h-full object-cover brightness-[0.65]" 
-                                                    />
-                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
+                                            {/* Group 2: Noite & Especiais */}
+                                            <div className="space-y-2">
+                                                <div className="flex items-center gap-2 border-b border-gray-150 pb-1">
+                                                    <svg className="w-4 h-4 text-[#C6A76A]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M8 5l1 3h6l1-3M6 8l2 11h8l2-11H6z" />
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v11" />
+                                                    </svg>
+                                                    <h4 className="text-[10px] font-bold text-[#7A3E4A] uppercase tracking-[0.2em]">Noite & Especiais</h4>
                                                 </div>
-
-                                                <div className="relative z-10 space-y-1.5 mt-auto">
-                                                    <span className={`text-[8px] font-bold uppercase tracking-widest ${hoveredCategory ? 'text-white/80' : 'text-[#C6A76A]'}`}>
-                                                        {hoveredCategory ? hoveredCategory.group : 'Meraki'}
-                                                    </span>
-                                                    <h4 className={`text-xs font-bold leading-tight font-heading ${hoveredCategory ? 'text-white' : 'text-[#7A3E4A]'}`}>
-                                                        {hoveredCategory ? hoveredCategory.name : 'Lingerie de Luxo e Conforto'}
-                                                    </h4>
-                                                    <p className={`text-[9px] font-medium leading-relaxed ${hoveredCategory ? 'text-white/85' : 'text-gray-400'}`}>
-                                                        {hoveredCategory ? hoveredCategory.description : 'Sofisticação e sensualidade feitas para você.'}
-                                                    </p>
-                                                </div>
-                                                <Link 
-                                                    to={hoveredCategory ? `/category/${slugifyCategory(hoveredCategory.name)}` : "/category/plus-size"} 
-                                                    onClick={() => setIsMegaMenuOpen(false)}
-                                                    className={`relative z-10 w-full py-2 bg-gradient-to-r ${hoveredCategory ? 'from-[#C6A76A] to-[#A88940] hover:shadow-[#C6A76A]/20' : 'from-[#7A3E4A] to-[#9A5060] hover:shadow-[#7A3E4A]/20'} text-white text-[9px] font-bold uppercase tracking-wider text-center rounded-lg hover:shadow-md transition-all duration-300 block`}
-                                                >
-                                                    {hoveredCategory ? 'Ver Categoria' : 'Ver Destaque →'}
-                                                </Link>
+                                                <ul className="space-y-1.5">
+                                                    {groupedCategories['Noite & Especiais'].map(item => (
+                                                        <li key={item.name}>
+                                                            <Link 
+                                                                to={`/category/${slugifyCategory(item.name)}`} 
+                                                                onClick={() => setIsMegaMenuOpen(false)} 
+                                                                onMouseEnter={() => setHoveredCategory(item)}
+                                                                onMouseLeave={() => setHoveredCategory(null)}
+                                                                className="text-[11px] text-gray-500 hover:text-[#C6A76A] transition-colors font-semibold"
+                                                            >
+                                                                {item.name}
+                                                            </Link>
+                                                        </li>
+                                                    ))}
+                                                </ul>
                                             </div>
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
+
+                                            {/* Group 3: Destaques */}
+                                            <div className="space-y-2">
+                                                <div className="flex items-center gap-2 border-b border-gray-150 pb-1">
+                                                    <svg className="w-4 h-4 text-[#C6A76A]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.24 11.54a3 3 0 00-4.24 0l-.5.5-.5-.5a3 3 0 10-4.24 4.24l5.24 5.24 5.24-5.24a3 3 0 000-4.24z" />
+                                                    </svg>
+                                                    <h4 className="text-[10px] font-bold text-[#7A3E4A] uppercase tracking-[0.2em]">Destaques</h4>
+                                                </div>
+                                                <ul className="space-y-1.5">
+                                                    {groupedCategories['Destaques'].map(item => (
+                                                        <li key={item.name}>
+                                                            <Link 
+                                                                to={`/category/${slugifyCategory(item.name)}`} 
+                                                                onClick={() => setIsMegaMenuOpen(false)} 
+                                                                onMouseEnter={() => setHoveredCategory(item)}
+                                                                onMouseLeave={() => setHoveredCategory(null)}
+                                                                className="text-[11px] text-gray-500 hover:text-[#C6A76A] transition-colors font-semibold"
+                                                            >
+                                                                {item.name}
+                                                            </Link>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+
+                                            {/* Group 4: Sensual */}
+                                            <div className="space-y-2">
+                                                <div className="flex items-center gap-2 border-b border-gray-150 pb-1">
+                                                    <svg className="w-4 h-4 text-[#C6A76A]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 21l-.813-5.096L3 15l5.187-.813L9 9l.813 5.187L15 15l-5.187.813zM19.071 4.929l-.353 2.122-.354-2.122L16.242 4.5l2.122-.354.354-2.122.353 2.122 2.122.354-2.122.354z" />
+                                                    </svg>
+                                                    <h4 className="text-[10px] font-bold text-[#7A3E4A] uppercase tracking-[0.2em]">Sensual</h4>
+                                                </div>
+                                                <ul className="space-y-1.5">
+                                                    {groupedCategories['Sensual'].map(item => (
+                                                        <li key={item.name}>
+                                                            <Link 
+                                                                to={`/category/${slugifyCategory(item.name)}`} 
+                                                                onClick={() => setIsMegaMenuOpen(false)} 
+                                                                onMouseEnter={() => setHoveredCategory(item)}
+                                                                onMouseLeave={() => setHoveredCategory(null)}
+                                                                className="text-[11px] text-gray-500 hover:text-[#C6A76A] transition-colors font-semibold"
+                                                            >
+                                                                {item.name}
+                                                            </Link>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        </div>
+
+                                        {/* Promo Banner Column */}
+                                        <div className="w-48 bg-[#FAF9F5] border border-[#E8E0D8] rounded-xl p-4 flex flex-col justify-between relative overflow-hidden shrink-0 text-left min-h-[220px]">
+                                            {/* Imagem de Fundo - usa a da categoria ou uma imagem padrão premium para não ficar em branco */}
+                                            <div className="absolute inset-0 z-0 animate-[fadeIn_200ms_ease-out]">
+                                                <img 
+                                                    src={hoveredCategory && hoveredCategory.image ? hoveredCategory.image : defaultCategoryImage} 
+                                                    alt={hoveredCategory ? hoveredCategory.name : 'Default'} 
+                                                    className="w-full h-full object-cover brightness-[0.65]" 
+                                                />
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
+                                            </div>
+
+                                            <div className="relative z-10 space-y-1.5 mt-auto">
+                                                <span className={`text-[8px] font-bold uppercase tracking-widest ${hoveredCategory ? 'text-white/80' : 'text-[#C6A76A]'}`}>
+                                                    {hoveredCategory ? hoveredCategory.group : 'Meraki'}
+                                                </span>
+                                                <h4 className={`text-xs font-bold leading-tight font-heading ${hoveredCategory ? 'text-white' : 'text-[#7A3E4A]'}`}>
+                                                    {hoveredCategory ? hoveredCategory.name : 'Lingerie de Luxo e Conforto'}
+                                                </h4>
+                                                <p className={`text-[9px] font-medium leading-relaxed ${hoveredCategory ? 'text-white/85' : 'text-gray-400'}`}>
+                                                    {hoveredCategory ? hoveredCategory.description : 'Sofisticação e sensualidade feitas para você.'}
+                                                </p>
+                                            </div>
+                                            <Link 
+                                                to={hoveredCategory ? `/category/${slugifyCategory(hoveredCategory.name)}` : "/category/plus-size"} 
+                                                onClick={() => setIsMegaMenuOpen(false)}
+                                                className={`relative z-10 w-full py-2 bg-gradient-to-r ${hoveredCategory ? 'from-[#C6A76A] to-[#A88940] hover:shadow-[#C6A76A]/20' : 'from-[#7A3E4A] to-[#9A5060] hover:shadow-[#7A3E4A]/20'} text-white text-[9px] font-bold uppercase tracking-wider text-center rounded-lg hover:shadow-md transition-all duration-300 block`}
+                                            >
+                                                {hoveredCategory ? 'Ver Categoria' : 'Ver Destaque →'}
+                                            </Link>
+                                        </div>
+                                    </div>
+                                )}
                             </li>
                             <li>
                                 <Link to="/returns" onClick={() => smoothScrollToTop(1200)} className="relative text-[10px] lg:text-[11px] font-semibold uppercase tracking-[0.2em] text-[#1A1A1A] hover:text-[#7A3E4A] transition-all duration-300 group inline-block">

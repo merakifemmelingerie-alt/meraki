@@ -726,20 +726,15 @@ export default function CategoryPage() {
                 ) : filteredProducts.length > 0 ? (
                     <div className="space-y-12">
                         <div className={`grid grid-cols-2 gap-x-4 sm:gap-x-8 gap-y-8 sm:gap-y-12 ${viewCols === 3 ? 'lg:grid-cols-3' : 'lg:grid-cols-4'}`}>
-                            {paginatedProducts.map((product, idx) => (
-                                <motion.div
-                                    key={product.id}
-                                    initial={{ opacity: 0, y: 30 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ duration: 0.8, delay: idx * 0.05, ease: [0.19, 1, 0.22, 1] }}
-                                >
+                            {paginatedProducts.map((product) => (
+                                <div key={product.id}>
                                     <ProductCard
                                         product={product}
                                         onQuickView={setQuickViewProduct}
                                         onToggleWishlist={toggleWishlist}
                                         isWishlisted={isWishlisted(product.id)}
                                     />
-                                </motion.div>
+                                </div>
                             ))}
                         </div>
 
