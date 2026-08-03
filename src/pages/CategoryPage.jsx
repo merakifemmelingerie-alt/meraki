@@ -367,13 +367,25 @@ export default function CategoryPage() {
     const categorySubcategoriesList = useMemo(() => {
         if (!slug) return []
         const cleanSlug = slugifyCategory(slug)
+        let list = []
         if (categoryStylesMap && categoryStylesMap[cleanSlug]) {
-            return categoryStylesMap[cleanSlug]
+            list = categoryStylesMap[cleanSlug]
+        } else if (categoryStylesMap && categoryStylesMap[slug]) {
+            list = categoryStylesMap[slug]
+        } else {
+            list = CATEGORY_SUBCATEGORIES[slug] || CATEGORY_SUBCATEGORIES[cleanSlug] || []
         }
-        if (categoryStylesMap && categoryStylesMap[slug]) {
-            return categoryStylesMap[slug]
-        }
-        return CATEGORY_SUBCATEGORIES[slug] || CATEGORY_SUBCATEGORIES[cleanSlug] || []
+        if (!Array.isArray(list)) return []
+        return list.map(item => {
+            if (!item) return null
+            if (typeof item === 'string') return { id: item, name: item, image: '' }
+            return {
+                id: item.id || item.name || '',
+                name: item.name || String(item.id || ''),
+                image: item.image || '',
+                svg: item.svg || null
+            }
+        }).filter(item => Boolean(item && item.name))
     }, [categoryStylesMap, slug])
 
     // Reset subcategory filter when changing categories
@@ -389,8 +401,9 @@ export default function CategoryPage() {
     }
 
     const getProductSubcategory = (product) => {
+        if (!product) return ''
         if (product.subcategory) return product.subcategory
-        const name = product.name.toLowerCase()
+        const name = (product.name || '').toLowerCase()
         
         if (slug === 'conjuntos') {
             if (name.includes('sophie') || name.includes('white') || name.includes('noiva')) return 'Meia Taça'

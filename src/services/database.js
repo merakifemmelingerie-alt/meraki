@@ -79,13 +79,13 @@ const FIELD_MAPPING = {
 
 // Normalize a category value (object or string) to its name string
 function normalizeCategoryName(cat) {
-    if (!cat) return cat
+    if (!cat) return ''
     if (typeof cat === 'object') return cat.name || ''
     try {
         const parsed = JSON.parse(cat)
-        if (parsed && typeof parsed === 'object') return parsed.name || cat
+        if (parsed && typeof parsed === 'object') return parsed.name || String(cat)
     } catch (_) { /* not JSON */ }
-    return cat
+    return String(cat)
 }
 
 // Translate database properties back to camelCase for frontend pages
