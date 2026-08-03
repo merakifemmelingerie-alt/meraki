@@ -103,7 +103,10 @@ export default function App() {
     const [loading, setLoading] = useState(!isInitialSyncComplete)
 
     useEffect(() => {
-        if (isInitialSyncComplete) return
+        if (isInitialSyncComplete) {
+            setLoading(false)
+            return
+        }
         
         const handleSync = () => {
             setLoading(false)
@@ -112,12 +115,9 @@ export default function App() {
         return () => window.removeEventListener('meraki_db_synced', handleSync)
     }, [])
 
-    if (loading) {
-        return <SplashLoader />
-    }
-
     return (
         <HashRouter>
+            {loading && <SplashLoader />}
             <ScrollToTopReset />
             <TrackingManager />
             <CartDrawer />

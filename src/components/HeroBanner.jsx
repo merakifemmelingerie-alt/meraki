@@ -222,7 +222,9 @@ export default function HeroBanner() {
         }
     }
 
-    if (!visibleSlides || visibleSlides.length === 0) return null
+    if (!visibleSlides || visibleSlides.length === 0) {
+        return <section className="relative w-full overflow-hidden bg-[#F5EDE3] transition-all duration-300 max-h-[800px] aspect-[1920/800] animate-pulse" />
+    }
 
     // Clamp current index safely within visible slides
     const safeIndex = Math.min(current, visibleSlides.length - 1)
