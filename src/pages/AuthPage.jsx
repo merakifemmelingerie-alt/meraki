@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { createReturnInDb, mapDbToFrontend } from '../services/database.js'
+import { createReturnInDb, mapDbToFrontend, generateUUID } from '../services/database.js'
 import { supabase } from '../services/supabase.js'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth.js'
@@ -550,7 +550,7 @@ export default function AuthPage() {
         }
         const postCode = `PM${Math.floor(100000000 + Math.random() * 900000000)}BR`
         const newReturn = {
-            id: 'RET-' + Date.now(),
+            id: generateUUID(),
             orderId: returnOrderId,
             itemId: returnItemId,
             customerEmail: user.email?.trim().toLowerCase(),

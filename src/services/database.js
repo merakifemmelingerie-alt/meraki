@@ -1,5 +1,20 @@
 import { supabase } from './supabase.js'
 
+export function generateUUID() {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+        return crypto.randomUUID()
+    }
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+        const r = (Math.random() * 16) | 0
+        const v = c === 'x' ? r : (r & 0x3) | 0x8
+        return v.toString(16)
+    })
+}
+
+export function isValidUUID(str) {
+    if (!str || typeof str !== 'string') return false
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(str)
+}
 
 
 // Initialize database schema sync
@@ -207,7 +222,14 @@ export async function initSupabaseSync() {
         // 4. Sync Banners
         const { data: dbBanners, error: bError } = await supabase.from('banners').select('*')
         if (!bError) {
-            localStorage.setItem('meraki_banners', JSON.stringify(dbBanners || []))
+            if (dbBanners && dbBanners.length > 0) {
+                localStorage.setItem('meraki_banners', JSON.stringify(dbBanners))
+            } else {
+                const localBanners = JSON.parse(localStorage.getItem('meraki_banners') || '[]')
+                if (localBanners.length > 0) {
+                    await syncTableToSupabase('banners', localBanners)
+                }
+            }
         }
 
         // 5. Sync Categories — always overwrite to clear stale cache
@@ -421,11 +443,41 @@ function filterPayloadForTable(table, item) {
 async function syncTableToSupabase(table, items) {
     if (!Array.isArray(items)) return
     try {
+        const uuidTables = ['banners', 'coupons', 'categories', 'returns', 'products']
+        const isUuidTable = uuidTables.includes(table)
+
+        // Clean/fix invalid UUID IDs for local items if this is a UUID table
+        let itemsModified = false
+        if (isUuidTable) {
+            for (const item of items) {
+                if (item && item.id && !isValidUUID(item.id)) {
+                    item.id = generateUUID()
+                    itemsModified = true
+                }
+            }
+        }
+
+        // If local items were updated with valid UUIDs, re-save to localStorage
+        if (itemsModified) {
+            const keyMap = {
+                banners: 'meraki_banners',
+                coupons: 'meraki_coupons',
+                categories: 'meraki_categories',
+                products: 'meraki_products'
+            }
+            if (keyMap[table]) {
+                originalSetItem(keyMap[table], JSON.stringify(items))
+            }
+        }
+
         const conflictKey = table === 'categories' ? 'name' : table === 'coupons' ? 'code' : 'id'
 
         // For local-first array tables, delete items from Supabase that are missing in the new list
         if (table === 'banners' || table === 'coupons' || table === 'categories') {
-            const currentKeys = items.map(item => item[conflictKey]).filter(Boolean)
+            const currentKeys = items
+                .map(item => item[conflictKey])
+                .filter(k => Boolean(k) && (conflictKey !== 'id' || isValidUUID(k)))
+
             if (currentKeys.length > 0) {
                 const inList = `(${currentKeys.map(k => `"${k}"`).join(',')})`
                 await supabase.from(table).delete().filter(conflictKey, 'not.in', inList)
@@ -443,9 +495,15 @@ async function syncTableToSupabase(table, items) {
         for (const item of items) {
             const payload = filterPayloadForTable(table, item)
 
-            // If the item has a temporary numeric ID (like mock products/orders), Supabase will auto-generate a UUID if omitted
-            if (payload.id && (payload.id.length < 10 || !isNaN(payload.id))) {
-                delete payload.id // Let Supabase generate a proper UUID
+            if (isUuidTable) {
+                if (!payload.id || !isValidUUID(payload.id)) {
+                    payload.id = item.id && isValidUUID(item.id) ? item.id : generateUUID()
+                    item.id = payload.id
+                }
+            } else {
+                if (payload.id && (payload.id.length < 10 || !isNaN(payload.id))) {
+                    delete payload.id
+                }
             }
 
             const { error } = await supabase.from(table).upsert(payload, { onConflict: conflictKey })

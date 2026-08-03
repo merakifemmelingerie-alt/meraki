@@ -4,7 +4,7 @@ import { useAuth } from '../hooks/useAuth.js'
 import { getAssetUrl } from '../utils/assets.js'
 import { useProducts } from '../hooks/useProducts.js'
 import { supabase } from '../services/supabase.js'
-import { createProduct, updateProduct, deleteProduct, uploadMultipleImages, deleteImage, createCategory, getProfiles, updateStoreConfig, clearProductBadges } from '../services/database.js'
+import { createProduct, updateProduct, deleteProduct, uploadMultipleImages, deleteImage, createCategory, getProfiles, updateStoreConfig, clearProductBadges, generateUUID } from '../services/database.js'
 import { signOut } from '../services/auth.js'
 import AdminSidebar from '../components/admin/AdminSidebar.jsx'
 import DashboardSection from '../components/admin/DashboardSection.jsx'
@@ -830,7 +830,7 @@ export default function AdminPage() {
             } : c)
         } else {
             const newCoupon = {
-                id: 'cp-' + Date.now(),
+                id: generateUUID(),
                 code: couponForm.code.toUpperCase().trim(),
                 type: couponForm.type,
                 value: parseFloat(couponForm.value) || 0,
@@ -873,7 +873,7 @@ export default function AdminPage() {
             return
         }
         const newBanner = { 
-            id: 'bn-' + Date.now(), 
+            id: generateUUID(), 
             image: imageUrl, 
             mobile_image: mobileImageUrl, 
             alt: bannerForm.alt || 'Banner Meraki', 
