@@ -1,17 +1,11 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
-
-const hasValidCreds = supabaseUrl && supabaseAnonKey && !supabaseUrl.includes('your-project-id')
-
-if (!hasValidCreds) {
-    console.warn('⚠️ Supabase credentials not found. Check your .env file.')
-}
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://ndcrlkehwgcqfligrxim.supabase.co'
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5kY3Jsa2Vod2djcWZsaWdyeGltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3NzEzNTgsImV4cCI6MjEwMTM0NzM1OH0.ah2LUpV_WP8ZOUDe7PhgSZnScz1p00b12H4oj_MsovA'
 
 export const supabase = createClient(
-    hasValidCreds ? supabaseUrl : 'https://placeholder-project.supabase.co',
-    hasValidCreds ? supabaseAnonKey : 'placeholder-anon-key',
+    supabaseUrl,
+    supabaseAnonKey,
     {
         auth: {
             storage: typeof window !== 'undefined' ? window.sessionStorage : undefined,
@@ -21,3 +15,4 @@ export const supabase = createClient(
         }
     }
 )
+
