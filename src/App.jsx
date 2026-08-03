@@ -22,10 +22,11 @@ function ScrollToTopReset() {
     return null
 }
 
-function SplashLoader() {
+function SplashLoader({ loading }) {
     const [butterflySrc, setButterflySrc] = useState('/assets/borboleta-v2.png')
 
     useEffect(() => {
+        if (!loading) return
         const img = new Image()
         img.src = '/assets/borboleta-v2.png'
         img.onload = () => {
@@ -53,7 +54,9 @@ function SplashLoader() {
                 }
             }
         }
-    }, [])
+    }, [loading])
+
+    if (!loading) return null
 
     return (
         <div className="fixed inset-0 flex flex-col items-center justify-center z-[99999]" style={{ background: 'linear-gradient(135deg, #FAF9F5 0%, #F5EEE9 100%)' }}>
@@ -117,7 +120,7 @@ export default function App() {
 
     return (
         <HashRouter>
-            {loading && <SplashLoader />}
+            <SplashLoader loading={loading} />
             <ScrollToTopReset />
             <TrackingManager />
             <CartDrawer />

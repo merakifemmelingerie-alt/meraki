@@ -382,27 +382,30 @@ export async function initSupabaseSync() {
         // ensuring no null entries slip through regardless of Supabase data quality.
         sanitizeLocalStorage()
 
-        // Dispatch global events asynchronously to allow React to finish initial component mounting cleanly
-        setTimeout(() => {
-            window.dispatchEvent(new Event('categoriesUpdated'))
-            window.dispatchEvent(new Event('productsUpdated'))
-            window.dispatchEvent(new Event('bannersUpdated'))
-            window.dispatchEvent(new Event('couponsUpdated'))
-            window.dispatchEvent(new Event('ordersUpdated'))
-            window.dispatchEvent(new Event('returnsUpdated'))
-            window.dispatchEvent(new Event('storeConfigUpdated'))
-            window.dispatchEvent(new Event('homepageCategoriesUpdated'))
-            window.dispatchEvent(new Event('topbarMessagesUpdated'))
-            window.dispatchEvent(new Event('topbarStyleUpdated'))
-            window.dispatchEvent(new Event('promoComboUpdated'))
-            window.dispatchEvent(new Event('editorialUpdated'))
-            window.dispatchEvent(new Event('meraki_db_synced'))
-        }, 50)
     } catch (e) {
         console.error('⚠️ Falha ao sincronizar dados com Supabase:', e)
     } finally {
         isSyncing = false
         isInitialSyncComplete = true
+
+        // Dispatch global events asynchronously via requestAnimationFrame to allow React to process renders cleanly
+        setTimeout(() => {
+            requestAnimationFrame(() => {
+                window.dispatchEvent(new Event('categoriesUpdated'))
+                window.dispatchEvent(new Event('productsUpdated'))
+                window.dispatchEvent(new Event('bannersUpdated'))
+                window.dispatchEvent(new Event('couponsUpdated'))
+                window.dispatchEvent(new Event('ordersUpdated'))
+                window.dispatchEvent(new Event('returnsUpdated'))
+                window.dispatchEvent(new Event('storeConfigUpdated'))
+                window.dispatchEvent(new Event('homepageCategoriesUpdated'))
+                window.dispatchEvent(new Event('topbarMessagesUpdated'))
+                window.dispatchEvent(new Event('topbarStyleUpdated'))
+                window.dispatchEvent(new Event('promoComboUpdated'))
+                window.dispatchEvent(new Event('editorialUpdated'))
+                window.dispatchEvent(new Event('meraki_db_synced'))
+            })
+        }, 100)
     }
 }
 
