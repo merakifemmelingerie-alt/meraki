@@ -25,7 +25,10 @@ export default function HomePage() {
     const [categories, setCategories] = useState(() => {
         try {
             const stored = localStorage.getItem('meraki_homepage_categories')
-            if (stored) return JSON.parse(stored)
+            if (stored) {
+                const parsed = JSON.parse(stored)
+                return Array.isArray(parsed) ? parsed.filter(c => c && c.name) : []
+            }
         } catch (e) {
             console.error(e)
         }
@@ -109,7 +112,10 @@ export default function HomePage() {
         const updateHomepageCats = () => {
             try {
                 const stored = localStorage.getItem('meraki_homepage_categories')
-                if (stored) setCategories(JSON.parse(stored))
+                if (stored) {
+                    const parsed = JSON.parse(stored)
+                    setCategories(Array.isArray(parsed) ? parsed.filter(c => c && c.name) : [])
+                }
             } catch (e) {
                 console.error(e)
             }
@@ -244,10 +250,10 @@ export default function HomePage() {
                             <p className="text-gray-500 max-w-lg italic font-light text-lg">Curadoria exclusiva das melhores peças para você.</p>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                            {categories.map((cat) => (
+                            {categories.filter(cat => cat && cat.name).map((cat) => (
                                 <div
                                     key={cat.name}
-                                    id={cat.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(' ', '-')}
+                                    id={(cat.name || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(' ', '-')}
                                 >
                                     <CategoryCard {...cat} />
                                 </div>
