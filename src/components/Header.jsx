@@ -9,7 +9,7 @@ const defaultTopBarMessages = [
     "Ganhe 5% de desconto pagando no PIX!"
 ]
 
-const slugifyCategory = (name) => name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s-]/g, '').trim().replace(/[\s-]+/g, '-')
+const slugifyCategory = (name) => (name || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s-]/g, '').trim().replace(/[\s-]+/g, '-')
 
 const categoryImages = {
     'conjuntos': '/assets/categories/cat-conjuntos.jpg',
@@ -593,7 +593,7 @@ export default function Header({ cartCount = 0, wishlistCount = 0, onSearchOpen 
                                     </button>
                                     {mobileCategoriesOpen && (
                                         <ul className="mt-3 pl-4 space-y-2.5 border-l border-gray-100 animate-[fadeIn_200ms_ease-out]">
-                                            {categories.map(sub => (
+                                            {categories.filter(sub => sub && sub.name).map(sub => (
                                                 <li key={sub.name}>
                                                     <Link 
                                                         to={`/category/${slugifyCategory(sub.name)}`} 

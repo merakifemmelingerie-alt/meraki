@@ -202,7 +202,8 @@ export async function initSupabaseSync() {
         // 1. Sync Products
         const { data: dbProducts, error: pError } = await supabase.from('products').select('*')
         if (!pError) {
-            localStorage.setItem('meraki_products', JSON.stringify(dbProducts || []))
+            const cleanProducts = (dbProducts || []).filter(p => p && p.name)
+            localStorage.setItem('meraki_products', JSON.stringify(cleanProducts))
         }
 
         // 2. Sync Orders — always overwrite to clear stale cache
@@ -235,7 +236,8 @@ export async function initSupabaseSync() {
         // 5. Sync Categories — always overwrite to clear stale cache
         const { data: dbCategories, error: catError } = await supabase.from('categories').select('*')
         if (!catError) {
-            localStorage.setItem('meraki_categories', JSON.stringify(dbCategories || []))
+            const cleanCategories = (dbCategories || []).filter(c => c && c.name)
+            localStorage.setItem('meraki_categories', JSON.stringify(cleanCategories))
         }
 
         // 6. Sync Returns — always overwrite to clear stale cache

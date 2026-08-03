@@ -128,7 +128,10 @@ export default function AdminPage() {
     const [homepageCategories, setHomepageCategories] = useState(() => {
         try {
             const stored = localStorage.getItem('meraki_homepage_categories')
-            if (stored) return JSON.parse(stored)
+            if (stored) {
+                const parsed = JSON.parse(stored)
+                return Array.isArray(parsed) ? parsed.filter(c => c && c.name) : []
+            }
         } catch {}
         return []
     })
