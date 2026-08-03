@@ -444,6 +444,8 @@ function filterPayloadForTable(table, item) {
 
 async function syncTableToSupabase(table, items) {
     if (!Array.isArray(items)) return
+    // Filter out any null/undefined entries that may have ended up in localStorage
+    items = items.filter(item => item != null)
     try {
         const uuidTables = ['banners', 'coupons', 'categories', 'returns', 'products']
         const isUuidTable = uuidTables.includes(table)
@@ -477,6 +479,7 @@ async function syncTableToSupabase(table, items) {
         // For local-first array tables, delete items from Supabase that are missing in the new list
         if (table === 'banners' || table === 'coupons' || table === 'categories') {
             const currentKeys = items
+                .filter(item => item != null)
                 .map(item => item[conflictKey])
                 .filter(k => Boolean(k) && (conflictKey !== 'id' || isValidUUID(k)))
 
@@ -495,6 +498,7 @@ async function syncTableToSupabase(table, items) {
         }
 
         for (const item of items) {
+            if (!item) continue
             const payload = filterPayloadForTable(table, item)
 
             if (isUuidTable) {
