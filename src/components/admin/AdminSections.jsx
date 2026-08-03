@@ -886,22 +886,6 @@ export function CategoriesSection({
         return stored.default_category_image || categories?.[0]?.image || '/assets/categories/cat-sexy.jpg'
     })
 
-    useEffect(() => {
-        const stored = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
-        if (stored.default_category_image) {
-            setDefaultCategoryImage(stored.default_category_image)
-        } else if (categories && categories.length > 0 && categories[0]?.image) {
-            setDefaultCategoryImage(categories[0].image)
-        }
-    }, [categories])
-
-    const resetForm = () => {
-        setEditingIndex(null)
-        setCatName('')
-        setCatGroup('Lingerie')
-        setCatDescription('')
-    }
-
     // Subcategory style filters state
     const slugifyCat = (name) => (name || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s-]/g, '').trim().replace(/[\s-]+/g, '-')
 
@@ -944,6 +928,22 @@ export function CategoriesSection({
     const [editingStyleIndex, setEditingStyleIndex] = useState(null)
     const [styleName, setStyleName] = useState('')
     const [styleImage, setStyleImage] = useState('')
+
+    useEffect(() => {
+        const stored = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
+        if (stored.default_category_image) {
+            setDefaultCategoryImage(stored.default_category_image)
+        } else if (categories && categories.length > 0 && categories[0]?.image) {
+            setDefaultCategoryImage(categories[0].image)
+        }
+    }, [categories])
+
+    const resetForm = () => {
+        setEditingIndex(null)
+        setCatName('')
+        setCatGroup('Lingerie')
+        setCatDescription('')
+    }
 
     const saveCategoryStylesMap = (updatedMap) => {
         setCategoryStylesMap(updatedMap)
@@ -1767,6 +1767,36 @@ export function SettingsSection({ saving, setSaving, updateStoreConfig }) {
         }
     })
 
+    const [rewardBar, setRewardBar] = useState(() => {
+        try {
+            const storedReward = JSON.parse(localStorage.getItem('meraki_reward_bar') || 'null')
+            return storedReward || config.rewardBar || {
+                enabled: true,
+                target_type: 'value',
+                target_value: 299.99,
+                reward_type: 'frete_gratis',
+                reward_title: 'Frete Grátis',
+                success_message: 'Parabéns! Você ganhou Frete Grátis!'
+            }
+        } catch {
+            return {
+                enabled: true,
+                target_type: 'value',
+                target_value: 299.99,
+                reward_type: 'frete_gratis',
+                reward_title: 'Frete Grátis',
+                success_message: 'Parabéns! Você ganhou Frete Grátis!'
+            }
+        }
+    })
+    const [message, setMessage] = useState('')
+
+    // Password states
+    const [newPassword, setNewPassword] = useState('')
+    const [confirmPassword, setConfirmPassword] = useState('')
+    const [pwdMessage, setPwdMessage] = useState('')
+    const [pwdError, setPwdError] = useState(false)
+
     // Sync with Supabase on mount
     useEffect(() => {
         const fetchDbConfig = async () => {
@@ -1802,36 +1832,6 @@ export function SettingsSection({ saving, setSaving, updateStoreConfig }) {
         }
         fetchDbConfig()
     }, [])
-    
-    const [rewardBar, setRewardBar] = useState(() => {
-        try {
-            const storedReward = JSON.parse(localStorage.getItem('meraki_reward_bar') || 'null')
-            return storedReward || config.rewardBar || {
-                enabled: true,
-                target_type: 'value',
-                target_value: 299.99,
-                reward_type: 'frete_gratis',
-                reward_title: 'Frete Grátis',
-                success_message: 'Parabéns! Você ganhou Frete Grátis!'
-            }
-        } catch {
-            return {
-                enabled: true,
-                target_type: 'value',
-                target_value: 299.99,
-                reward_type: 'frete_gratis',
-                reward_title: 'Frete Grátis',
-                success_message: 'Parabéns! Você ganhou Frete Grátis!'
-            }
-        }
-    })
-    const [message, setMessage] = useState('')
-
-    // Password states
-    const [newPassword, setNewPassword] = useState('')
-    const [confirmPassword, setConfirmPassword] = useState('')
-    const [pwdMessage, setPwdMessage] = useState('')
-    const [pwdError, setPwdError] = useState(false)
 
     const handlePasswordChange = async (e) => {
         e.preventDefault()

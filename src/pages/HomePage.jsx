@@ -77,6 +77,10 @@ export default function HomePage() {
         } catch { return 'Em até 2x sem juros' }
     })
 
+    const { products: allProducts, loading: loadingAll } = useProducts()
+    const { cartCount, addToCart } = useCart()
+    const { wishlistCount, toggleWishlist, isWishlisted } = useWishlist()
+
     // Auto-generate display texts from numeric price fields
     const promoPrice2 = Number(promoCombo.price2Items) || 139
     const promoPrice3 = Number(promoCombo.price3Items) || 169
@@ -151,9 +155,6 @@ export default function HomePage() {
         return () => window.removeEventListener('hashchange', handleHashScroll)
     }, [])
 
-
-    const { products: allProducts, loading: loadingAll } = useProducts()
-    
     // Synchronously derive sectioned lists from a single products fetch to prevent redundant async cascades
     const bestSellers = allProducts.filter(p => p.section === 'best-sellers')
     const featured = allProducts.filter(p => p.section === 'featured')
@@ -161,9 +162,6 @@ export default function HomePage() {
     const loadingBest = loadingAll
     const loadingFeatured = loadingAll
     const loadingNew = loadingAll
-
-    const { cartCount, addToCart } = useCart()
-    const { wishlistCount, toggleWishlist, isWishlisted } = useWishlist()
 
     const showNotification = useCallback((message) => {
         setNotification({ message, visible: true })

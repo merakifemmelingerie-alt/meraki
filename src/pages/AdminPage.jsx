@@ -114,18 +114,6 @@ export default function AdminPage() {
     const [cpPage, setCpPage] = useState(1) // Coupons
     const ITEMS_PER_PAGE = 8
 
-    useEffect(() => {
-        setPPage(1)
-    }, [searchQuery])
-
-    useEffect(() => {
-        setPPage(1)
-        setOPage(1)
-        setCPage(1)
-        setRPage(1)
-        setCpPage(1)
-    }, [activeSection])
-
     const [sections, setSections] = useState(() => {
         const stored = localStorage.getItem('meraki_sections')
         return stored ? JSON.parse(stored) : [
@@ -370,7 +358,17 @@ export default function AdminPage() {
     const [dragActive, setDragActive] = useState(false)
     const fileInputRef = useRef(null)
 
+    useEffect(() => {
+        setPPage(1)
+    }, [searchQuery])
 
+    useEffect(() => {
+        setPPage(1)
+        setOPage(1)
+        setCPage(1)
+        setRPage(1)
+        setCpPage(1)
+    }, [activeSection])
 
     useEffect(() => {
         let loadedCoupons = JSON.parse(localStorage.getItem('meraki_coupons') || '[]')

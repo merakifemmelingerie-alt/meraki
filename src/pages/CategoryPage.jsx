@@ -340,6 +340,16 @@ export default function CategoryPage() {
         return {}
     })
 
+    // Filters & Pagination state
+    const [sortBy, setSortBy] = useState('newest') // newest, price-asc, price-desc
+    const [selectedSize, setSelectedSize] = useState('all')
+    const [viewCols, setViewCols] = useState(4)
+    const [currentPage, setCurrentPage] = useState(1)
+
+    const { products: allProducts, loading } = useProducts()
+    const { cartCount, addToCart } = useCart()
+    const { wishlistCount, toggleWishlist, isWishlisted } = useWishlist()
+
     useEffect(() => {
         const updateStyles = () => {
             try {
@@ -415,15 +425,6 @@ export default function CategoryPage() {
 
         return 'Geral'
     }
-    
-    // Filters
-    const [sortBy, setSortBy] = useState('newest') // newest, price-asc, price-desc
-    const [selectedSize, setSelectedSize] = useState('all')
-    const [viewCols, setViewCols] = useState(4)
-
-    const { products: allProducts, loading } = useProducts()
-    const { cartCount, addToCart } = useCart()
-    const { wishlistCount, toggleWishlist, isWishlisted } = useWishlist()
 
     // Determine target category metadata
     const meta = useMemo(() => {
@@ -510,7 +511,6 @@ export default function CategoryPage() {
     }, [allProducts, slug, selectedSize, sortBy, selectedSubcategory])
 
     // Pagination
-    const [currentPage, setCurrentPage] = useState(1)
     const ITEMS_PER_PAGE = 12
 
     useEffect(() => {

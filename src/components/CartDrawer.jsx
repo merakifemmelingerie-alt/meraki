@@ -6,6 +6,46 @@ import { getAssetUrl } from '../utils/assets.js'
 
 import { getUserProfile } from '../services/auth.js'
 
+const readRewardConfig = () => {
+    try {
+        const storedReward = JSON.parse(localStorage.getItem('meraki_reward_bar') || 'null')
+        if (storedReward && typeof storedReward === 'object' && Object.keys(storedReward).length > 0) {
+            return {
+                enabled: storedReward.enabled !== false,
+                target_type: storedReward.target_type || 'value',
+                target_value: Number(storedReward.target_value) > 0 ? Number(storedReward.target_value) : 299.99,
+                reward_type: storedReward.reward_type || 'frete_gratis',
+                reward_title: storedReward.reward_title || 'Frete Grátis',
+                success_message: storedReward.success_message || 'Parabéns! Você ganhou Frete Grátis!'
+            }
+        }
+
+        const storedConfig = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
+        const cfg = storedConfig?.rewardBar || storedConfig?.reward_bar
+        if (cfg && typeof cfg === 'object' && Object.keys(cfg).length > 0) {
+            return {
+                enabled: cfg.enabled !== false,
+                target_type: cfg.target_type || 'value',
+                target_value: Number(cfg.target_value) > 0 ? Number(cfg.target_value) : 299.99,
+                reward_type: cfg.reward_type || 'frete_gratis',
+                reward_title: cfg.reward_title || 'Frete Grátis',
+                success_message: cfg.success_message || 'Parabéns! Você ganhou Frete Grátis!'
+            }
+        }
+    } catch (e) {
+        console.error(e)
+    }
+
+    return {
+        enabled: true,
+        target_type: 'value',
+        target_value: 299.99,
+        reward_type: 'frete_gratis',
+        reward_title: 'Frete Grátis',
+        success_message: 'Parabéns! Você ganhou Frete Grátis!'
+    }
+}
+
 export default function CartDrawer() {
     const [isOpen, setIsOpen] = useState(false)
     const { cart, removeFromCart, updateQuantity, cartCount, subtotal, comboDiscount, total } = useCart()
@@ -19,6 +59,8 @@ export default function CartDrawer() {
     const [shippingError, setShippingError] = useState('')
     const [savedAddresses, setSavedAddresses] = useState([])
     const [selectedAddressId, setSelectedAddressId] = useState(null)
+    const [rewardBarConfig, setRewardBarConfig] = useState(readRewardConfig)
+    const [stockWarning, setStockWarning] = useState('')
 
     useEffect(() => {
         const handleToggle = (e) => {
@@ -76,48 +118,6 @@ export default function CartDrawer() {
     const formatCurrency = (val) => {
         return (val || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
     }
-
-    const readRewardConfig = () => {
-        try {
-            const storedReward = JSON.parse(localStorage.getItem('meraki_reward_bar') || 'null')
-            if (storedReward && typeof storedReward === 'object' && Object.keys(storedReward).length > 0) {
-                return {
-                    enabled: storedReward.enabled !== false,
-                    target_type: storedReward.target_type || 'value',
-                    target_value: Number(storedReward.target_value) > 0 ? Number(storedReward.target_value) : 299.99,
-                    reward_type: storedReward.reward_type || 'frete_gratis',
-                    reward_title: storedReward.reward_title || 'Frete Grátis',
-                    success_message: storedReward.success_message || 'Parabéns! Você ganhou Frete Grátis!'
-                }
-            }
-
-            const storedConfig = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
-            const cfg = storedConfig?.rewardBar || storedConfig?.reward_bar
-            if (cfg && typeof cfg === 'object' && Object.keys(cfg).length > 0) {
-                return {
-                    enabled: cfg.enabled !== false,
-                    target_type: cfg.target_type || 'value',
-                    target_value: Number(cfg.target_value) > 0 ? Number(cfg.target_value) : 299.99,
-                    reward_type: cfg.reward_type || 'frete_gratis',
-                    reward_title: cfg.reward_title || 'Frete Grátis',
-                    success_message: cfg.success_message || 'Parabéns! Você ganhou Frete Grátis!'
-                }
-            }
-        } catch (e) {
-            console.error(e)
-        }
-
-        return {
-            enabled: true,
-            target_type: 'value',
-            target_value: 299.99,
-            reward_type: 'frete_gratis',
-            reward_title: 'Frete Grátis',
-            success_message: 'Parabéns! Você ganhou Frete Grátis!'
-        }
-    }
-
-    const [rewardBarConfig, setRewardBarConfig] = useState(readRewardConfig)
 
     useEffect(() => {
         const handleUpdate = () => {
@@ -220,8 +220,6 @@ export default function CartDrawer() {
 
     const shippingCost = shippingOption ? shippingOption.price : 0
     const finalCartTotal = Math.max(0, total + shippingCost)
-
-    const [stockWarning, setStockWarning] = useState('')
 
     useEffect(() => {
         const handleWarning = (e) => {

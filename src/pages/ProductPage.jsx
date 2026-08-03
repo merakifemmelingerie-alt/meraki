@@ -38,6 +38,7 @@ export default function ProductPage() {
     const [customText, setCustomText] = useState('')
     const [activeImageIndex, setActiveImageIndex] = useState(0)
     const [lightboxOpen, setLightboxOpen] = useState(false)
+    const [errorMsg, setErrorMsg] = useState('')
 
     // Load reviews from Supabase / localStorage cache
     useEffect(() => {
@@ -76,8 +77,6 @@ export default function ProductPage() {
         setActiveImageIndex(0)
         setLightboxOpen(false)
     }, [id])
-
-    const [errorMsg, setErrorMsg] = useState('')
 
     const isCustomizableProduct = useMemo(() => {
         if (!product) return false

@@ -64,6 +64,14 @@ export default function OrderSuccessPage() {
             return 'merakimodafeminina2026'
         }
     })
+    const [dynamicPixKey, setDynamicPixKey] = useState(() => {
+        try {
+            const config = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
+            return config.pix_key || config.pixKey || '57328371000114'
+        } catch {
+            return '57328371000114'
+        }
+    })
 
     useEffect(() => {
         const checkOrder = () => {
@@ -100,15 +108,6 @@ export default function OrderSuccessPage() {
             window.removeEventListener('ordersUpdated', checkOrder)
         }
     }, [orderId])
-
-    const [dynamicPixKey, setDynamicPixKey] = useState(() => {
-        try {
-            const config = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
-            return config.pix_key || config.pixKey || '57328371000114'
-        } catch {
-            return '57328371000114'
-        }
-    })
 
     useEffect(() => {
         const syncPixKey = async () => {

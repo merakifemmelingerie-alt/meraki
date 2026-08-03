@@ -63,6 +63,7 @@ export default function CheckoutPage() {
     const [appliedCoupon, setAppliedCoupon] = useState(null)
     const [couponCode, setCouponCode] = useState('')
     const [couponError, setCouponError] = useState('')
+    const [cardName, setCardName] = useState('')
 
     // Load saved addresses and user data
     useEffect(() => {
@@ -138,9 +139,6 @@ export default function CheckoutPage() {
         }
     }
 
-    // Payment states
-    const [cardName, setCardName] = useState('')
-    
     const subtotal = Math.max(0, rawSubtotal - comboDiscount)
 
     useEffect(() => {

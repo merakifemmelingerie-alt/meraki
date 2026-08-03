@@ -57,6 +57,20 @@ export default function Header({ cartCount = 0, wishlistCount = 0, onSearchOpen 
         }
     })
 
+    const [categories, setCategories] = useState(() => {
+        const stored = localStorage.getItem('meraki_categories')
+        if (stored) {
+            try {
+                const parsed = JSON.parse(stored)
+                return parsed.map(c => typeof c === 'string' ? { name: c, description: 'Coleção Meraki', image: '/placeholder.jpg', group: 'Lingerie' } : c)
+            } catch (e) { console.error(e) }
+        }
+        return []
+    })
+
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+    const [butterflySrc, setButterflySrc] = useState('/assets/borboleta-v2.png')
+
     useEffect(() => {
         const updateDefaultImage = () => {
             try {
@@ -70,17 +84,6 @@ export default function Header({ cartCount = 0, wishlistCount = 0, onSearchOpen 
         return () => window.removeEventListener('storeConfigUpdated', updateDefaultImage)
     }, [])
     
-    const [categories, setCategories] = useState(() => {
-        const stored = localStorage.getItem('meraki_categories')
-        if (stored) {
-            try {
-                const parsed = JSON.parse(stored)
-                return parsed.map(c => typeof c === 'string' ? { name: c, description: 'Coleção Meraki', image: '/placeholder.jpg', group: 'Lingerie' } : c)
-            } catch (e) { console.error(e) }
-        }
-        return []
-    })
-
     useEffect(() => {
         const updateCats = () => {
             const stored = localStorage.getItem('meraki_categories')
@@ -167,9 +170,6 @@ export default function Header({ cartCount = 0, wishlistCount = 0, onSearchOpen 
         }, 4000)
         return () => clearInterval(interval)
     }, [messages])
-
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-    const [butterflySrc, setButterflySrc] = useState('/assets/borboleta-v2.png')
 
     useEffect(() => {
         const img = new Image()
