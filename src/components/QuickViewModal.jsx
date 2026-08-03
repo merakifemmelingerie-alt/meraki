@@ -20,6 +20,8 @@ export default function QuickViewModal({ product, isOpen, onClose, onAddToCart, 
         return () => { isMounted = false }
     }, [product])
 
+    if (!isOpen || !product || !product.name) return null
+
     const activeProduct = product || {}
     const formatPrice = (price) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(price || 0)
     

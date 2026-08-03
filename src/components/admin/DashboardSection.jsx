@@ -152,7 +152,7 @@ export default function DashboardSection({
                         <div className="grid grid-cols-3 gap-3">
                             {[
                                 { label: 'Produtos', value: stats.products },
-                                { label: 'Categorias', value: [...new Set(products.map(p => p.category))].length },
+                                { label: 'Categorias', value: [...new Set((products || []).filter(p => p && p.category).map(p => typeof p.category === 'object' ? p.category.name : p.category))].filter(Boolean).length },
                                 { label: 'Cupons', value: coupons.length },
                             ].map((item, i) => (
                                 <div key={i} className="p-3 rounded-xl bg-[#FAF9F5] text-center border border-[#EEEEEE]">
@@ -164,8 +164,8 @@ export default function DashboardSection({
                         <div>
                             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Produtos em Destaque</p>
                             <div className="space-y-2">
-                                {products.slice(0, 4).map(p => (
-                                    <div key={p.id} className="flex items-center gap-3 p-2 rounded-xl hover:bg-[#FAF9F5] transition-colors">
+                                {(products || []).filter(p => p && p.name).slice(0, 4).map(p => (
+                                    <div key={p.id || p.name} className="flex items-center gap-3 p-2 rounded-xl hover:bg-[#FAF9F5] transition-colors">
                                         <div className="w-8 h-11 rounded-lg overflow-hidden border border-[#EEEEEE] shrink-0 bg-gray-50">
                                             <img src={getProductImage(p)} alt="" className="w-full h-full object-cover" />
                                         </div>

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { getAssetUrl } from '../utils/assets.js'
 
 export default function ProductCard({ product, onQuickView, onToggleWishlist, isWishlisted }) {
+    if (!product || !product.name) return null
     const navigate = useNavigate()
 
     const [installmentText, setInstallmentText] = useState(() => {
