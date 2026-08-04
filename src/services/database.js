@@ -36,7 +36,7 @@ const TABLE_COLUMNS = {
     store_config: [
         'id', 'whatsapp', 'sac_phone', 'address', 'cnpj', 'razao_social', 'origin_cep', 'meta_pixel_id', 'ga_tracking_id', 'infinitepay_handle', 'pix_key',
         'topbarmessages', 'topbarstyle', 'promocombo', 'editorial', 'available_colors', 'available_emojis', 'shipping_message',
-        'available_badges', 'installment_text', 'banner_transition', 'reward_bar', 'category_styles', 'pages_content', 'custom_pages_list', 'deleted_pages', 'categories_data'
+        'available_badges', 'installment_text', 'banner_transition', 'reward_bar', 'category_styles', 'pages_content', 'custom_pages_list', 'deleted_pages', 'categories_data', 'promo_message'
     ],
     reviews: ['id', 'product_id', 'name', 'rating', 'comment', 'verified', 'created_at']
 }
@@ -71,6 +71,7 @@ const FIELD_MAPPING = {
     available_colors: ['availableColors', 'available_colors'],
     available_emojis: ['availableEmojis', 'available_emojis'],
     shipping_message: ['shippingMessage', 'shipping_message'],
+    promo_message: ['promoMessage', 'promo_message', 'promomessage'],
     available_badges: ['availableBadges', 'available_badges'],
     installment_text: ['installmentText', 'installment_text'],
     banner_transition: ['bannerTransition', 'banner_transition'],
@@ -184,6 +185,8 @@ export function mapDbToFrontend(table, item) {
         if (item.available_colors !== undefined) mapped.availableColors = item.available_colors
         if (item.available_emojis !== undefined) mapped.availableEmojis = item.available_emojis
         if (item.shipping_message !== undefined) mapped.shippingMessage = item.shipping_message
+        if (item.promo_message !== undefined) mapped.promoMessage = item.promo_message
+        if (item.promomessage !== undefined) mapped.promoMessage = item.promomessage
         if (item.available_badges !== undefined) mapped.availableBadges = item.available_badges
         if (item.installment_text !== undefined) mapped.installmentText = item.installment_text
         if (item.banner_transition !== undefined) mapped.bannerTransition = item.banner_transition
@@ -358,6 +361,7 @@ export async function initSupabaseSync() {
             if (dbConfig.promoCombo) localStorage.setItem('meraki_promo_combo', JSON.stringify(dbConfig.promoCombo))
             if (dbConfig.editorial) localStorage.setItem('meraki_editorial', JSON.stringify(dbConfig.editorial))
             localStorage.setItem('meraki_shipping_message', dbConfig.shippingMessage || 'Frete grátis para a região Centro-Oeste nas compras acima de R$ 299,90.')
+            localStorage.setItem('meraki_promo_message', dbConfig.promoMessage || '10% OFF na primeira compra com o cupom: BEMVINDA10 (Ganhe R$ 10 OFF)')
         } else {
             const existingLocalMsgs = localStorage.getItem('meraki_topbar_messages')
             let initialMsgs = [

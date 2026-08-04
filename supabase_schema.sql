@@ -230,6 +230,7 @@ ALTER TABLE public.store_config ADD COLUMN IF NOT EXISTS pages_content JSONB DEF
 ALTER TABLE public.store_config ADD COLUMN IF NOT EXISTS custom_pages_list JSONB DEFAULT '[]'::jsonb;
 ALTER TABLE public.store_config ADD COLUMN IF NOT EXISTS deleted_pages JSONB DEFAULT '[]'::jsonb;
 ALTER TABLE public.store_config ADD COLUMN IF NOT EXISTS categories_data JSONB DEFAULT '[]'::jsonb;
+ALTER TABLE public.store_config ADD COLUMN IF NOT EXISTS promo_message TEXT DEFAULT '10% OFF na primeira compra com o cupom: BEMVINDA10 (Ganhe R$ 10 OFF)';
 ALTER TABLE public.store_config ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW();
 
 -- ====================================================================

@@ -75,9 +75,19 @@ export default function AdminPage() {
     const [newTopbarMsg, setNewTopbarMsg] = useState('')
     const [shippingMessage, setShippingMessage] = useState(() => {
         try {
+            const stored = localStorage.getItem('meraki_shipping_message')
+            if (stored) return stored
             const config = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
             return config.shippingMessage || 'Frete grátis para a região Centro-Oeste nas compras acima de R$ 299,90.'
         } catch { return 'Frete grátis para a região Centro-Oeste nas compras acima de R$ 299,90.' }
+    })
+    const [promoMessage, setPromoMessage] = useState(() => {
+        try {
+            const stored = localStorage.getItem('meraki_promo_message')
+            if (stored) return stored
+            const config = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
+            return config.promoMessage || '10% OFF na primeira compra com o cupom: BEMVINDA10 (Ganhe R$ 10 OFF)'
+        } catch { return '10% OFF na primeira compra com o cupom: BEMVINDA10 (Ganhe R$ 10 OFF)' }
     })
     const [installmentText, setInstallmentText] = useState(() => {
         try {
@@ -1285,36 +1295,50 @@ export default function AdminPage() {
                                 </div>
                             </div>
 
-                            {/* Shipping message banner config */}
+                            {/* Benefits Bar config (Frases abaixo do Hero) */}
                             <div className="bg-white p-6 rounded-2xl border border-[#EEEEEE] space-y-4">
                                 <div>
-                                    <h4 className="text-[10px] font-bold text-[#7A3E4A] uppercase tracking-widest">Informações de Frete (Barra de Benefícios)</h4>
-                                    <p className="text-xs text-gray-400 mt-1">Defina a mensagem de frete grátis que aparece na faixa de benefícios logo abaixo/acima do topo do site.</p>
+                                    <h4 className="text-[10px] font-bold text-[#7A3E4A] uppercase tracking-widest">Frases da Barra de Benefícios (Abaixo do Banner Hero)</h4>
+                                    <p className="text-xs text-gray-400 mt-1">Altere as duas frases exibidas na barra de benefícios logo abaixo dos banners principais da home.</p>
                                 </div>
-                                <div className="space-y-2">
-                                    <input
-                                        type="text"
-                                        value={shippingMessage}
-                                        onChange={(e) => setShippingMessage(e.target.value)}
-                                        placeholder="Ex: Frete grátis para a região Centro-Oeste nas compras acima de R$ 299,90."
-                                        className={inputCls}
-                                    />
-                                    <div className="flex justify-end pt-1">
-                                        <button
-                                            type="button"
-                                            onClick={async () => {
-                                                const msg = shippingMessage.trim()
-                                                if (msg) {
-                                                    localStorage.setItem('meraki_shipping_message', msg)
-                                                    window.dispatchEvent(new Event('shippingMessageUpdated'))
-                                                    await updateStoreConfig({ shipping_message: msg })
-                                                }
-                                            }}
-                                            className="px-5 py-2.5 bg-[#7A3E4A] hover:bg-[#5A2E34] text-white text-xs font-bold uppercase rounded-xl transition-colors cursor-pointer active:scale-98 shadow-xs"
-                                        >
-                                            Salvar Frete
-                                        </button>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-gray-700 mb-1 uppercase tracking-wider">Frase 1 (Esquerda - Frete / Benefício)</label>
+                                        <input
+                                            type="text"
+                                            value={shippingMessage}
+                                            onChange={(e) => setShippingMessage(e.target.value)}
+                                            placeholder="Ex: Frete grátis para a região Centro-Oeste nas compras acima de R$ 299,90."
+                                            className={inputCls}
+                                        />
                                     </div>
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-gray-700 mb-1 uppercase tracking-wider">Frase 2 (Direita - Cupom / Promoção)</label>
+                                        <input
+                                            type="text"
+                                            value={promoMessage}
+                                            onChange={(e) => setPromoMessage(e.target.value)}
+                                            placeholder="Ex: 10% OFF na primeira compra com o cupom: BEMVINDA10 (Ganhe R$ 10 OFF)"
+                                            className={inputCls}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="flex justify-end pt-1">
+                                    <button
+                                        type="button"
+                                        onClick={async () => {
+                                            const shipMsg = shippingMessage.trim()
+                                            const prMsg = promoMessage.trim()
+                                            localStorage.setItem('meraki_shipping_message', shipMsg)
+                                            localStorage.setItem('meraki_promo_message', prMsg)
+                                            window.dispatchEvent(new Event('shippingMessageUpdated'))
+                                            window.dispatchEvent(new Event('promoMessageUpdated'))
+                                            await updateStoreConfig({ shipping_message: shipMsg, promo_message: prMsg })
+                                        }}
+                                        className="px-5 py-2.5 bg-[#7A3E4A] hover:bg-[#5A2E34] text-white text-xs font-bold uppercase rounded-xl transition-colors cursor-pointer active:scale-98 shadow-xs"
+                                    >
+                                        Salvar Frases da Barra
+                                    </button>
                                 </div>
                             </div>
 
