@@ -8,10 +8,12 @@ export const supabase = createClient(
     supabaseAnonKey,
     {
         auth: {
-            storage: typeof window !== 'undefined' ? window.sessionStorage : undefined,
+            storageKey: 'meraki_supabase_auth_token',
+            storage: typeof window !== 'undefined' ? window.localStorage : undefined,
             autoRefreshToken: true,
             persistSession: true,
-            detectSessionInUrl: true
+            detectSessionInUrl: true,
+            lock: async (name, acquireTimeout, fn) => await fn()
         }
     }
 )
