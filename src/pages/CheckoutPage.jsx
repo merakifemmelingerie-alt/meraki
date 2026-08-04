@@ -521,13 +521,12 @@ export default function CheckoutPage() {
                                     className={`p-4 border rounded-2xl flex items-center gap-3 transition-all text-left cursor-pointer ${
                                         deliveryType === 'delivery'
                                             ? 'border-[#7A3E4A] bg-[#FDF8F6] text-[#7A3E4A] ring-2 ring-[#7A3E4A]/10 font-bold shadow-xs'
-                                            : 'border-gray-200 bg-white hover:border-gray-300 text-gray-600 font-semibold'
+                                            : 'border-gray-200 bg-[#FAF9F5] hover:border-gray-300 text-gray-600 font-semibold'
                                     }`}
                                 >
                                     <span className="text-xl">🚚</span>
                                     <div>
                                         <div className="text-xs">Entrega no Endereço</div>
-                                        <div className="text-[10px] text-gray-400 font-normal">Via Correios (PAC / SEDEX)</div>
                                     </div>
                                 </button>
 
@@ -540,13 +539,13 @@ export default function CheckoutPage() {
                                     className={`p-4 border rounded-2xl flex items-center justify-between transition-all text-left cursor-pointer ${
                                         deliveryType === 'pickup'
                                             ? 'border-[#7A3E4A] bg-[#FDF8F6] text-[#7A3E4A] ring-2 ring-[#7A3E4A]/10 font-bold shadow-xs'
-                                            : 'border-gray-200 bg-white hover:border-gray-300 text-gray-600 font-semibold'
+                                            : 'border-gray-200 bg-[#FAF9F5] hover:border-gray-300 text-gray-600 font-semibold'
                                     }`}
                                 >
                                     <div className="flex items-center gap-3">
                                         <span className="text-xl">🏪</span>
                                         <div>
-                                            <div className="text-xs">Retirada na Loja</div>
+                                            <div className="text-xs">Retirada no Local</div>
                                             <div className="text-[10px] text-gray-400 font-normal">Bonfinópolis - GO</div>
                                         </div>
                                     </div>

@@ -414,7 +414,7 @@ export default function CartDrawer() {
                                 type="button"
                                 onClick={() => {
                                     const pickupOpt = {
-                                        title: 'Retirada na Loja Física (Bonfinópolis/GO)',
+                                        title: 'Retirada no Local (Bonfinópolis/GO)',
                                         price: 0,
                                         deadline: 'Pronto em até 1 dia útil',
                                         isPickup: true,
@@ -431,7 +431,7 @@ export default function CartDrawer() {
                                 }`}
                             >
                                 <span className="flex items-center gap-1.5">
-                                    <span>🏪</span> Retirar na Loja Física
+                                    <span>🏪</span> Retirar no Local
                                 </span>
                                 <span className="text-[10px] font-black text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full">
                                     GRÁTIS
