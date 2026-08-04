@@ -128,6 +128,9 @@ export default function App() {
             <Routes>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/auth" element={<AuthPage />} />
+                <Route path="/login" element={<AuthPage />} />
+                <Route path="/account" element={<AuthPage />} />
+                <Route path="/orders" element={<AuthPage />} />
                 <Route path="/admin" element={<AdminPage />} />
                 <Route path="/category/:slug" element={<CategoryPage />} />
                 <Route path="/product/:id" element={<ProductPage />} />
@@ -149,6 +152,9 @@ export default function App() {
                 <Route path="/stores" element={<InfoPage tab="stores" />} />
                 <Route path="/wishlist" element={<InfoPage tab="wishlist" />} />
                 <Route path="/info/:tab" element={<InfoPage />} />
+
+                {/* Fallback wildcard route */}
+                <Route path="*" element={<HomePage />} />
             </Routes>
         </HashRouter>
     )
