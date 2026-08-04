@@ -492,6 +492,21 @@ export default function AdminPage() {
     }, [activeSection])
 
     useEffect(() => {
+        const syncTopbar = () => {
+            try {
+                const stored = localStorage.getItem('meraki_topbar_messages')
+                if (stored) setTopbarMessages(JSON.parse(stored))
+            } catch (e) {}
+        }
+        window.addEventListener('topbarMessagesUpdated', syncTopbar)
+        window.addEventListener('storeConfigUpdated', syncTopbar)
+        return () => {
+            window.removeEventListener('topbarMessagesUpdated', syncTopbar)
+            window.removeEventListener('storeConfigUpdated', syncTopbar)
+        }
+    }, [])
+
+    useEffect(() => {
         if (modal.open && modal.editing) {
             const product = products.find(p => p.id === modal.editing)
             const imgs = product?.image || []
@@ -926,15 +941,29 @@ export default function AdminPage() {
         const updated = [...topbarMessages, newTopbarMsg.trim()]
         setTopbarMessages(updated)
         localStorage.setItem('meraki_topbar_messages', JSON.stringify(updated))
+        try {
+            const stored = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
+            const newConfig = { ...stored, id: 'default', topbarMessages: updated }
+            localStorage.setItem('meraki_store_config', JSON.stringify(newConfig))
+            updateStoreConfig(newConfig)
+        } catch (err) {}
         setNewTopbarMsg('')
         window.dispatchEvent(new Event('topbarMessagesUpdated'))
+        window.dispatchEvent(new Event('storeConfigUpdated'))
     }
 
     const handleDeleteTopbarMessage = (index) => {
         const updated = topbarMessages.filter((_, i) => i !== index)
         setTopbarMessages(updated)
         localStorage.setItem('meraki_topbar_messages', JSON.stringify(updated))
+        try {
+            const stored = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
+            const newConfig = { ...stored, id: 'default', topbarMessages: updated }
+            localStorage.setItem('meraki_store_config', JSON.stringify(newConfig))
+            updateStoreConfig(newConfig)
+        } catch (err) {}
         window.dispatchEvent(new Event('topbarMessagesUpdated'))
+        window.dispatchEvent(new Event('storeConfigUpdated'))
     }
 
     const handleUpdateTopbarMessage = (index, value) => {
@@ -942,7 +971,14 @@ export default function AdminPage() {
         updated[index] = value
         setTopbarMessages(updated)
         localStorage.setItem('meraki_topbar_messages', JSON.stringify(updated))
+        try {
+            const stored = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
+            const newConfig = { ...stored, id: 'default', topbarMessages: updated }
+            localStorage.setItem('meraki_store_config', JSON.stringify(newConfig))
+            updateStoreConfig(newConfig)
+        } catch (err) {}
         window.dispatchEvent(new Event('topbarMessagesUpdated'))
+        window.dispatchEvent(new Event('storeConfigUpdated'))
     }
 
     const adminName = user?.user_metadata?.full_name || 'Admin'

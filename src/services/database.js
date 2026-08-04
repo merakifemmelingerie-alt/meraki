@@ -330,7 +330,17 @@ export async function initSupabaseSync() {
             }
             localStorage.setItem('meraki_store_config', JSON.stringify(mergedConfig))
             // Extract and sync visual keys to individual localStorage items
-            if (dbConfig.topbarMessages) localStorage.setItem('meraki_topbar_messages', JSON.stringify(dbConfig.topbarMessages))
+            if (Array.isArray(dbConfig.topbarMessages)) {
+                originalSetItem('meraki_topbar_messages', JSON.stringify(dbConfig.topbarMessages))
+            } else {
+                const existingLocalMsgs = localStorage.getItem('meraki_topbar_messages')
+                if (existingLocalMsgs) {
+                    try {
+                        mergedConfig.topbarMessages = JSON.parse(existingLocalMsgs)
+                        originalSetItem('meraki_store_config', JSON.stringify(mergedConfig))
+                    } catch (e) {}
+                }
+            }
             if (dbConfig.topbarStyle) {
                 localStorage.setItem('meraki_topbar_style', JSON.stringify(dbConfig.topbarStyle))
                 if (dbConfig.topbarStyle.availableSections) {
@@ -349,6 +359,16 @@ export async function initSupabaseSync() {
             if (dbConfig.editorial) localStorage.setItem('meraki_editorial', JSON.stringify(dbConfig.editorial))
             localStorage.setItem('meraki_shipping_message', dbConfig.shippingMessage || 'Frete grátis para a região Centro-Oeste nas compras acima de R$ 299,90.')
         } else {
+            const existingLocalMsgs = localStorage.getItem('meraki_topbar_messages')
+            let initialMsgs = [
+                "✨ Frete Grátis acima de R$ 299 • Parcele em até 12x",
+                "Utilize o cupom BEMVIND010 em sua primeira compra!",
+                "Ganhe 5% de desconto pagando no PIX!"
+            ]
+            if (existingLocalMsgs) {
+                try { initialMsgs = JSON.parse(existingLocalMsgs) } catch (e) {}
+            }
+
             const defaultConfig = {
                 id: 'default',
                 whatsapp: '551123880403',
@@ -356,11 +376,7 @@ export async function initSupabaseSync() {
                 address: 'Avenida Alfredo Nasser, Qd. 14, Lt. 05 - Centro, Bonfinópolis - GO, CEP: 75195-000',
                 cnpj: '57.484.768/0064-89',
                 infinitepay_handle: 'merakimodafeminina2026',
-                topbarMessages: [
-                    "✨ Frete Grátis acima de R$ 299 • Parcele em até 12x",
-                    "Utilize o cupom BEMVIND010 em sua primeira compra!",
-                    "Ganhe 5% de desconto pagando no PIX!"
-                ],
+                topbarMessages: initialMsgs,
                 topbarStyle: { bgColor: '#C6A76A', textColor: '#FFFFFF' },
                 promoCombo: {
                     title: 'Combo Sutiã',
@@ -391,7 +407,9 @@ export async function initSupabaseSync() {
                 }
             }
             localStorage.setItem('meraki_store_config', JSON.stringify(defaultConfig))
-            localStorage.setItem('meraki_topbar_messages', JSON.stringify(defaultConfig.topbarMessages))
+            if (!existingLocalMsgs) {
+                localStorage.setItem('meraki_topbar_messages', JSON.stringify(defaultConfig.topbarMessages))
+            }
             localStorage.setItem('meraki_topbar_style', JSON.stringify(defaultConfig.topbarStyle))
             localStorage.setItem('meraki_promo_combo', JSON.stringify(defaultConfig.promoCombo))
             localStorage.setItem('meraki_editorial', JSON.stringify(defaultConfig.editorial))
