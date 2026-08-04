@@ -27,7 +27,7 @@ const TABLE_COLUMNS = {
     coupons: ['id', 'code', 'value', 'type', 'minpurchase', 'created_at'],
     banners: ['id', 'image', 'mobile_image', 'alt', 'link', 'created_at'],
     returns: ['id', 'orderid', 'itemid', 'customeremail', 'type', 'postagecode', 'status', 'created_at'],
-    categories: ['id', 'name', 'group', 'description', 'image', 'created_at'],
+    categories: ['id', 'name', 'group', 'subtitle', 'description', 'image', 'created_at'],
     products: [
         'id', 'name', 'category', 'subcategory', 'price', 'original_price', 'image', 'badge', 'section', 'sizes', 'description', 'stock', 'created_at',
         'colors', 'inpromocombo', 'iscustomizable', 'custompricewith', 'custompricewithout', 'customfeeletter', 'customfeenumber', 'customfeeemoji', 'customizable_emojis',

@@ -102,6 +102,7 @@ CREATE TABLE IF NOT EXISTS public.categories (
 );
 
 ALTER TABLE public.categories ADD COLUMN IF NOT EXISTS "group" TEXT DEFAULT 'Geral';
+ALTER TABLE public.categories ADD COLUMN IF NOT EXISTS subtitle TEXT DEFAULT '';
 ALTER TABLE public.categories ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '';
 ALTER TABLE public.categories ADD COLUMN IF NOT EXISTS image TEXT DEFAULT '';
 

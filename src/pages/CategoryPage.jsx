@@ -349,17 +349,29 @@ export default function CategoryPage() {
     const { cartCount, addToCart } = useCart()
     const { wishlistCount, toggleWishlist, isWishlisted } = useWishlist()
 
+    const [categoriesList, setCategoriesList] = useState(() => {
+        try {
+            const stored = localStorage.getItem('meraki_categories')
+            if (stored) return JSON.parse(stored)
+        } catch {}
+        return []
+    })
+
     useEffect(() => {
         const updateStyles = () => {
             try {
                 const stored = localStorage.getItem('meraki_category_styles')
                 if (stored) setCategoryStylesMap(JSON.parse(stored))
+                const storedCats = localStorage.getItem('meraki_categories')
+                if (storedCats) setCategoriesList(JSON.parse(storedCats))
             } catch {}
         }
         window.addEventListener('categoryStylesUpdated', updateStyles)
+        window.addEventListener('categoriesUpdated', updateStyles)
         window.addEventListener('storeConfigUpdated', updateStyles)
         return () => {
             window.removeEventListener('categoryStylesUpdated', updateStyles)
+            window.removeEventListener('categoriesUpdated', updateStyles)
             window.removeEventListener('storeConfigUpdated', updateStyles)
         }
     }, [])
@@ -438,14 +450,30 @@ export default function CategoryPage() {
         return 'Geral'
     }
 
-    // Determine target category metadata
+    // Determine target category metadata dynamically from categoriesList or default map
     const meta = useMemo(() => {
-        return CATEGORY_META[slug] || {
+        const defaultMeta = CATEGORY_META[slug] || {
             title: 'Coleção Meraki',
             subtitle: 'Sofisticação e Conforto',
             description: 'Navegue por nossa seleção de peças desenhadas com paixão.'
         }
-    }, [slug])
+
+        const matchedCat = categoriesList.find(c => {
+            if (!c || !c.name) return false
+            const catSlug = slugifyCategory(c.name)
+            return catSlug === slug || c.name.toLowerCase() === (slug || '').toLowerCase()
+        })
+
+        if (matchedCat) {
+            return {
+                title: matchedCat.name || defaultMeta.title,
+                subtitle: matchedCat.subtitle ? matchedCat.subtitle : defaultMeta.subtitle,
+                description: matchedCat.description ? matchedCat.description : defaultMeta.description
+            }
+        }
+
+        return defaultMeta
+    }, [slug, categoriesList])
 
     // Filter and sort products
     const filteredProducts = useMemo(() => {

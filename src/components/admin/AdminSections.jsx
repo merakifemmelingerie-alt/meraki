@@ -876,6 +876,7 @@ export function CategoriesSection({
     const [catGroup, setCatGroup] = useState('Lingerie')
     const [catDescription, setCatDescription] = useState('')
 
+    const [catSubtitle, setCatSubtitle] = useState('')
     const [catImageUrl, setCatImageUrl] = useState('')
 
     const [editingHomeIdx, setEditingHomeIdx] = useState(null)
@@ -944,6 +945,7 @@ export function CategoriesSection({
         setEditingIndex(null)
         setCatName('')
         setCatGroup('Lingerie')
+        setCatSubtitle('')
         setCatDescription('')
         setCatImageUrl('')
     }
@@ -987,6 +989,7 @@ export function CategoriesSection({
                             const form = e.target
                             const name = catName.trim()
                             const group = catGroup
+                            const subtitle = catSubtitle.trim()
                             const description = catDescription.trim()
                             const files = form.catImage.files
                             
@@ -1004,7 +1007,7 @@ export function CategoriesSection({
                             }
                             if (!imageUrl) imageUrl = '/placeholder.jpg'
 
-                            const catObj = { name, group, description, image: imageUrl }
+                            const catObj = { name, group, subtitle, description, image: imageUrl }
                             
                             let updated
                             if (editingIndex !== null) {
@@ -1060,7 +1063,7 @@ export function CategoriesSection({
                                 <input type="file" name="catImage" accept="image/*,video/*,.gif,.mp4,.webm,.mov" className="w-full text-xs text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[#7A3E4A]/10 file:text-[#7A3E4A] hover:file:bg-[#7A3E4A]/20 cursor-pointer" />
                             </div>
                         </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <div>
                                 <label className="block text-[10px] font-bold text-gray-700 mb-1 uppercase tracking-wider">URL da Imagem (Opções / Link)</label>
                                 <input 
@@ -1072,13 +1075,24 @@ export function CategoriesSection({
                                 />
                             </div>
                             <div>
-                                <label className="block text-[10px] font-bold text-gray-700 mb-1 uppercase tracking-wider">Descrição</label>
+                                <label className="block text-[10px] font-bold text-[#C6A76A] mb-1 uppercase tracking-wider font-extrabold">Subtítulo Dourado / Frase Topo</label>
+                                <input 
+                                    type="text" 
+                                    name="catSubtitle" 
+                                    value={catSubtitle}
+                                    onChange={e => setCatSubtitle(e.target.value)}
+                                    placeholder="Ex: Peças sensuais e sofisticadas" 
+                                    className="w-full px-3 py-2 border border-[#C6A76A]/40 rounded-xl text-xs outline-none bg-[#FAF6F0]/40 focus:bg-white" 
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-bold text-gray-700 mb-1 uppercase tracking-wider">Descrição / Frase Principal</label>
                                 <input 
                                     type="text" 
                                     name="catDescription" 
                                     value={catDescription}
                                     onChange={e => setCatDescription(e.target.value)}
-                                    placeholder="Breve descrição da categoria..." 
+                                    placeholder="Ex: Transparências artísticas, rendas..." 
                                     className="w-full px-3 py-2 border border-[#EEEEEE] rounded-xl text-xs outline-none" 
                                 />
                             </div>
@@ -1164,6 +1178,7 @@ export function CategoriesSection({
                 {categories.map((cat, idx) => {
                     const cName = typeof cat === 'object' ? cat.name : cat
                     const cDesc = typeof cat === 'object' ? cat.description : 'Coleção Meraki'
+                    const cSub = typeof cat === 'object' ? cat.subtitle : ''
                     const cImage = typeof cat === 'object' ? cat.image : '/placeholder.jpg'
                     const cGroup = typeof cat === 'object' ? cat.group : 'Lingerie'
                     const slugKey = slugifyCat(cName)
@@ -1177,7 +1192,8 @@ export function CategoriesSection({
                                 </div>
                                 <div className="min-w-0">
                                     <p className="text-xs font-bold text-gray-800 truncate">{cName}</p>
-                                    <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-1">{cGroup}</p>
+                                    <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-0.5">{cGroup}</p>
+                                    {cSub && <p className="text-[9px] font-bold text-[#C6A76A] uppercase tracking-wider truncate mb-1">{cSub}</p>}
                                     <p className="text-[10px] text-gray-400 leading-relaxed line-clamp-2">{cDesc}</p>
                                 </div>
                             </div>
@@ -1200,6 +1216,7 @@ export function CategoriesSection({
                                             setEditingIndex(idx)
                                             setCatName(cName)
                                             setCatGroup(cGroup)
+                                            setCatSubtitle(cSub || '')
                                             setCatDescription(cDesc)
                                             setCatImageUrl(cImage)
                                             window.scrollTo({ top: 0, behavior: 'smooth' })
