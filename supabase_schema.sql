@@ -226,6 +226,8 @@ ALTER TABLE public.store_config ADD COLUMN IF NOT EXISTS banner_transition TEXT 
 ALTER TABLE public.store_config ADD COLUMN IF NOT EXISTS reward_bar JSONB DEFAULT '{"enabled": true, "target_type": "value", "target_value": 299.99, "reward_type": "frete_gratis", "reward_title": "Frete Grátis", "success_message": "Parabéns! Você ganhou Frete Grátis!"}'::jsonb;
 ALTER TABLE public.store_config ADD COLUMN IF NOT EXISTS category_styles JSONB DEFAULT '{}'::jsonb;
 ALTER TABLE public.store_config ADD COLUMN IF NOT EXISTS pages_content JSONB DEFAULT '{}'::jsonb;
+ALTER TABLE public.store_config ADD COLUMN IF NOT EXISTS custom_pages_list JSONB DEFAULT '[]'::jsonb;
+ALTER TABLE public.store_config ADD COLUMN IF NOT EXISTS deleted_pages JSONB DEFAULT '[]'::jsonb;
 ALTER TABLE public.store_config ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW();
 
 -- ====================================================================

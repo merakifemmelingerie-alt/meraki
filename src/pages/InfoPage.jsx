@@ -160,7 +160,15 @@ export default function InfoPage({ tab: propTab }) {
         ...allCustomSections
     ]
 
-    const sections = masterSections.filter(s => !deletedPages.includes(s.id))
+    const sections = masterSections
+        .filter(s => !deletedPages.includes(s.id))
+        .map(s => {
+            const custom = customPages[s.id]
+            if (custom && custom.title) {
+                return { ...s, label: custom.title }
+            }
+            return s
+        })
 
     // Content definitions
     const renderContent = () => {

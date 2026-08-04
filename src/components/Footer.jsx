@@ -124,12 +124,17 @@ export default function Footer() {
     const customAtendimento = allCustomPages.filter(p => p.category === 'Atendimento').map(p => ({ id: p.id, href: `#/info/${p.id}`, label: p.label }))
     const customStores = allCustomPages.filter(p => p.category === 'Lojas').map(p => ({ id: p.id, href: `#/info/${p.id}`, label: p.label }))
 
+    const mapLinkTitle = (l) => {
+        const customTitle = customPagesContent[l.id]?.title
+        return customTitle ? { ...l, label: customTitle } : l
+    }
+
     const sobreLinks = [
         { id: 'story', href: '#/story', label: 'História' },
         { id: 'revenda', href: '#/revenda', label: 'Seja um revendedor' },
         { id: 'connect', href: '#/connect', label: 'Conecte-se' },
         ...customSobre
-    ].filter(l => !deletedPages.includes(l.id))
+    ].filter(l => !deletedPages.includes(l.id)).map(mapLinkTitle)
 
     const atendimentoLinks = [
         { id: 'security', href: '#/security', label: 'Compra Segura' },
@@ -140,12 +145,12 @@ export default function Footer() {
         { id: 'privacy', href: '#/privacy', label: 'Política de Privacidade' },
         { id: 'promotional-rules', href: '#/promotional-rules', label: 'Regras promocionais' },
         ...customAtendimento
-    ].filter(l => !deletedPages.includes(l.id))
+    ].filter(l => !deletedPages.includes(l.id)).map(mapLinkTitle)
 
     const storesLinks = [
         { id: 'stores', href: '#/stores', label: 'Encontre a loja mais próxima' },
         ...customStores
-    ].filter(l => !deletedPages.includes(l.id))
+    ].filter(l => !deletedPages.includes(l.id)).map(mapLinkTitle)
 
     return (
         <footer className="bg-[#FAF9F5] pt-16 pb-12 text-gray-600 font-sans">

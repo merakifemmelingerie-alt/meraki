@@ -2455,11 +2455,23 @@ export function InstitutionalSection({ saving, setSaving, updateStoreConfig }) {
         setSaving?.(true)
         setMessage('')
         try {
+            const currentObj = pagesList.find(p => p.id === selectedPageId)
+            const newTitle = pageTitle.trim() || currentObj?.label || selectedPageId
+
+            let updatedCustom = [...customPagesList]
+            if (currentObj?.isCustom) {
+                updatedCustom = updatedCustom.map(p => p.id === selectedPageId ? { ...p, label: newTitle } : p)
+                setCustomPagesList(updatedCustom)
+                localStorage.setItem('meraki_custom_pages_list', JSON.stringify(updatedCustom))
+            }
+
             const updated = {
                 ...pagesData,
                 [selectedPageId]: {
-                    title: pageTitle,
+                    ...pagesData[selectedPageId],
+                    title: newTitle,
                     content: pageContent,
+                    category: currentObj?.category || 'Atendimento',
                     updated_at: new Date().toISOString()
                 }
             }
@@ -2469,10 +2481,14 @@ export function InstitutionalSection({ saving, setSaving, updateStoreConfig }) {
 
             if (updateStoreConfig) {
                 const config = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
-                await updateStoreConfig({ ...config, pages_content: updated })
+                await updateStoreConfig({
+                    ...config,
+                    pages_content: updated,
+                    custom_pages_list: updatedCustom
+                })
             }
 
-            setMessage('Página atualizada com sucesso no site!')
+            setMessage(`Página "${newTitle}" atualizada com sucesso no site!`)
             setTimeout(() => setMessage(''), 3000)
         } catch (err) {
             setMessage('Erro ao salvar página: ' + err.message)
@@ -2537,6 +2553,7 @@ export function InstitutionalSection({ saving, setSaving, updateStoreConfig }) {
                         <div className="space-y-1.5 max-h-[480px] overflow-y-auto overflow-x-hidden pr-1">
                             {pagesList.map(p => {
                                 const isSelected = selectedPageId === p.id
+                                const displayTitle = pagesData[p.id]?.title || p.label
                                 return (
                                     <div key={p.id} className={`w-full flex items-center justify-between gap-1 p-1 rounded-xl transition-all ${
                                         isSelected
@@ -2548,7 +2565,7 @@ export function InstitutionalSection({ saving, setSaving, updateStoreConfig }) {
                                             onClick={() => setSelectedPageId(p.id)}
                                             className="flex-1 flex items-center justify-between min-w-0 py-1.5 px-2.5 text-left font-bold cursor-pointer"
                                         >
-                                            <span className="truncate text-xs">{p.label}</span>
+                                            <span className="truncate text-xs">{displayTitle}</span>
                                             <span className={`text-[9px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-md shrink-0 ml-1 ${
                                                 isSelected ? 'bg-white/20 text-white' : 'bg-gray-200/60 text-gray-500'
                                             }`}>
@@ -2578,9 +2595,10 @@ export function InstitutionalSection({ saving, setSaving, updateStoreConfig }) {
                             <div className="space-y-1">
                                 {deletedPages.map(pageId => {
                                     const pageObj = allMasterPagesList.find(p => p.id === pageId)
+                                    const displayDeletedTitle = pagesData[pageId]?.title || pageObj?.label || pageId
                                     return (
                                         <div key={pageId} className="flex items-center justify-between px-3 py-2 bg-red-50/50 rounded-xl border border-red-100 text-xs">
-                                            <span className="font-semibold text-gray-600 line-through truncate max-w-[140px]">{pageObj?.label || pageId}</span>
+                                            <span className="font-semibold text-gray-600 line-through truncate max-w-[140px]">{displayDeletedTitle}</span>
                                             <button
                                                 type="button"
                                                 onClick={() => handleRestorePage(pageId)}
@@ -2603,7 +2621,7 @@ export function InstitutionalSection({ saving, setSaving, updateStoreConfig }) {
                         <div>
                             <span className="text-[9px] font-bold text-[#7A3E4A] uppercase tracking-widest">Editando Página</span>
                             <h3 className="text-lg font-black text-gray-900">
-                                {allMasterPagesList.find(p => p.id === selectedPageId)?.label || pageTitle}
+                                {pageTitle || pagesData[selectedPageId]?.title || allMasterPagesList.find(p => p.id === selectedPageId)?.label || selectedPageId}
                             </h3>
                         </div>
 
