@@ -118,6 +118,38 @@ export default function AdminPage() {
     const [selectedModalCategory, setSelectedModalCategory] = useState('')
     const [selectedModalSizes, setSelectedModalSizes] = useState(['P', 'M', 'G', 'GG'])
 
+    const DEFAULT_SIZES = ['U', 'Único', 'P', 'M', 'G', 'GG', 'EGG', 'XG', '34', '36', '38', '40', '42', '44', '46', '48', '50']
+    const [masterSizesList, setMasterSizesList] = useState(() => {
+        try {
+            const stored = localStorage.getItem('meraki_available_sizes')
+            if (stored) return JSON.parse(stored)
+            const config = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
+            if (config.availableSizes && Array.isArray(config.availableSizes) && config.availableSizes.length > 0) {
+                return config.availableSizes
+            }
+        } catch {}
+        return DEFAULT_SIZES
+    })
+    const [newCustomSizeInput, setNewCustomSizeInput] = useState('')
+
+    const handleAddMasterSize = (sizeToAdd) => {
+        const clean = sizeToAdd.trim()
+        if (!clean || masterSizesList.includes(clean)) return
+        const updated = [...masterSizesList, clean]
+        setMasterSizesList(updated)
+        localStorage.setItem('meraki_available_sizes', JSON.stringify(updated))
+        updateStoreConfig({ available_sizes: updated })
+        setNewCustomSizeInput('')
+    }
+
+    const handleDeleteMasterSize = (sizeToDelete) => {
+        const updated = masterSizesList.filter(s => s !== sizeToDelete)
+        setMasterSizesList(updated)
+        localStorage.setItem('meraki_available_sizes', JSON.stringify(updated))
+        updateStoreConfig({ available_sizes: updated })
+        setSelectedModalSizes(prev => prev.filter(s => s !== sizeToDelete))
+    }
+
     // Pagination states
     const [pPage, setPPage] = useState(1) // Products
     const [oPage, setOPage] = useState(1) // Orders
@@ -524,7 +556,20 @@ export default function AdminPage() {
             setImageFiles([])
             setSelectedModalCategory(product?.category || categories[0]?.name || '')
             setSelectedModalSubcategory(product?.subcategory || '')
-            setSelectedModalSizes(product?.sizes || [])
+            const prodSizes = product?.sizes || []
+            setSelectedModalSizes(prodSizes)
+            if (Array.isArray(prodSizes) && prodSizes.length > 0) {
+                setMasterSizesList(prev => {
+                    const missing = prodSizes.filter(s => s && !prev.includes(s))
+                    if (missing.length > 0) {
+                        const updated = [...prev, ...missing]
+                        localStorage.setItem('meraki_available_sizes', JSON.stringify(updated))
+                        updateStoreConfig({ available_sizes: updated })
+                        return updated
+                    }
+                    return prev
+                })
+            }
             setSelectedModalSection(product?.section || 'best-sellers')
             const prodColors = product?.colors || []
             setSelectedModalColors(prodColors)
@@ -1927,31 +1972,69 @@ export default function AdminPage() {
                                 </div>
 
                                     <div>
-                                        <label className={labelCls}>Tamanhos Disponíveis</label>
-                                        <div className="flex flex-wrap gap-1.5 bg-[#FAF9F5] p-3 rounded-xl border border-[#EEEEEE]">
-                                            {['U', 'Único', 'P', 'M', 'G', 'GG', 'EGG', 'XG', '34', '36', '38', '40', '42', '44', '46', '48', '50'].map(size => {
+                                        <div className="flex items-center justify-between mb-1.5">
+                                            <label className={labelCls}>Tamanhos Disponíveis</label>
+                                            <span className="text-[10px] text-gray-400 font-normal">Passe o mouse no tamanho e clique no ✕ para excluir da lista</span>
+                                        </div>
+                                        <div className="flex flex-wrap gap-2 bg-[#FAF9F5] p-3 rounded-xl border border-[#EEEEEE] mb-3">
+                                            {masterSizesList.map(size => {
                                                 const isSelected = selectedModalSizes.includes(size)
                                                 return (
-                                                    <button
-                                                        key={size}
-                                                        type="button"
-                                                        onClick={() => {
-                                                            if (isSelected) {
-                                                                setSelectedModalSizes(prev => prev.filter(s => s !== size))
-                                                            } else {
-                                                                setSelectedModalSizes(prev => [...prev, size])
-                                                            }
-                                                        }}
-                                                        className={`w-9 h-9 text-xs font-bold rounded-lg border transition-all flex items-center justify-center cursor-pointer ${
-                                                            isSelected
-                                                                ? 'bg-[#C6A76A] text-white border-[#C6A76A] shadow-xs'
-                                                                : 'bg-white text-gray-400 border-[#EEEEEE] hover:bg-gray-150'
-                                                        }`}
-                                                    >
-                                                        {size}
-                                                    </button>
+                                                    <div key={size} className="relative group">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                if (isSelected) {
+                                                                    setSelectedModalSizes(prev => prev.filter(s => s !== size))
+                                                                } else {
+                                                                    setSelectedModalSizes(prev => [...prev, size])
+                                                                }
+                                                            }}
+                                                            className={`min-w-9 h-9 px-2.5 text-xs font-bold rounded-lg border transition-all flex items-center justify-center cursor-pointer ${
+                                                                isSelected
+                                                                    ? 'bg-[#C6A76A] text-white border-[#C6A76A] shadow-xs'
+                                                                    : 'bg-white text-gray-400 border-[#EEEEEE] hover:bg-gray-150'
+                                                            }`}
+                                                        >
+                                                            {size}
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            title={`Excluir tamanho ${size} da lista mestre`}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation()
+                                                                handleDeleteMasterSize(size)
+                                                            }}
+                                                            className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 hover:bg-red-600 text-white rounded-full text-[9px] font-black items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer shadow-xs flex"
+                                                        >
+                                                            ✕
+                                                        </button>
+                                                    </div>
                                                 )
                                             })}
+                                        </div>
+
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                type="text"
+                                                value={newCustomSizeInput}
+                                                onChange={(e) => setNewCustomSizeInput(e.target.value)}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter') {
+                                                        e.preventDefault()
+                                                        handleAddMasterSize(newCustomSizeInput)
+                                                    }
+                                                }}
+                                                placeholder="Cadastrar novo tamanho (ex: PP, EXG, 52)"
+                                                className="flex-1 px-3 py-2 bg-white border border-[#EEEEEE] rounded-xl text-xs focus:border-[#7A3E4A] focus:outline-none"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => handleAddMasterSize(newCustomSizeInput)}
+                                                className="px-4 py-2 bg-[#7A3E4A] hover:bg-[#5A2E34] text-white text-xs font-bold rounded-xl transition-colors cursor-pointer shrink-0"
+                                            >
+                                                + Adicionar Tamanho
+                                            </button>
                                         </div>
                                     </div>
 
