@@ -53,6 +53,24 @@ export default function AdminPage() {
     const [activeSection, setActiveSection] = useState('dashboard')
     const [searchQuery, setSearchQuery] = useState('')
 
+    useEffect(() => {
+        let meta = document.querySelector("meta[name='robots']")
+        let created = false
+        if (!meta) {
+            meta = document.createElement('meta')
+            meta.name = 'robots'
+            document.head.appendChild(meta)
+            created = true
+        }
+        meta.content = 'noindex, nofollow'
+
+        return () => {
+            if (created && meta.parentNode) {
+                meta.parentNode.removeChild(meta)
+            }
+        }
+    }, [])
+
     // Modals
     const [modal, setModal] = useState({ open: false, editing: null })
     const [deleteModal, setDeleteModal] = useState({ open: false, product: null })
