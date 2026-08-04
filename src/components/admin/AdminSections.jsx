@@ -876,6 +876,8 @@ export function CategoriesSection({
     const [catGroup, setCatGroup] = useState('Lingerie')
     const [catDescription, setCatDescription] = useState('')
 
+    const [catImageUrl, setCatImageUrl] = useState('')
+
     const [editingHomeIdx, setEditingHomeIdx] = useState(null)
     const [homeCatName, setHomeCatName] = useState('')
     const [homeCatDescription, setHomeCatDescription] = useState('')
@@ -943,6 +945,7 @@ export function CategoriesSection({
         setCatName('')
         setCatGroup('Lingerie')
         setCatDescription('')
+        setCatImageUrl('')
     }
 
     const saveCategoryStylesMap = (updatedMap) => {
@@ -990,16 +993,16 @@ export function CategoriesSection({
                             if (!name) return
                             setSaving(true)
                             
-                            let imageUrl = '/placeholder.jpg'
-                            if (editingIndex !== null) {
-                                imageUrl = categories[editingIndex].image || '/placeholder.jpg'
-                            }
-                            
+                            let imageUrl = catImageUrl.trim()
                             if (files?.[0]) {
                                 const compressedFile = await compressImage(files[0], 1200)
                                 const { urls } = await uploadMultipleImages([compressedFile])
                                 if (urls?.[0]) imageUrl = urls[0]
                             }
+                            if (!imageUrl && editingIndex !== null) {
+                                imageUrl = categories[editingIndex].image || '/placeholder.jpg'
+                            }
+                            if (!imageUrl) imageUrl = '/placeholder.jpg'
 
                             const catObj = { name, group, description, image: imageUrl }
                             
@@ -1012,7 +1015,13 @@ export function CategoriesSection({
                             
                             setCategories(updated)
                             localStorage.setItem('meraki_categories', JSON.stringify(updated))
+                            try {
+                                const storedConfig = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
+                                const newConfig = { ...storedConfig, id: 'default', categories_data: updated }
+                                localStorage.setItem('meraki_store_config', JSON.stringify(newConfig))
+                            } catch (err) {}
                             window.dispatchEvent(new Event('categoriesUpdated'))
+                            window.dispatchEvent(new Event('storeConfigUpdated'))
                             form.reset()
                             resetForm()
                             setSaving(false)
@@ -1047,23 +1056,32 @@ export function CategoriesSection({
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-[10px] font-bold text-gray-700 mb-1 uppercase tracking-wider">Imagem de Capa</label>
+                                <label className="block text-[10px] font-bold text-gray-700 mb-1 uppercase tracking-wider">Imagem de Capa (Arquivo)</label>
                                 <input type="file" name="catImage" accept="image/*,video/*,.gif,.mp4,.webm,.mov" className="w-full text-xs text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[#7A3E4A]/10 file:text-[#7A3E4A] hover:file:bg-[#7A3E4A]/20 cursor-pointer" />
-                                {editingIndex !== null && (
-                                    <p className="text-[9px] text-gray-400 mt-1">Deixe em branco para manter a imagem atual</p>
-                                )}
                             </div>
                         </div>
-                        <div>
-                            <label className="block text-[10px] font-bold text-gray-700 mb-1 uppercase tracking-wider">Descrição</label>
-                            <input 
-                                type="text" 
-                                name="catDescription" 
-                                value={catDescription}
-                                onChange={e => setCatDescription(e.target.value)}
-                                placeholder="Breve descrição da categoria..." 
-                                className="w-full px-3 py-2 border border-[#EEEEEE] rounded-xl text-xs outline-none" 
-                            />
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-[10px] font-bold text-gray-700 mb-1 uppercase tracking-wider">URL da Imagem (Opções / Link)</label>
+                                <input 
+                                    type="text" 
+                                    value={catImageUrl}
+                                    onChange={e => setCatImageUrl(e.target.value)}
+                                    placeholder="https://... ou selecione um arquivo ao lado" 
+                                    className="w-full px-3 py-2 border border-[#EEEEEE] rounded-xl text-xs outline-none bg-gray-50/50" 
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-bold text-gray-700 mb-1 uppercase tracking-wider">Descrição</label>
+                                <input 
+                                    type="text" 
+                                    name="catDescription" 
+                                    value={catDescription}
+                                    onChange={e => setCatDescription(e.target.value)}
+                                    placeholder="Breve descrição da categoria..." 
+                                    className="w-full px-3 py-2 border border-[#EEEEEE] rounded-xl text-xs outline-none" 
+                                />
+                            </div>
                         </div>
                         <div className="flex gap-2">
                             <button type="submit" disabled={saving} className="px-5 py-3 bg-[#7A3E4A] hover:bg-[#603039] text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer disabled:opacity-50">
@@ -1183,6 +1201,7 @@ export function CategoriesSection({
                                             setCatName(cName)
                                             setCatGroup(cGroup)
                                             setCatDescription(cDesc)
+                                            setCatImageUrl(cImage)
                                             window.scrollTo({ top: 0, behavior: 'smooth' })
                                         }}
                                         className="text-[9px] font-bold text-[#C6A76A] hover:text-[#b09054] uppercase tracking-widest cursor-pointer px-2 py-1 rounded-lg hover:bg-[#C6A76A]/10 transition-all"

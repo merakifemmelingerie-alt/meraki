@@ -36,7 +36,7 @@ const TABLE_COLUMNS = {
     store_config: [
         'id', 'whatsapp', 'sac_phone', 'address', 'cnpj', 'razao_social', 'origin_cep', 'meta_pixel_id', 'ga_tracking_id', 'infinitepay_handle', 'pix_key',
         'topbarmessages', 'topbarstyle', 'promocombo', 'editorial', 'available_colors', 'available_emojis', 'shipping_message',
-        'available_badges', 'installment_text', 'banner_transition', 'reward_bar', 'category_styles', 'pages_content', 'custom_pages_list', 'deleted_pages'
+        'available_badges', 'installment_text', 'banner_transition', 'reward_bar', 'category_styles', 'pages_content', 'custom_pages_list', 'deleted_pages', 'categories_data'
     ],
     reviews: ['id', 'product_id', 'name', 'rating', 'comment', 'verified', 'created_at']
 }
@@ -271,11 +271,41 @@ export async function initSupabaseSync() {
             }
         }
 
-        // 5. Sync Categories — always overwrite to clear stale cache
+        // 5. Sync Categories — merge DB categories & store_config with local to preserve custom images
         const { data: dbCategories, error: catError } = await supabase.from('categories').select('*')
-        if (!catError) {
-            const cleanCategories = (dbCategories || []).filter(c => c && c.name)
-            localStorage.setItem('meraki_categories', JSON.stringify(cleanCategories))
+        const storedConfig = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
+        const configCategories = storedConfig.categories_data || storedConfig.categoriesData || []
+
+        if (!catError || configCategories.length > 0) {
+            const localCats = JSON.parse(localStorage.getItem('meraki_categories') || '[]')
+            const rawDbList = [...(dbCategories || []), ...configCategories]
+            const categoryMap = new Map()
+
+            for (const lc of localCats) {
+                if (lc && lc.name) {
+                    categoryMap.set(lc.name.toLowerCase().trim(), lc)
+                }
+            }
+
+            for (const dbCat of rawDbList) {
+                if (!dbCat || !dbCat.name) continue
+                const key = dbCat.name.toLowerCase().trim()
+                const existing = categoryMap.get(key)
+                
+                const dbImageValid = dbCat.image && dbCat.image !== '/placeholder.jpg' && !dbCat.image.includes('placeholder')
+                const localImageValid = existing?.image && existing.image !== '/placeholder.jpg' && !existing.image.includes('placeholder')
+
+                categoryMap.set(key, {
+                    group: 'Lingerie',
+                    description: 'Coleção Meraki',
+                    ...existing,
+                    ...dbCat,
+                    image: dbImageValid ? dbCat.image : (localImageValid ? existing.image : (dbCat.image || existing?.image || '/placeholder.jpg'))
+                })
+            }
+
+            const mergedCategories = Array.from(categoryMap.values())
+            originalSetItem('meraki_categories', JSON.stringify(mergedCategories))
         }
 
         // 6. Sync Returns — always overwrite to clear stale cache

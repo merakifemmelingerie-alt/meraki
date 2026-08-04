@@ -228,6 +228,7 @@ ALTER TABLE public.store_config ADD COLUMN IF NOT EXISTS category_styles JSONB D
 ALTER TABLE public.store_config ADD COLUMN IF NOT EXISTS pages_content JSONB DEFAULT '{}'::jsonb;
 ALTER TABLE public.store_config ADD COLUMN IF NOT EXISTS custom_pages_list JSONB DEFAULT '[]'::jsonb;
 ALTER TABLE public.store_config ADD COLUMN IF NOT EXISTS deleted_pages JSONB DEFAULT '[]'::jsonb;
+ALTER TABLE public.store_config ADD COLUMN IF NOT EXISTS categories_data JSONB DEFAULT '[]'::jsonb;
 ALTER TABLE public.store_config ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW();
 
 -- ====================================================================
