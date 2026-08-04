@@ -79,7 +79,9 @@ export default function ProductCard({ product, onQuickView, onToggleWishlist, is
         return defaultMap
     }, [])
 
-    const imageSrc = getAssetUrl(Array.isArray(product?.image) ? (product.image[0] || '/placeholder.jpg') : (product?.image || '/placeholder.jpg'))
+    const [selectedColorImg, setSelectedColorImg] = useState(null)
+    const defaultImg = Array.isArray(product?.image) ? (product.image[0] || '/placeholder.jpg') : (product?.image || '/placeholder.jpg')
+    const imageSrc = getAssetUrl(selectedColorImg || defaultImg)
 
     const handleCardClick = (e) => {
         if (e.target.closest('button')) return
@@ -177,10 +179,23 @@ export default function ProductCard({ product, onQuickView, onToggleWishlist, is
                                 else if (searchName.includes('bordô') || searchName.includes('bordo')) hex = '#800020'
                             }
 
+                            const colorMap = product?.colorImages || product?.color_images || {}
+                            const colorImg = colorMap[colorName] || colorMap[matchedKey]
+
                             return (
                                 <span 
                                     key={cIdx} 
-                                    className="w-2.5 h-2.5 rounded-full border border-gray-300/80 shadow-xs inline-block" 
+                                    onClick={(e) => {
+                                        if (colorImg) {
+                                            e.stopPropagation()
+                                            e.preventDefault()
+                                            setSelectedColorImg(colorImg)
+                                        }
+                                    }}
+                                    onMouseEnter={() => {
+                                        if (colorImg) setSelectedColorImg(colorImg)
+                                    }}
+                                    className={`w-3 h-3 rounded-full border border-gray-300/80 shadow-xs inline-block transition-all ${colorImg ? 'cursor-pointer hover:scale-125' : ''} ${selectedColorImg === colorImg && colorImg ? 'ring-2 ring-[#7A3E4A] scale-110' : ''}`} 
                                     style={{ backgroundColor: hex }}
                                     title={colorName}
                                 />

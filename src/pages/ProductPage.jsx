@@ -205,6 +205,19 @@ export default function ProductPage() {
         }
     }, [getAvailableStockForSelected, quantity])
 
+    // Switch main gallery image when selectedColor changes if colorImages mapping exists
+    useEffect(() => {
+        if (!selectedColor || !product) return
+        const colorMap = product.colorImages || product.color_images || {}
+        const mappedImg = colorMap[selectedColor]
+        if (mappedImg) {
+            const idx = productImages.findIndex(img => img === mappedImg)
+            if (idx !== -1) {
+                setActiveImageIndex(idx)
+            }
+        }
+    }, [selectedColor, product, productImages])
+
     if (loading) {
         return (
             <div className="bg-[#FCFAFA] min-h-screen flex items-center justify-center">

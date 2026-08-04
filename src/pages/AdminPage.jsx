@@ -217,6 +217,7 @@ export default function AdminPage() {
     const [selectedModalColors, setSelectedModalColors] = useState([])
     const [modalColorStock, setModalColorStock] = useState({})
     const [modalVariantStock, setModalVariantStock] = useState({})
+    const [modalColorImages, setModalColorImages] = useState({})
     const [isCustomizable, setIsCustomizable] = useState(false)
     const [customPriceWith, setCustomPriceWith] = useState('')
     const [customPriceWithout, setCustomPriceWithout] = useState('')
@@ -582,6 +583,10 @@ export default function AdminPage() {
             const parsedVariantStock = typeof rawVariantStock === 'string' ? (JSON.parse(rawVariantStock) || {}) : (rawVariantStock || {})
             setModalVariantStock(parsedVariantStock)
 
+            const rawColorImages = product?.colorImages || product?.color_images || {}
+            const parsedColorImages = typeof rawColorImages === 'string' ? (JSON.parse(rawColorImages) || {}) : (rawColorImages || {})
+            setModalColorImages(parsedColorImages)
+
             // Badge: se o produto já tem badge que não está na lista, adiciona
             const prodBadge = product?.badge || ''
             setSelectedModalBadge(prodBadge)
@@ -616,6 +621,7 @@ export default function AdminPage() {
             setSelectedModalColors([])
             setModalColorStock({})
             setModalVariantStock({})
+            setModalColorImages({})
             setSelectedModalBadge('')
             setIsCustomizable(false)
             setCustomPriceWith('')
@@ -841,6 +847,8 @@ export default function AdminPage() {
             colorStock: cleanedColorStock,
             variant_stock: cleanedVariantStock,
             variantStock: cleanedVariantStock,
+            color_images: modalColorImages,
+            colorImages: modalColorImages,
             inPromoCombo: form.pInPromoCombo?.checked || false,
             isCustomizable: isCustomizable || selectedModalCategory?.toLowerCase() === 'personalizaveis' || selectedModalCategory?.toLowerCase() === 'personalizáveis',
             customPriceWith: parseFloat(form.pCustomPriceWith?.value || '0') || 0,
@@ -2240,6 +2248,82 @@ export default function AdminPage() {
                                         </div>
                                     </div>
                                 ) : null}
+
+                                {/* Seção de Fotos por Cor (Vincular Imagem à Cor) */}
+                                {selectedModalColors.length > 0 && (
+                                    <div className="p-4 bg-[#FAF9F5] rounded-xl border border-[#EEEEEE] space-y-3 animate-[fadeIn_200ms_ease-out]">
+                                        <div>
+                                            <label className="text-xs font-extrabold text-gray-800 uppercase tracking-wider flex items-center gap-1.5">
+                                                <span>📸</span> Imagem por Cor (Mudar foto ao clicar na cor)
+                                            </label>
+                                            <p className="text-[11px] text-gray-500 mt-0.5 font-medium">
+                                                Selecione qual foto do produto deve aparecer na tela quando a cliente clicar em cada cor.
+                                            </p>
+                                        </div>
+
+                                        <div className="space-y-3">
+                                            {selectedModalColors.map(color => {
+                                                const hex = colorHexMap[color] || '#CCCCCC'
+                                                const assignedImg = modalColorImages[color] || ''
+                                                const availablePhotos = existingImages
+
+                                                return (
+                                                    <div key={color} className="bg-white p-3 rounded-xl border border-gray-200 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                                        <div className="flex items-center gap-2 shrink-0">
+                                                            <span className="w-4 h-4 rounded-full border border-gray-300 shrink-0" style={{ backgroundColor: hex }} />
+                                                            <span className="text-xs font-bold text-gray-800">{color}</span>
+                                                            {assignedImg && (
+                                                                <span className="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">
+                                                                    Foto Vinculada
+                                                                </span>
+                                                            )}
+                                                        </div>
+
+                                                        <div className="flex items-center gap-2 flex-wrap">
+                                                            {availablePhotos.length === 0 ? (
+                                                                <span className="text-[10px] text-gray-400 italic">Adicione e salve imagens do produto para poder vincular às cores</span>
+                                                            ) : (
+                                                                availablePhotos.map((photoUrl, pIdx) => {
+                                                                    const isSelected = assignedImg === photoUrl
+                                                                    return (
+                                                                        <button
+                                                                            key={pIdx}
+                                                                            type="button"
+                                                                            title={isSelected ? "Desvincular foto desta cor" : "Vincular esta foto a esta cor"}
+                                                                            onClick={() => {
+                                                                                setModalColorImages(prev => {
+                                                                                    if (isSelected) {
+                                                                                        const copy = { ...prev }
+                                                                                        delete copy[color]
+                                                                                        return copy
+                                                                                    } else {
+                                                                                        return { ...prev, [color]: photoUrl }
+                                                                                    }
+                                                                                })
+                                                                            }}
+                                                                            className={`relative w-12 h-12 rounded-xl overflow-hidden border-2 transition-all cursor-pointer ${
+                                                                                isSelected
+                                                                                    ? 'border-[#7A3E4A] ring-2 ring-[#7A3E4A]/30 scale-105 shadow-xs'
+                                                                                    : 'border-gray-200 opacity-60 hover:opacity-100 hover:border-gray-400'
+                                                                            }`}
+                                                                        >
+                                                                            <img src={getAssetUrl(photoUrl)} alt="" className="w-full h-full object-cover" />
+                                                                            {isSelected && (
+                                                                                <div className="absolute inset-0 bg-[#7A3E4A]/40 flex items-center justify-center text-white text-sm font-black">
+                                                                                    ✓
+                                                                                </div>
+                                                                            )}
+                                                                        </button>
+                                                                    )
+                                                                })
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                )
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
 
                                 <div className="p-4 bg-[#FAF9F5] rounded-xl border border-[#EEEEEE] space-y-4">
                                     <label className="flex items-center gap-2.5 cursor-pointer">

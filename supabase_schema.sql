@@ -88,6 +88,7 @@ ALTER TABLE public.products ADD COLUMN IF NOT EXISTS has_kits BOOLEAN DEFAULT FA
 ALTER TABLE public.products ADD COLUMN IF NOT EXISTS kit_options JSONB DEFAULT '[]'::jsonb;
 ALTER TABLE public.products ADD COLUMN IF NOT EXISTS color_stock JSONB DEFAULT '{}'::jsonb;
 ALTER TABLE public.products ADD COLUMN IF NOT EXISTS variant_stock JSONB DEFAULT '{}'::jsonb;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS color_images JSONB DEFAULT '{}'::jsonb;
 
 -- ====================================================================
 -- TABELA: categories (Categorias da Loja)
