@@ -552,10 +552,12 @@ export default function CategoryPage() {
 
     // Pagination
     const ITEMS_PER_PAGE = 12
+    const [mobileCols, setMobileCols] = useState(2)
 
+    // Reset pagination to page 1 whenever any filter or category slug changes
     useEffect(() => {
         setCurrentPage(1)
-    }, [slug, selectedSize, selectedSubcategory, sortBy])
+    }, [selectedSubcategory, selectedSize, sortBy, slug])
 
     const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE)
     
@@ -675,20 +677,20 @@ export default function CategoryPage() {
 
             {/* Catalog content */}
             <main className="max-w-7xl mx-auto px-4 py-12 flex-grow w-full">
-                {/* Filters Row */}
+                {/* Mobile & Desktop Filters Row */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#EEEEEE] pb-6 mb-8 text-sm">
-                    <div className="flex flex-wrap items-center gap-4">
+                    <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
                         {/* Size Filter */}
-                        <div className="flex items-center gap-2">
-                            <span className="text-gray-500 font-medium">Tamanho:</span>
-                            <div className="flex gap-1.5">
-                                {['all', 'P', 'M', 'G', 'GG'].map(sz => (
+                        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 w-full sm:w-auto">
+                            <span className="text-gray-500 font-medium text-xs shrink-0">Tamanho:</span>
+                            <div className="flex gap-1.5 shrink-0 overflow-x-auto pb-0.5">
+                                {['all', 'P', 'M', 'G', 'GG', 'XG', 'EG'].map(sz => (
                                     <button
                                         key={sz}
                                         onClick={() => setSelectedSize(sz)}
-                                        className={`px-3 py-1 text-xs uppercase font-bold tracking-wider rounded-lg border transition-all ${
+                                        className={`px-3 py-1.5 text-xs uppercase font-bold tracking-wider rounded-lg border transition-all cursor-pointer shrink-0 ${
                                             selectedSize === sz
-                                                ? 'bg-[#7A3E4A] border-[#7A3E4A] text-white'
+                                                ? 'bg-[#7A3E4A] border-[#7A3E4A] text-white shadow-xs'
                                                 : 'bg-white border-gray-200 text-gray-700 hover:border-gray-400'
                                         }`}
                                     >
@@ -697,16 +699,31 @@ export default function CategoryPage() {
                                 ))}
                             </div>
                         </div>
+
+                        {/* Reset Filters button when filter active */}
+                        {(selectedSubcategory !== 'all' || selectedSize !== 'all') && (
+                            <button
+                                onClick={() => {
+                                    setSelectedSubcategory('all')
+                                    setSelectedSize('all')
+                                    setCurrentPage(1)
+                                }}
+                                className="px-3 py-1 bg-rose-50 text-[#7A3E4A] hover:bg-rose-100 border border-rose-200 text-xs font-bold rounded-lg transition-all flex items-center gap-1 cursor-pointer shrink-0"
+                            >
+                                <span>Limpar Filtros</span>
+                                <span className="text-sm font-black">✕</span>
+                            </button>
+                        )}
                     </div>
 
                     {/* Sorting Filter & Layout Switcher */}
-                    <div className="flex items-center gap-6 self-end sm:self-auto">
+                    <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-100">
                         <div className="flex items-center gap-2">
-                            <span className="text-gray-500 font-medium">Ordenar por:</span>
+                            <span className="text-gray-500 font-medium text-xs shrink-0">Ordenar por:</span>
                             <select
                                 value={sortBy}
                                 onChange={(e) => setSortBy(e.target.value)}
-                                className="bg-white border border-gray-200 rounded-lg px-3 py-1.5 outline-none focus:border-[#7A3E4A] text-gray-700 font-medium cursor-pointer"
+                                className="bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 outline-none focus:border-[#7A3E4A] text-gray-700 text-xs font-medium cursor-pointer"
                             >
                                 <option value="newest">Novidades</option>
                                 <option value="price-asc">Menor Preço</option>
@@ -714,11 +731,26 @@ export default function CategoryPage() {
                             </select>
                         </div>
 
-                        {/* View Grid Switcher (Hidden on Mobile) */}
+                        {/* Mobile Grid Switcher (1 col vs 2 col) */}
+                        <div className="flex md:hidden items-center gap-1 bg-gray-100 p-1 rounded-lg shrink-0">
+                            <button
+                                onClick={() => setMobileCols(1)}
+                                className={`px-2.5 py-1 text-[10px] font-bold rounded transition-all ${mobileCols === 1 ? 'bg-white shadow-xs text-[#7A3E4A]' : 'text-gray-500'}`}
+                            >
+                                1 Coluna
+                            </button>
+                            <button
+                                onClick={() => setMobileCols(2)}
+                                className={`px-2.5 py-1 text-[10px] font-bold rounded transition-all ${mobileCols === 2 ? 'bg-white shadow-xs text-[#7A3E4A]' : 'text-gray-500'}`}
+                            >
+                                2 Colunas
+                            </button>
+                        </div>
+
+                        {/* Desktop View Grid Switcher */}
                         <div className="hidden md:flex items-center gap-3 border-l border-gray-200 pl-6">
                             <span className="text-xs uppercase font-bold tracking-widest text-[#7A3E4A] font-semibold">Visualizar:</span>
                             <div className="flex gap-2">
-                                {/* 3 Columns Button */}
                                 <button 
                                     onClick={() => setViewCols(3)}
                                     className={`p-1.5 rounded-lg border transition-all cursor-pointer ${viewCols === 3 ? 'border-[#7A3E4A] bg-[#7A3E4A]/5 text-[#7A3E4A]' : 'border-gray-200 text-gray-400 hover:border-gray-300'}`}
@@ -731,7 +763,6 @@ export default function CategoryPage() {
                                         <rect x="16.5" y="4" width="4.5" height="16" rx="1" />
                                     </svg>
                                 </button>
-                                {/* 4 Columns Button */}
                                 <button 
                                     onClick={() => setViewCols(4)}
                                     className={`p-1.5 rounded-lg border transition-all cursor-pointer ${viewCols === 4 ? 'border-[#7A3E4A] bg-[#7A3E4A]/5 text-[#7A3E4A]' : 'border-gray-200 text-gray-400 hover:border-gray-300'}`}
@@ -766,7 +797,7 @@ export default function CategoryPage() {
                     </div>
                 ) : filteredProducts.length > 0 ? (
                     <div className="space-y-12">
-                        <div className={`grid grid-cols-2 gap-x-4 sm:gap-x-8 gap-y-8 sm:gap-y-12 ${viewCols === 3 ? 'lg:grid-cols-3' : 'lg:grid-cols-4'}`}>
+                        <div className={`grid gap-x-3 sm:gap-x-8 gap-y-6 sm:gap-y-12 ${mobileCols === 1 ? 'grid-cols-1' : 'grid-cols-2'} ${viewCols === 3 ? 'lg:grid-cols-3' : 'lg:grid-cols-4'}`}>
                             {paginatedProducts.map((product) => (
                                 <div key={product.id}>
                                     <ProductCard
