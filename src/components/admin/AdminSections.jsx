@@ -3085,10 +3085,15 @@ export function FinancialSection({
     onDeleteTransaction,
     updateStoreConfig
 }) {
-    const [activeTab, setActiveTab] = useState('custo_real')
-    const [filter, setFilter] = useState('todos')
-    const [period, setPeriod] = useState('todos')
+    const [activeTab, setActiveTab] = useState('custo_real') // 'custo_real' | 'overview'
+    const [filter, setFilter] = useState('todos') // 'todos' | 'receita' | 'despesa' | 'pendente'
+    const [period, setPeriod] = useState('todos') // 'todos' | 'mes' | '30dias'
+    const [searchQuery, setSearchQuery] = useState('')
+    const [itemsPerPage, setItemsPerPage] = useState(15)
+    const [currentPage, setCurrentPage] = useState(1)
+    
     const [modalOpen, setModalOpen] = useState(false)
+    const [showCostConfig, setShowCostConfig] = useState(false)
     const [submitting, setSubmitting] = useState(false)
 
     // Cost configuration states
@@ -3128,7 +3133,8 @@ export function FinancialSection({
         }
         localStorage.setItem('meraki_store_config', JSON.stringify(updated))
         if (updateStoreConfig) await updateStoreConfig(updated)
-        alert('Configurações de Custo Real da Venda salvas no Supabase com sucesso!')
+        setShowCostConfig(false)
+        alert('Configurações de Custo Real da Venda salvas com sucesso!')
     }
 
     const [txType, setTxType] = useState('despesa')
@@ -3140,9 +3146,11 @@ export function FinancialSection({
     const [txMethod, setTxMethod] = useState('PIX')
     const [txNotes, setTxNotes] = useState('')
 
-    // Auto-calculate order revenues from paid orders
-    const paidOrders = orders.filter(o => ['Pago', 'Enviado', 'Entregue'].includes(o.status))
-    
+    // Reset pagination when filters change
+    useEffect(() => {
+        setCurrentPage(1)
+    }, [searchQuery, filter, period, itemsPerPage, activeTab])
+
     // Order DRE Calculation: Preço de venda − custo do produto − taxa do cartão − embalagem − frete subsidiado − descontos = lucro líquido
     const orderCostAnalysis = orders.map(order => {
         const salePrice = Number(order.total) || 0
@@ -3182,14 +3190,41 @@ export function FinancialSection({
         }
     })
 
-    const totalRealRevenue = orderCostAnalysis.reduce((sum, o) => sum + o.salePrice, 0)
-    const totalProductCost = orderCostAnalysis.reduce((sum, o) => sum + o.productCost, 0)
-    const totalPaymentFees = orderCostAnalysis.reduce((sum, o) => sum + o.paymentFee, 0)
-    const totalPackagingCosts = orderCostAnalysis.reduce((sum, o) => sum + o.packagingCost, 0)
-    const totalSubsidyCosts = orderCostAnalysis.reduce((sum, o) => sum + o.subsidyCost, 0)
-    const totalNetProfitReal = orderCostAnalysis.reduce((sum, o) => sum + o.netProfit, 0)
+    // Filter Order DRE list by Search and Period
+    const now = new Date()
+    const filteredOrdersDRE = orderCostAnalysis.filter(order => {
+        // Period filter
+        const orderDate = new Date(order.created_at || order.date)
+        if (period === 'mes') {
+            if (orderDate.getMonth() !== now.getMonth() || orderDate.getFullYear() !== now.getFullYear()) return false
+        } else if (period === '30dias') {
+            const diffTime = Math.abs(now - orderDate)
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+            if (diffDays > 30) return false
+        }
+
+        // Search filter
+        if (searchQuery.trim()) {
+            const q = searchQuery.toLowerCase()
+            const matchesId = String(order.id).toLowerCase().includes(q)
+            const matchesName = (order.customerName || '').toLowerCase().includes(q)
+            const matchesMethod = (order.paymentMethod || '').toLowerCase().includes(q)
+            if (!matchesId && !matchesName && !matchesMethod) return false
+        }
+
+        return true
+    })
+
+    const totalRealRevenue = filteredOrdersDRE.reduce((sum, o) => sum + o.salePrice, 0)
+    const totalProductCost = filteredOrdersDRE.reduce((sum, o) => sum + o.productCost, 0)
+    const totalPaymentFees = filteredOrdersDRE.reduce((sum, o) => sum + o.paymentFee, 0)
+    const totalPackagingCosts = filteredOrdersDRE.reduce((sum, o) => sum + o.packagingCost, 0)
+    const totalSubsidyCosts = filteredOrdersDRE.reduce((sum, o) => sum + o.subsidyCost, 0)
+    const totalNetProfitReal = filteredOrdersDRE.reduce((sum, o) => sum + o.netProfit, 0)
     const averageMarginReal = totalRealRevenue > 0 ? ((totalNetProfitReal / totalRealRevenue) * 100).toFixed(1) : 0
 
+    // Auto-calculate order revenues for general DRE
+    const paidOrders = orders.filter(o => ['Pago', 'Enviado', 'Entregue'].includes(o.status))
     const orderRevenues = paidOrders.map(o => ({
         id: `ord-${o.id}`,
         isOrder: true,
@@ -3204,45 +3239,60 @@ export function FinancialSection({
         created_at: o.created_at || new Date().toISOString()
     }))
 
-    const allItems = [...transactions, ...orderRevenues]
+    const allTransactionsList = [...transactions, ...orderRevenues]
 
-    const now = new Date()
-    const filteredByPeriod = allItems.filter(item => {
-        if (period === 'todos') return true
+    // Filter General Transactions list
+    const filteredTransactionsList = allTransactionsList.filter(item => {
+        // Period filter
         const itemDate = new Date(item.due_date || item.created_at)
         if (period === 'mes') {
-            return itemDate.getMonth() === now.getMonth() && itemDate.getFullYear() === now.getFullYear()
-        }
-        if (period === '30dias') {
+            if (itemDate.getMonth() !== now.getMonth() || itemDate.getFullYear() !== now.getFullYear()) return false
+        } else if (period === '30dias') {
             const diffTime = Math.abs(now - itemDate)
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-            return diffDays <= 30
+            if (diffDays > 30) return false
         }
+
+        // Type filter
+        if (filter === 'receita' && item.type !== 'receita') return false
+        if (filter === 'despesa' && item.type !== 'despesa') return false
+        if (filter === 'pendente' && item.status !== 'pendente') return false
+
+        // Search filter
+        if (searchQuery.trim()) {
+            const q = searchQuery.toLowerCase()
+            const matchesTitle = (item.title || '').toLowerCase().includes(q)
+            const matchesCategory = (item.category || '').toLowerCase().includes(q)
+            const matchesMethod = (item.payment_method || '').toLowerCase().includes(q)
+            const matchesNotes = (item.notes || '').toLowerCase().includes(q)
+            if (!matchesTitle && !matchesCategory && !matchesMethod && !matchesNotes) return false
+        }
+
         return true
     })
 
-    const filteredItems = filteredByPeriod.filter(item => {
-        if (filter === 'todos') return true
-        if (filter === 'receita') return item.type === 'receita'
-        if (filter === 'despesa') return item.type === 'despesa'
-        if (filter === 'pendente') return item.status === 'pendente'
-        return true
-    })
-
-    const totalReceitas = filteredByPeriod
+    const totalReceitas = filteredTransactionsList
         .filter(i => i.type === 'receita' && i.status === 'pago')
         .reduce((sum, i) => sum + Number(i.amount), 0)
 
-    const totalDespesas = filteredByPeriod
+    const totalDespesas = filteredTransactionsList
         .filter(i => i.type === 'despesa' && i.status === 'pago')
         .reduce((sum, i) => sum + Number(i.amount), 0)
 
-    const totalPendentes = filteredByPeriod
+    const totalPendentes = filteredTransactionsList
         .filter(i => i.status === 'pendente')
         .reduce((sum, i) => sum + (i.type === 'receita' ? Number(i.amount) : -Number(i.amount)), 0)
 
     const lucroLiquido = totalReceitas - totalDespesas
     const margemLucro = totalReceitas > 0 ? ((lucroLiquido / totalReceitas) * 100).toFixed(1) : 0
+
+    // Pagination Calculation
+    const targetList = activeTab === 'custo_real' ? filteredOrdersDRE : filteredTransactionsList
+    const limit = itemsPerPage === 'all' ? targetList.length : Number(itemsPerPage)
+    const totalPages = Math.ceil(targetList.length / limit) || 1
+    const paginatedItems = itemsPerPage === 'all' 
+        ? targetList 
+        : targetList.slice((currentPage - 1) * limit, currentPage * limit)
 
     const handleSubmit = async (e) => {
         e.preventDefault()
@@ -3270,39 +3320,46 @@ export function FinancialSection({
 
     return (
         <div className="space-y-6 font-sans">
-            {/* Header section with tabs */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#EEEEEE] pb-4">
+            {/* Header: Clean Single Button & Mode Switcher */}
+            <div className="bg-white rounded-3xl p-6 border border-[#EEEEEE] shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-5">
                 <div>
-                    <h2 className="text-base font-black text-gray-900 tracking-tight">Módulo de Gestão Financeira Completo</h2>
-                    <p className="text-xs text-gray-400 font-medium mt-0.5">Controle de receitas, lançamento de gastos/despesas, margem real por pedido e DRE consolidado.</p>
+                    <div className="flex items-center gap-2 mb-1">
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#7A3E4A]/10 text-[#7A3E4A]">
+                            Financeiro & Unit Economics
+                        </span>
+                    </div>
+                    <h2 className="text-lg font-black text-gray-900 tracking-tight">Gestão Financeira & DRE da Loja</h2>
+                    <p className="text-xs text-gray-400 font-medium">Lucro real das vendas, lançamentos de despesas operacionais e fluxo de caixa.</p>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="flex flex-wrap items-center gap-3">
+                    {/* UNIQUE SINGLE BUTTON FOR CREATING FINANCIAL TRANSACTIONS */}
                     <button
                         onClick={() => setModalOpen(true)}
-                        className="px-4 py-2.5 bg-gradient-to-r from-[#7A3E4A] to-[#9A5060] text-white text-xs font-black uppercase tracking-wider rounded-xl hover:shadow-lg hover:shadow-[#7A3E4A]/25 transition-all cursor-pointer flex items-center justify-center gap-2"
+                        className="px-5 py-3 bg-gradient-to-r from-[#7A3E4A] to-[#9A5060] hover:from-[#603039] hover:to-[#7A3E4A] text-white text-xs font-black uppercase tracking-wider rounded-2xl shadow-md shadow-[#7A3E4A]/20 hover:shadow-lg transition-all cursor-pointer flex items-center gap-2"
                     >
                         <Icon path="M12 4v16m8-8H4" className="w-4 h-4" />
-                        Lançar Gasto / Receita
+                        + Lançar Gasto / Receita
                     </button>
 
-                    <div className="flex items-center gap-1 bg-[#FAF9F5] p-1 rounded-xl border border-[#EEEEEE]">
+                    {/* Tab Selector */}
+                    <div className="flex items-center gap-1 bg-[#FAF9F5] p-1.5 rounded-2xl border border-[#EEEEEE]">
                         <button
                             onClick={() => setActiveTab('custo_real')}
-                            className={`px-3.5 py-2 rounded-lg text-xs font-extrabold transition-all cursor-pointer ${
+                            className={`px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
                                 activeTab === 'custo_real'
                                     ? 'bg-[#7A3E4A] text-white shadow-sm'
-                                    : 'text-gray-600 hover:text-gray-900'
+                                    : 'text-gray-500 hover:text-gray-900'
                             }`}
                         >
                             🎯 Custo Real da Venda
                         </button>
                         <button
                             onClick={() => setActiveTab('overview')}
-                            className={`px-3.5 py-2 rounded-lg text-xs font-extrabold transition-all cursor-pointer ${
+                            className={`px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
                                 activeTab === 'overview'
                                     ? 'bg-[#7A3E4A] text-white shadow-sm'
-                                    : 'text-gray-600 hover:text-gray-900'
+                                    : 'text-gray-500 hover:text-gray-900'
                             }`}
                         >
                             📊 DRE & Lançamentos
@@ -3311,153 +3368,249 @@ export function FinancialSection({
                 </div>
             </div>
 
+            {/* UNIFIED SEARCH BAR & SEARCH LIMITER FILTER */}
+            <div className="bg-white rounded-3xl p-4 border border-[#EEEEEE] shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                {/* Search Input */}
+                <div className="relative flex-1">
+                    <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                        <Icon path="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" className="w-4 h-4" />
+                    </span>
+                    <input
+                        type="text"
+                        placeholder={activeTab === 'custo_real' ? "Buscar por pedido, cliente ou meio de pagamento..." : "Buscar lançamento por nome, categoria ou notas..."}
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2.5 bg-[#FAF9F5] border border-[#EEEEEE] rounded-2xl text-xs font-bold text-gray-800 outline-none focus:border-[#7A3E4A] transition-all placeholder-gray-400"
+                    />
+                    {searchQuery && (
+                        <button onClick={() => setSearchQuery('')} className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-xs text-gray-400 hover:text-gray-600">✕</button>
+                    )}
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3">
+                    {/* Period Filter */}
+                    <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider">Período:</span>
+                        <select
+                            value={period}
+                            onChange={(e) => setPeriod(e.target.value)}
+                            className="px-3 py-2 bg-[#FAF9F5] border border-[#EEEEEE] rounded-xl text-xs font-bold text-gray-700 outline-none focus:border-[#7A3E4A] cursor-pointer"
+                        >
+                            <option value="todos">Todo o Histórico</option>
+                            <option value="mes">Este Mês</option>
+                            <option value="30dias">Últimos 30 Dias</option>
+                        </select>
+                    </div>
+
+                    {/* Filter for DRE overview */}
+                    {activeTab === 'overview' && (
+                        <div className="flex items-center gap-1 overflow-x-auto">
+                            {[
+                                { id: 'todos', label: 'Todos' },
+                                { id: 'receita', label: '🟢 Receitas' },
+                                { id: 'despesa', label: '🔴 Despesas' },
+                                { id: 'pendente', label: '⏳ Pendentes' },
+                            ].map(f => (
+                                <button
+                                    key={f.id}
+                                    onClick={() => setFilter(f.id)}
+                                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 ${filter === f.id
+                                        ? 'bg-[#7A3E4A] text-white shadow-xs'
+                                        : 'bg-[#FAF9F5] text-gray-600 hover:bg-gray-100'
+                                    }`}
+                                >
+                                    {f.label}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* SEARCH LIMITER / ITEMS PER PAGE */}
+                    <div className="flex items-center gap-2 border-l border-gray-100 pl-3">
+                        <span className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider">Exibir:</span>
+                        <select
+                            value={itemsPerPage}
+                            onChange={(e) => setItemsPerPage(e.target.value === 'all' ? 'all' : Number(e.target.value))}
+                            className="px-3 py-2 bg-[#FAF9F5] border border-[#EEEEEE] rounded-xl text-xs font-bold text-gray-700 outline-none focus:border-[#7A3E4A] cursor-pointer"
+                        >
+                            <option value={10}>10 itens</option>
+                            <option value={15}>15 itens</option>
+                            <option value={30}>30 itens</option>
+                            <option value={50}>50 itens</option>
+                            <option value="all">Exibir Todos</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
             {/* TAB 1: CUSTO REAL DA VENDA */}
             {activeTab === 'custo_real' && (
                 <div className="space-y-6">
-                    {/* Config bar for cost variables */}
-                    <div className="bg-white rounded-2xl p-5 border border-[#EEEEEE] shadow-sm space-y-4">
+                    {/* Collapsible Config Parameters Bar */}
+                    <div className="bg-white rounded-3xl p-5 border border-[#EEEEEE] shadow-sm space-y-3">
                         <div className="flex items-center justify-between">
-                            <div>
-                                <h3 className="text-xs font-black uppercase tracking-wider text-gray-900">Parâmetros de Custo Unitário</h3>
-                                <p className="text-[10px] text-gray-400 font-medium">Fórmula: Preço Venda − Custo Produto − Taxa Cartão/PIX − Embalagem − Frete Subsidiado = Lucro Líquido Real</p>
+                            <div className="flex items-center gap-2">
+                                <h3 className="text-xs font-black uppercase tracking-wider text-gray-900">Taxas & Custos Operacionais da Loja</h3>
+                                <button
+                                    onClick={() => setShowCostConfig(!showCostConfig)}
+                                    className="text-[10px] font-extrabold text-[#7A3E4A] hover:underline cursor-pointer ml-2"
+                                >
+                                    {showCostConfig ? '▲ Ocultar Configurações' : '⚙️ Editar Taxas Cartão/PIX/Embalagem'}
+                                </button>
                             </div>
-                            <button
-                                onClick={handleSaveCostConfig}
-                                className="px-4 py-2 bg-[#7A3E4A] hover:bg-[#603039] text-white text-xs font-bold rounded-xl shadow-sm transition-all cursor-pointer"
-                            >
-                                Salvar Taxas no Banco
-                            </button>
+                            <span className="text-[10px] text-gray-400 font-medium hidden sm:inline">
+                                Fórmula: Preço Venda − Custo Produto − Taxas − Embalagem − Frete = Lucro Real
+                            </span>
                         </div>
 
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2 border-t border-gray-100">
-                            <div>
-                                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Taxa Cartão Crédito (%)</label>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    value={cardFeePercent}
-                                    onChange={(e) => setCardFeePercent(e.target.value)}
-                                    className="w-full px-3 py-2 bg-[#FAF9F5] border border-[#EEEEEE] rounded-xl text-xs font-bold outline-none focus:border-[#7A3E4A]"
-                                />
+                        {showCostConfig && (
+                            <div className="pt-3 border-t border-gray-100 space-y-4 animate-fadeIn">
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Taxa Cartão Crédito (%)</label>
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            value={cardFeePercent}
+                                            onChange={(e) => setCardFeePercent(e.target.value)}
+                                            className="w-full px-3 py-2 bg-[#FAF9F5] border border-[#EEEEEE] rounded-xl text-xs font-bold outline-none focus:border-[#7A3E4A]"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Taxa PIX (%)</label>
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            value={pixFeePercent}
+                                            onChange={(e) => setPixFeePercent(e.target.value)}
+                                            className="w-full px-3 py-2 bg-[#FAF9F5] border border-[#EEEEEE] rounded-xl text-xs font-bold outline-none focus:border-[#7A3E4A]"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Embalagem (R$/pedido)</label>
+                                        <input
+                                            type="number"
+                                            step="0.50"
+                                            value={packagingCost}
+                                            onChange={(e) => setPackagingCost(e.target.value)}
+                                            className="w-full px-3 py-2 bg-[#FAF9F5] border border-[#EEEEEE] rounded-xl text-xs font-bold outline-none focus:border-[#7A3E4A]"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Frete Subsidiado (R$/pedido)</label>
+                                        <input
+                                            type="number"
+                                            step="1.00"
+                                            value={subsidyCost}
+                                            onChange={(e) => setSubsidyCost(e.target.value)}
+                                            className="w-full px-3 py-2 bg-[#FAF9F5] border border-[#EEEEEE] rounded-xl text-xs font-bold outline-none focus:border-[#7A3E4A]"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="flex justify-end">
+                                    <button
+                                        onClick={handleSaveCostConfig}
+                                        className="px-5 py-2.5 bg-[#7A3E4A] hover:bg-[#603039] text-white text-xs font-bold rounded-xl shadow-sm transition-all cursor-pointer"
+                                    >
+                                        Salvar Taxas no Banco Supabase
+                                    </button>
+                                </div>
                             </div>
-                            <div>
-                                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Taxa PIX (%)</label>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    value={pixFeePercent}
-                                    onChange={(e) => setPixFeePercent(e.target.value)}
-                                    className="w-full px-3 py-2 bg-[#FAF9F5] border border-[#EEEEEE] rounded-xl text-xs font-bold outline-none focus:border-[#7A3E4A]"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Embalagem (R$/pedido)</label>
-                                <input
-                                    type="number"
-                                    step="0.50"
-                                    value={packagingCost}
-                                    onChange={(e) => setPackagingCost(e.target.value)}
-                                    className="w-full px-3 py-2 bg-[#FAF9F5] border border-[#EEEEEE] rounded-xl text-xs font-bold outline-none focus:border-[#7A3E4A]"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Frete Subsidiado (R$/pedido)</label>
-                                <input
-                                    type="number"
-                                    step="1.00"
-                                    value={subsidyCost}
-                                    onChange={(e) => setSubsidyCost(e.target.value)}
-                                    className="w-full px-3 py-2 bg-[#FAF9F5] border border-[#EEEEEE] rounded-xl text-xs font-bold outline-none focus:border-[#7A3E4A]"
-                                />
-                            </div>
-                        </div>
+                        )}
                     </div>
 
                     {/* KPI Cards Unit Economics */}
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div className="bg-white rounded-2xl p-5 border border-emerald-100 shadow-sm">
+                        <div className="bg-white rounded-3xl p-5 border border-emerald-100 shadow-sm relative overflow-hidden">
                             <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">Lucro Líquido Real Total</span>
-                            <p className="text-xl font-black text-emerald-700 tracking-tight mt-1">
+                            <p className="text-2xl font-black text-emerald-700 tracking-tight mt-1">
                                 R$ {totalNetProfitReal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </p>
-                            <span className="text-[9px] text-gray-400 font-medium mt-1 block">Margem Média: <strong className="text-emerald-700">{averageMarginReal}%</strong></span>
+                            <span className="text-[10px] text-gray-400 font-medium mt-1 block">Margem Média: <strong className="text-emerald-700">{averageMarginReal}%</strong></span>
                         </div>
 
-                        <div className="bg-white rounded-2xl p-5 border border-amber-100 shadow-sm">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600">Custo de Produtos (CMV)</span>
-                            <p className="text-xl font-black text-amber-700 tracking-tight mt-1">
+                        <div className="bg-white rounded-3xl p-5 border border-amber-100 shadow-sm relative overflow-hidden">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600">Custo dos Produtos (CMV)</span>
+                            <p className="text-2xl font-black text-amber-700 tracking-tight mt-1">
                                 R$ {totalProductCost.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </p>
-                            <span className="text-[9px] text-gray-400 font-medium mt-1 block">Custo de aquisição/fabricação</span>
+                            <span className="text-[10px] text-gray-400 font-medium mt-1 block">Aquisição / Fabricação</span>
                         </div>
 
-                        <div className="bg-white rounded-2xl p-5 border border-blue-100 shadow-sm">
+                        <div className="bg-white rounded-3xl p-5 border border-blue-100 shadow-sm relative overflow-hidden">
                             <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600">Taxas Meios de Pagamento</span>
-                            <p className="text-xl font-black text-blue-700 tracking-tight mt-1">
+                            <p className="text-2xl font-black text-blue-700 tracking-tight mt-1">
                                 R$ {totalPaymentFees.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </p>
-                            <span className="text-[9px] text-gray-400 font-medium mt-1 block">Taxas Cartão ({cardFeePercent}%) & PIX ({pixFeePercent}%)</span>
+                            <span className="text-[10px] text-gray-400 font-medium mt-1 block">Cartão ({cardFeePercent}%) & PIX ({pixFeePercent}%)</span>
                         </div>
 
-                        <div className="bg-white rounded-2xl p-5 border border-purple-100 shadow-sm">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-purple-600">Embalagem + Frete Subsidiado</span>
-                            <p className="text-xl font-black text-purple-700 tracking-tight mt-1">
+                        <div className="bg-white rounded-3xl p-5 border border-purple-100 shadow-sm relative overflow-hidden">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-purple-600">Embalagens & Envio</span>
+                            <p className="text-2xl font-black text-purple-700 tracking-tight mt-1">
                                 R$ {(totalPackagingCosts + totalSubsidyCosts).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </p>
-                            <span className="text-[9px] text-gray-400 font-medium mt-1 block">Custos de envio & caixa</span>
+                            <span className="text-[10px] text-gray-400 font-medium mt-1 block">Caixas & Fretes subsidiados</span>
                         </div>
                     </div>
 
-                    {/* Table of Orders Unit Economics */}
-                    <div className="bg-white rounded-2xl border border-[#EEEEEE] overflow-hidden shadow-sm">
-                        <div className="p-4 border-b border-[#EEEEEE] flex justify-between items-center bg-[#FAF9F5]">
-                            <span className="text-xs font-extrabold uppercase tracking-wider text-gray-700">
-                                Demonstrativo de Custo Real por Pedido ({orderCostAnalysis.length} pedidos)
+                    {/* Table of Orders Unit Economics with Limiter & Pagination */}
+                    <div className="bg-white rounded-3xl border border-[#EEEEEE] overflow-hidden shadow-sm">
+                        <div className="p-4 border-b border-[#EEEEEE] flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-[#FAF9F5]">
+                            <span className="text-xs font-black uppercase tracking-wider text-gray-700">
+                                Demonstrativo por Pedido ({filteredOrdersDRE.length} resultados)
+                            </span>
+                            <span className="text-[10px] text-gray-400 font-bold">
+                                Exibindo página {currentPage} de {totalPages}
                             </span>
                         </div>
 
-                        {orderCostAnalysis.length === 0 ? (
+                        {paginatedItems.length === 0 ? (
                             <div className="p-12 text-center text-gray-400">
-                                <p className="text-xs font-bold text-gray-500">Nenhum pedido registrado ainda na loja.</p>
+                                <p className="text-xs font-bold text-gray-500">Nenhum pedido encontrado nesta busca ou filtro.</p>
                             </div>
                         ) : (
                             <div className="overflow-x-auto divide-y divide-gray-100">
-                                {orderCostAnalysis.map((order, idx) => (
+                                {paginatedItems.map((order, idx) => (
                                     <div key={order.id || idx} className="p-4 hover:bg-gray-50/70 transition-colors space-y-3">
                                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                                             <div>
-                                                <span className="text-xs font-extrabold text-gray-900">Pedido #{order.id.toString().slice(-6)}</span>
-                                                <span className="text-xs text-gray-500 ml-2">• {order.customerName || 'Cliente'}</span>
+                                                <span className="text-xs font-black text-gray-900">Pedido #{order.id.toString().slice(-6)}</span>
+                                                <span className="text-xs text-gray-600 ml-2">• {order.customerName || 'Cliente'}</span>
                                                 <span className="text-[10px] text-gray-400 ml-2">({order.paymentMethod || 'PIX'})</span>
                                             </div>
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                                    Lucro Líquido: R$ {order.netProfit.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} ({order.profitMarginPercent}%)
+                                            <div>
+                                                <span className={`text-[10px] font-extrabold uppercase px-3 py-1 rounded-full border ${
+                                                    order.netProfit >= 0
+                                                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                                        : 'bg-red-50 text-red-600 border-red-200'
+                                                }`}>
+                                                    Lucro Líquido Real: R$ {order.netProfit.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} ({order.profitMarginPercent}%)
                                                 </span>
                                             </div>
                                         </div>
 
                                         {/* Formula Breakdown pills */}
-                                        <div className="grid grid-cols-2 sm:grid-cols-6 gap-2 text-[10px] bg-[#FAF9F5] p-3 rounded-xl border border-gray-100">
+                                        <div className="grid grid-cols-2 sm:grid-cols-6 gap-2 text-[10px] bg-[#FAF9F5] p-3 rounded-2xl border border-gray-100">
                                             <div>
                                                 <span className="text-gray-400 font-medium block">Preço de Venda</span>
-                                                <strong className="text-gray-800 text-xs">R$ {order.salePrice.toFixed(2)}</strong>
+                                                <strong className="text-gray-800 text-xs font-bold">R$ {order.salePrice.toFixed(2)}</strong>
                                             </div>
                                             <div>
                                                 <span className="text-red-400 font-medium block">(-) Custo Produto</span>
-                                                <strong className="text-red-600 text-xs">R$ {order.productCost.toFixed(2)}</strong>
+                                                <strong className="text-red-600 text-xs font-bold">R$ {order.productCost.toFixed(2)}</strong>
                                             </div>
                                             <div>
-                                                <span className="text-red-400 font-medium block">(-) Taxa Meio Pagto</span>
-                                                <strong className="text-red-600 text-xs">R$ {order.paymentFee.toFixed(2)}</strong>
+                                                <span className="text-red-400 font-medium block">(-) Taxa Pagamento</span>
+                                                <strong className="text-red-600 text-xs font-bold">R$ {order.paymentFee.toFixed(2)}</strong>
                                             </div>
                                             <div>
                                                 <span className="text-red-400 font-medium block">(-) Embalagem</span>
-                                                <strong className="text-red-600 text-xs">R$ {order.packagingCost.toFixed(2)}</strong>
+                                                <strong className="text-red-600 text-xs font-bold">R$ {order.packagingCost.toFixed(2)}</strong>
                                             </div>
                                             <div>
                                                 <span className="text-red-400 font-medium block">(-) Frete Subsidiado</span>
-                                                <strong className="text-red-600 text-xs">R$ {order.subsidyCost.toFixed(2)}</strong>
+                                                <strong className="text-red-600 text-xs font-bold">R$ {order.subsidyCost.toFixed(2)}</strong>
                                             </div>
                                             <div>
                                                 <span className="text-emerald-600 font-bold block">(=) Lucro Líquido</span>
@@ -3470,6 +3623,31 @@ export function FinancialSection({
                                 ))}
                             </div>
                         )}
+
+                        {/* PAGINATION FOOTER CONTROL */}
+                        {totalPages > 1 && (
+                            <div className="p-4 border-t border-[#EEEEEE] bg-[#FAF9F5] flex items-center justify-between">
+                                <span className="text-xs font-bold text-gray-500">
+                                    Página {currentPage} de {totalPages} ({targetList.length} itens totais)
+                                </span>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        disabled={currentPage === 1}
+                                        onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
+                                        className="px-3.5 py-1.5 bg-white border border-[#EEEEEE] rounded-xl text-xs font-bold text-gray-700 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
+                                    >
+                                        Anterior
+                                    </button>
+                                    <button
+                                        disabled={currentPage === totalPages}
+                                        onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
+                                        className="px-3.5 py-1.5 bg-[#7A3E4A] text-white rounded-xl text-xs font-bold hover:bg-[#603039] disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-xs"
+                                    >
+                                        Próxima
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}
@@ -3477,124 +3655,80 @@ export function FinancialSection({
             {/* TAB 2: OVERVIEW & GENERAL TRANSACTIONS */}
             {activeTab === 'overview' && (
                 <div className="space-y-6">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div>
-                            <h3 className="text-xs font-black uppercase tracking-wider text-gray-900">Lançamentos Financeiros & Fluxo de Caixa</h3>
-                            <p className="text-xs text-gray-400 font-medium">Registo manual de receitas e despesas operacionais.</p>
-                        </div>
-                        <button
-                            onClick={() => setModalOpen(true)}
-                            className="px-5 py-3 bg-gradient-to-r from-[#7A3E4A] to-[#9A5060] text-white text-xs font-black uppercase tracking-wider rounded-xl hover:shadow-lg hover:shadow-[#7A3E4A]/25 transition-all cursor-pointer flex items-center justify-center gap-2 self-start sm:self-auto"
-                        >
-                            <Icon path="M12 4v16m8-8H4" className="w-4 h-4" />
-                            Novo Lançamento
-                        </button>
-                    </div>
-
+                    {/* KPI Cards Overview */}
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div className="bg-white rounded-2xl p-5 border border-emerald-100 shadow-sm relative overflow-hidden">
+                        <div className="bg-white rounded-3xl p-5 border border-emerald-100 shadow-sm relative overflow-hidden">
                             <div className="flex items-center justify-between mb-2">
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">Receita Total</span>
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">Receitas Totais</span>
                                 <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
                                     <Icon path="M7 11l5-5m0 0l5 5m-5-5v12" className="w-4 h-4" />
                                 </div>
                             </div>
-                            <p className="text-xl font-black text-emerald-700 tracking-tight">
+                            <p className="text-2xl font-black text-emerald-700 tracking-tight">
                                 R$ {totalReceitas.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </p>
-                            <span className="text-[9px] text-gray-400 font-medium mt-1 block">Entradas confirmadas</span>
+                            <span className="text-[9px] text-gray-400 font-medium mt-1 block">Vendas Loja + Receitas Manuais</span>
                         </div>
 
-                        <div className="bg-white rounded-2xl p-5 border border-red-100 shadow-sm relative overflow-hidden">
+                        <div className="bg-white rounded-3xl p-5 border border-red-100 shadow-sm relative overflow-hidden">
                             <div className="flex items-center justify-between mb-2">
                                 <span className="text-[10px] font-bold uppercase tracking-wider text-red-500">Despesas Totais</span>
                                 <div className="w-8 h-8 rounded-xl bg-red-50 text-red-500 flex items-center justify-center">
                                     <Icon path="M17 13l-5 5m0 0l-5-5m5 5V6" className="w-4 h-4" />
                                 </div>
                             </div>
-                            <p className="text-xl font-black text-red-600 tracking-tight">
+                            <p className="text-2xl font-black text-red-600 tracking-tight">
                                 R$ {totalDespesas.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </p>
-                            <span className="text-[9px] text-gray-400 font-medium mt-1 block">Saídas & custos operacionais</span>
+                            <span className="text-[9px] text-gray-400 font-medium mt-1 block">Gastos & Saídas Operacionais</span>
                         </div>
 
-                        <div className="bg-white rounded-2xl p-5 border border-[#EEEEEE] shadow-sm relative overflow-hidden">
+                        <div className="bg-white rounded-3xl p-5 border border-[#EEEEEE] shadow-sm relative overflow-hidden">
                             <div className="flex items-center justify-between mb-2">
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-[#7A3E4A]">Lucro Líquido</span>
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-[#7A3E4A]">Lucro Operacional Líquido</span>
                                 <div className="w-8 h-8 rounded-xl bg-[#7A3E4A]/10 text-[#7A3E4A] flex items-center justify-center">
                                     <Icon path="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" className="w-4 h-4" />
                                 </div>
                             </div>
-                            <p className={`text-xl font-black tracking-tight ${lucroLiquido >= 0 ? 'text-gray-900' : 'text-red-600'}`}>
+                            <p className={`text-2xl font-black tracking-tight ${lucroLiquido >= 0 ? 'text-gray-900' : 'text-red-600'}`}>
                                 R$ {lucroLiquido.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </p>
-                            <span className="text-[9px] text-gray-400 font-medium mt-1 block">Margem: <strong className="text-[#7A3E4A]">{margemLucro}%</strong></span>
+                            <span className="text-[9px] text-gray-400 font-medium mt-1 block">Margem Geral: <strong className="text-[#7A3E4A]">{margemLucro}%</strong></span>
                         </div>
 
-                        <div className="bg-white rounded-2xl p-5 border border-amber-100 shadow-sm relative overflow-hidden">
+                        <div className="bg-white rounded-3xl p-5 border border-amber-100 shadow-sm relative overflow-hidden">
                             <div className="flex items-center justify-between mb-2">
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600">A Pagar / Receber</span>
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600">Pendentes</span>
                                 <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
                                     <Icon path="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" className="w-4 h-4" />
                                 </div>
                             </div>
-                            <p className="text-xl font-black text-amber-700 tracking-tight">
+                            <p className="text-2xl font-black text-amber-700 tracking-tight">
                                 R$ {Math.abs(totalPendentes).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </p>
-                            <span className="text-[9px] text-amber-600 font-medium mt-1 block">Lançamentos pendentes</span>
+                            <span className="text-[9px] text-amber-600 font-medium mt-1 block">Contas a Pagar / Receber</span>
                         </div>
                     </div>
 
-                    <div className="bg-white rounded-2xl p-4 border border-[#EEEEEE] flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
-                            {[
-                                { id: 'todos', label: 'Todos os Lançamentos' },
-                                { id: 'receita', label: '🟢 Receitas' },
-                                { id: 'despesa', label: '🔴 Despesas' },
-                                { id: 'pendente', label: '⏳ Pendentes' },
-                            ].map(f => (
-                                <button
-                                    key={f.id}
-                                    onClick={() => setFilter(f.id)}
-                                    className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 ${filter === f.id
-                                        ? 'bg-[#7A3E4A] text-white shadow-sm'
-                                        : 'bg-[#FAF9F5] text-gray-600 hover:bg-gray-100'
-                                    }`}
-                                >
-                                    {f.label}
-                                </button>
-                            ))}
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider shrink-0">Período:</span>
-                            <select
-                                value={period}
-                                onChange={(e) => setPeriod(e.target.value)}
-                                className="px-3 py-2 bg-[#FAF9F5] border border-[#EEEEEE] rounded-xl text-xs font-bold text-gray-700 outline-none focus:border-[#7A3E4A]"
-                            >
-                                <option value="todos">Todo o Histórico</option>
-                                <option value="mes">Este Mês</option>
-                                <option value="30dias">Últimos 30 Dias</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div className="bg-white rounded-2xl border border-[#EEEEEE] overflow-hidden shadow-sm">
-                        <div className="p-4 border-b border-[#EEEEEE] flex justify-between items-center bg-[#FAF9F5]">
-                            <span className="text-xs font-extrabold uppercase tracking-wider text-gray-700">
-                                Histórico Financeiro ({filteredItems.length} lançamentos)
+                    {/* Table of Transactions with Limiter & Pagination */}
+                    <div className="bg-white rounded-3xl border border-[#EEEEEE] overflow-hidden shadow-sm">
+                        <div className="p-4 border-b border-[#EEEEEE] flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-[#FAF9F5]">
+                            <span className="text-xs font-black uppercase tracking-wider text-gray-700">
+                                Histórico Financeiro ({filteredTransactionsList.length} lançamentos)
+                            </span>
+                            <span className="text-[10px] text-gray-400 font-bold">
+                                Exibindo página {currentPage} de {totalPages}
                             </span>
                         </div>
 
-                        {filteredItems.length === 0 ? (
+                        {paginatedItems.length === 0 ? (
                             <div className="p-12 text-center text-gray-400">
                                 <Icon path="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-                                <p className="text-xs font-bold text-gray-500">Nenhum lançamento registrado neste filtro.</p>
+                                <p className="text-xs font-bold text-gray-500">Nenhum lançamento encontrado para esta busca ou filtro.</p>
                             </div>
                         ) : (
                             <div className="divide-y divide-[#EEEEEE] overflow-x-auto">
-                                {filteredItems.map((item, idx) => (
+                                {paginatedItems.map((item, idx) => (
                                     <div key={item.id || idx} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-gray-50/60 transition-colors">
                                         <div className="flex items-start gap-3 min-w-0">
                                             <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5 text-xs font-bold ${
@@ -3655,6 +3789,31 @@ export function FinancialSection({
                                         </div>
                                     </div>
                                 ))}
+                            </div>
+                        )}
+
+                        {/* PAGINATION FOOTER CONTROL */}
+                        {totalPages > 1 && (
+                            <div className="p-4 border-t border-[#EEEEEE] bg-[#FAF9F5] flex items-center justify-between">
+                                <span className="text-xs font-bold text-gray-500">
+                                    Página {currentPage} de {totalPages} ({targetList.length} lançamentos)
+                                </span>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        disabled={currentPage === 1}
+                                        onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
+                                        className="px-3.5 py-1.5 bg-white border border-[#EEEEEE] rounded-xl text-xs font-bold text-gray-700 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
+                                    >
+                                        Anterior
+                                    </button>
+                                    <button
+                                        disabled={currentPage === totalPages}
+                                        onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
+                                        className="px-3.5 py-1.5 bg-[#7A3E4A] text-white rounded-xl text-xs font-bold hover:bg-[#603039] disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-xs"
+                                    >
+                                        Próxima
+                                    </button>
+                                </div>
                             </div>
                         )}
                     </div>
