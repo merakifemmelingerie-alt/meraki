@@ -3118,7 +3118,9 @@ export function FinancialSection({
 }) {
     const [activeTab, setActiveTab] = useState('custo_real') // 'custo_real' | 'overview'
     const [filter, setFilter] = useState('todos') // 'todos' | 'receita' | 'despesa' | 'pendente'
-    const [period, setPeriod] = useState('todos') // 'todos' | 'mes' | '30dias'
+    const [period, setPeriod] = useState('todos') // 'todos' | 'mes' | '30dias' | 'personalizado'
+    const [startDate, setStartDate] = useState('')
+    const [endDate, setEndDate] = useState('')
     const [searchQuery, setSearchQuery] = useState('')
     const [itemsPerPage, setItemsPerPage] = useState(15)
     const [currentPage, setCurrentPage] = useState(1)
@@ -3180,7 +3182,7 @@ export function FinancialSection({
     // Reset pagination on filter change
     useEffect(() => {
         setCurrentPage(1)
-    }, [searchQuery, filter, period, itemsPerPage, activeTab])
+    }, [searchQuery, filter, period, startDate, endDate, itemsPerPage, activeTab])
 
     // Order DRE Calculation
     const orderCostAnalysis = orders.map(order => {
@@ -3230,6 +3232,17 @@ export function FinancialSection({
             const diffTime = Math.abs(now - orderDate)
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
             if (diffDays > 30) return false
+        } else if (period === 'personalizado') {
+            if (startDate) {
+                const start = new Date(startDate)
+                start.setHours(0, 0, 0, 0)
+                if (orderDate < start) return false
+            }
+            if (endDate) {
+                const end = new Date(endDate)
+                end.setHours(23, 59, 59, 999)
+                if (orderDate > end) return false
+            }
         }
 
         if (searchQuery.trim()) {
@@ -3276,6 +3289,17 @@ export function FinancialSection({
             const diffTime = Math.abs(now - itemDate)
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
             if (diffDays > 30) return false
+        } else if (period === 'personalizado') {
+            if (startDate) {
+                const start = new Date(startDate)
+                start.setHours(0, 0, 0, 0)
+                if (itemDate < start) return false
+            }
+            if (endDate) {
+                const end = new Date(endDate)
+                end.setHours(23, 59, 59, 999)
+                if (itemDate > end) return false
+            }
         }
 
         if (filter === 'receita' && item.type !== 'receita') return false
@@ -3542,7 +3566,37 @@ export function FinancialSection({
                         <option value="todos">Todo o Período</option>
                         <option value="mes">Este Mês</option>
                         <option value="30dias">Últimos 30 dias</option>
+                        <option value="personalizado">📅 Selecionar Datas...</option>
                     </select>
+
+                    {/* Custom Date Inputs */}
+                    {period === 'personalizado' && (
+                        <div className="flex items-center gap-1.5 bg-gray-50 p-1 border border-gray-200 rounded-lg">
+                            <span className="text-[11px] font-medium text-gray-500 pl-1">De:</span>
+                            <input
+                                type="date"
+                                value={startDate}
+                                onChange={(e) => setStartDate(e.target.value)}
+                                className="px-2 py-1 bg-white border border-gray-300 rounded text-xs font-medium outline-none focus:border-[#7A3E4A]"
+                            />
+                            <span className="text-[11px] font-medium text-gray-500">Até:</span>
+                            <input
+                                type="date"
+                                value={endDate}
+                                onChange={(e) => setEndDate(e.target.value)}
+                                className="px-2 py-1 bg-white border border-gray-300 rounded text-xs font-medium outline-none focus:border-[#7A3E4A]"
+                            />
+                            {(startDate || endDate) && (
+                                <button
+                                    onClick={() => { setStartDate(''); setEndDate(''); }}
+                                    className="text-[10px] text-gray-400 hover:text-gray-600 font-bold px-1.5"
+                                    title="Limpar Intervalo"
+                                >
+                                    ✕
+                                </button>
+                            )}
+                        </div>
+                    )}
 
                     {/* Filter for overview tab */}
                     {activeTab === 'overview' && (
