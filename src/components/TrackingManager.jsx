@@ -72,6 +72,12 @@ export function trackPurchase(order) {
 export default function TrackingManager() {
     useEffect(() => {
         try {
+            if (!sessionStorage.getItem('meraki_visited_session')) {
+                sessionStorage.setItem('meraki_visited_session', 'true')
+                const visits = parseInt(localStorage.getItem('meraki_store_visits') || '0') + 1
+                localStorage.setItem('meraki_store_visits', String(visits))
+            }
+
             const config = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
             const pixelId = config.meta_pixel_id
             const gaId = config.ga_tracking_id

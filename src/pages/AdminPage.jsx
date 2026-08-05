@@ -1377,6 +1377,7 @@ export default function AdminPage() {
                     {activeSection === 'customers' && (
                         <CustomersSection
                             customers={customers}
+                            orders={orders}
                             paginatedCustomers={paginatedCustomers}
                             renderPagination={renderPagination}
                             cPage={cPage}
