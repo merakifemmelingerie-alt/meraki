@@ -890,6 +890,8 @@ export default function AdminPage() {
             name: form.pName.value, category: selectedModalCategory,
             subcategory: selectedModalSubcategory || '',
             price: parseFloat(form.pPrice.value), original_price: parseFloat(form.pOriginalPrice.value) || 0,
+            cost_price: parseFloat(form.pCostPrice?.value || '0') || 0,
+            costPrice: parseFloat(form.pCostPrice?.value || '0') || 0,
             stock: finalStock,
             badge: form.pBadge.value, section: selectedModalSection, sizes: selectedModalSizes, image: allImages, description: form.pDescription.value,
             colors: selectedModalColors,
@@ -1261,10 +1263,12 @@ export default function AdminPage() {
                     {activeSection === 'financial' && (
                         <FinancialSection
                             orders={orders}
+                            products={products}
                             transactions={transactions}
                             onCreateTransaction={handleCreateTransaction}
                             onUpdateTransactionStatus={handleUpdateTransactionStatus}
                             onDeleteTransaction={handleDeleteTransaction}
+                            updateStoreConfig={updateStoreConfig}
                         />
                     )}
 
@@ -1841,10 +1845,11 @@ export default function AdminPage() {
                                     </p>
                                 </div>
 
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                    <div><label className={labelCls}>Preço (R$)</label><input type="number" name="pPrice" step="0.01" min="0" required defaultValue={editingProduct?.price || ''} className={inputCls} /></div>
+                                <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                                    <div><label className={labelCls}>Preço Venda (R$)</label><input type="number" name="pPrice" step="0.01" min="0" required defaultValue={editingProduct?.price || ''} className={inputCls} /></div>
                                     <div><label className={labelCls}>Preço Original (R$)</label><input type="number" name="pOriginalPrice" step="0.01" min="0" defaultValue={editingProduct?.original_price || '0'} className={inputCls} /></div>
-                                    <div><label className={labelCls}>Estoque</label><input type="number" name="pStock" min="0" required defaultValue={editingProduct?.stock !== undefined ? editingProduct.stock : 10} className={inputCls} /></div>
+                                    <div><label className={labelCls}>Custo do Produto (R$)</label><input type="number" name="pCostPrice" step="0.01" min="0" defaultValue={editingProduct?.cost_price || editingProduct?.costPrice || '0'} className={inputCls} /></div>
+                                    <div><label className={labelCls}>Estoque Geral</label><input type="number" name="pStock" min="0" required defaultValue={editingProduct?.stock !== undefined ? editingProduct.stock : 10} className={inputCls} /></div>
                                 </div>
 
                                 <div>

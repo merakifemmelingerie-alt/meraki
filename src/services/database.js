@@ -29,7 +29,7 @@ const TABLE_COLUMNS = {
     returns: ['id', 'orderid', 'itemid', 'customeremail', 'type', 'postagecode', 'status', 'created_at'],
     categories: ['id', 'name', 'group', 'subtitle', 'description', 'image', 'created_at'],
     products: [
-        'id', 'name', 'category', 'subcategory', 'price', 'original_price', 'image', 'badge', 'section', 'sizes', 'description', 'stock', 'created_at',
+        'id', 'name', 'category', 'subcategory', 'price', 'original_price', 'cost_price', 'image', 'badge', 'section', 'sizes', 'description', 'stock', 'created_at',
         'colors', 'inpromocombo', 'iscustomizable', 'custompricewith', 'custompricewithout', 'customfeeletter', 'customfeenumber', 'customfeeemoji', 'customizable_emojis',
         'has_kits', 'kit_options', 'color_stock', 'variant_stock', 'color_images'
     ],
@@ -77,7 +77,8 @@ const FIELD_MAPPING = {
     available_badges: ['availableBadges', 'available_badges'],
     installment_text: ['installmentText', 'installment_text'],
     banner_transition: ['bannerTransition', 'banner_transition'],
-    pix_key: ['pixKey', 'pix_key', 'pixkey']
+    pix_key: ['pixKey', 'pix_key', 'pixkey'],
+    cost_price: ['costPrice', 'cost_price', 'costprice']
 }
 
 // Normalize a category value (object or string) to its name string
@@ -1279,4 +1280,47 @@ export async function deleteFinancialTransaction(id) {
     }
 
     return { error: null }
+}
+
+// ─── CUSTO REAL DA VENDA (ORDER REAL COSTS) ──────────────────────────────────
+
+export async function getOrderRealCosts() {
+    const local = JSON.parse(localStorage.getItem('meraki_order_real_costs') || '{}')
+    try {
+        const { data, error } = await supabase
+            .from('order_real_costs')
+            .select('*')
+            
+        if (!error && data) {
+            const map = {}
+            data.forEach(item => { map[item.order_id] = item })
+            localStorage.setItem('meraki_order_real_costs', JSON.stringify(map))
+            return { data: map, error: null }
+        }
+    } catch (e) {
+        console.warn('Erro ao buscar custos reais de pedidos no Supabase:', e)
+    }
+    return { data: local, error: null }
+}
+
+export async function saveOrderRealCost(costData) {
+    const localMap = JSON.parse(localStorage.getItem('meraki_order_real_costs') || '{}')
+    localMap[costData.order_id] = costData
+    localStorage.setItem('meraki_order_real_costs', JSON.stringify(localMap))
+
+    try {
+        const { data, error } = await supabase
+            .from('order_real_costs')
+            .upsert([costData], { onConflict: 'order_id' })
+            .select()
+            .single()
+
+        if (!error && data) {
+            return { data, error: null }
+        }
+    } catch (e) {
+        console.warn('Erro ao salvar custo real do pedido no Supabase:', e)
+    }
+
+    return { data: costData, error: null }
 }
