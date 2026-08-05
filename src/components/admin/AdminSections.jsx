@@ -3125,6 +3125,25 @@ export function FinancialSection({
     const [itemsPerPage, setItemsPerPage] = useState(15)
     const [currentPage, setCurrentPage] = useState(1)
     
+    // Custom popover dropdown states (Zero OS popups)
+    const [periodDropdownOpen, setPeriodDropdownOpen] = useState(false)
+    const [filterDropdownOpen, setFilterDropdownOpen] = useState(false)
+    const [limiterDropdownOpen, setLimiterDropdownOpen] = useState(false)
+
+    const dropdownRef = useRef(null)
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setPeriodDropdownOpen(false)
+                setFilterDropdownOpen(false)
+                setLimiterDropdownOpen(false)
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside)
+        return () => document.removeEventListener('mousedown', handleClickOutside)
+    }, [])
+    
     const [modalOpen, setModalOpen] = useState(false)
     const [showCostConfig, setShowCostConfig] = useState(false)
     const [submitting, setSubmitting] = useState(false)
@@ -3538,7 +3557,7 @@ export function FinancialSection({
             </div>
 
             {/* TOOLBAR & FILTERS */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3 border border-gray-200 rounded-xl shadow-2xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3 border border-gray-200 rounded-xl shadow-2xs" ref={dropdownRef}>
                 {/* Search Bar */}
                 <div className="relative flex-1">
                     <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
@@ -3557,90 +3576,193 @@ export function FinancialSection({
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
-                    {/* Custom Period Selector */}
+                    {/* CUSTOM REACT PERIOD POPOVER DROPDOWN */}
                     <div className="relative">
-                        <select
-                            value={period}
-                            onChange={(e) => setPeriod(e.target.value)}
-                            className="appearance-none pl-3 pr-8 py-2 bg-white border border-gray-300 rounded-lg text-xs font-semibold text-gray-800 outline-none focus:ring-2 focus:ring-[#7A3E4A]/20 focus:border-[#7A3E4A] hover:border-gray-400 transition-all cursor-pointer shadow-2xs"
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setPeriodDropdownOpen(!periodDropdownOpen)
+                                setFilterDropdownOpen(false)
+                                setLimiterDropdownOpen(false)
+                            }}
+                            className="flex items-center gap-2 px-3.5 py-2 bg-white border border-gray-300 hover:border-gray-400 rounded-lg text-xs font-semibold text-gray-800 shadow-2xs transition-all cursor-pointer"
                         >
-                            <option value="todos">Todo o Período</option>
-                            <option value="mes">Este Mês</option>
-                            <option value="30dias">Últimos 30 dias</option>
-                            <option value="personalizado">Período Personalizado...</option>
-                        </select>
-                        <Icon path="M19 9l-7 7-7-7" className="w-3.5 h-3.5 text-gray-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <Icon path="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" className="w-3.5 h-3.5 text-[#7A3E4A]" />
+                            <span>
+                                {period === 'todos' && 'Todo o Período'}
+                                {period === 'mes' && 'Este Mês'}
+                                {period === '30dias' && 'Últimos 30 dias'}
+                                {period === 'personalizado' && 'Período Personalizado'}
+                            </span>
+                            <Icon path="M19 9l-7 7-7-7" className={`w-3.5 h-3.5 text-gray-400 transition-transform ${periodDropdownOpen ? 'rotate-180' : ''}`} />
+                        </button>
+
+                        {periodDropdownOpen && (
+                            <div className="absolute left-0 sm:right-0 sm:left-auto mt-1.5 w-48 bg-white border border-gray-200 rounded-xl shadow-xl z-50 py-1 font-sans animate-fadeIn">
+                                <button
+                                    onClick={() => { setPeriod('todos'); setPeriodDropdownOpen(false); }}
+                                    className={`w-full text-left px-3.5 py-2 text-xs font-semibold hover:bg-gray-50 flex items-center justify-between cursor-pointer ${period === 'todos' ? 'text-[#7A3E4A] bg-rose-50/60 font-bold' : 'text-gray-700'}`}
+                                >
+                                    <span>Todo o Período</span>
+                                    {period === 'todos' && <span className="text-[#7A3E4A] font-bold">✓</span>}
+                                </button>
+                                <button
+                                    onClick={() => { setPeriod('mes'); setPeriodDropdownOpen(false); }}
+                                    className={`w-full text-left px-3.5 py-2 text-xs font-semibold hover:bg-gray-50 flex items-center justify-between cursor-pointer ${period === 'mes' ? 'text-[#7A3E4A] bg-rose-50/60 font-bold' : 'text-gray-700'}`}
+                                >
+                                    <span>Este Mês</span>
+                                    {period === 'mes' && <span className="text-[#7A3E4A] font-bold">✓</span>}
+                                </button>
+                                <button
+                                    onClick={() => { setPeriod('30dias'); setPeriodDropdownOpen(false); }}
+                                    className={`w-full text-left px-3.5 py-2 text-xs font-semibold hover:bg-gray-50 flex items-center justify-between cursor-pointer ${period === '30dias' ? 'text-[#7A3E4A] bg-rose-50/60 font-bold' : 'text-gray-700'}`}
+                                >
+                                    <span>Últimos 30 dias</span>
+                                    {period === '30dias' && <span className="text-[#7A3E4A] font-bold">✓</span>}
+                                </button>
+                                <div className="my-1 border-t border-gray-100" />
+                                <button
+                                    onClick={() => { setPeriod('personalizado'); setPeriodDropdownOpen(false); }}
+                                    className={`w-full text-left px-3.5 py-2 text-xs font-semibold hover:bg-gray-50 flex items-center justify-between cursor-pointer ${period === 'personalizado' ? 'text-[#7A3E4A] bg-rose-50/60 font-bold' : 'text-gray-700'}`}
+                                >
+                                    <span>Período Personalizado...</span>
+                                    {period === 'personalizado' && <span className="text-[#7A3E4A] font-bold">✓</span>}
+                                </button>
+                            </div>
+                        )}
                     </div>
 
-                    {/* Executive Date Range Inputs */}
-                    {period === 'personalizado' && (
-                        <div className="flex items-center gap-2 bg-white p-1.5 border border-gray-300 rounded-lg shadow-2xs animate-fadeIn">
-                            <div className="flex items-center gap-1.5">
-                                <Icon path="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" className="w-3.5 h-3.5 text-[#7A3E4A] ml-1" />
-                                <span className="text-[11px] font-bold text-gray-600">De:</span>
-                                <input
-                                    type="date"
-                                    value={startDate}
-                                    onChange={(e) => setStartDate(e.target.value)}
-                                    className="px-2.5 py-1 bg-gray-50 border border-gray-200 rounded-md text-xs font-semibold text-gray-800 outline-none focus:bg-white focus:border-[#7A3E4A] focus:ring-1 focus:ring-[#7A3E4A] transition-all cursor-pointer"
-                                />
-                            </div>
-                            <span className="text-gray-300 font-bold">•</span>
-                            <div className="flex items-center gap-1.5">
-                                <span className="text-[11px] font-bold text-gray-600">Até:</span>
-                                <input
-                                    type="date"
-                                    value={endDate}
-                                    onChange={(e) => setEndDate(e.target.value)}
-                                    className="px-2.5 py-1 bg-gray-50 border border-gray-200 rounded-md text-xs font-semibold text-gray-800 outline-none focus:bg-white focus:border-[#7A3E4A] focus:ring-1 focus:ring-[#7A3E4A] transition-all cursor-pointer"
-                                />
-                            </div>
-                            {(startDate || endDate) && (
-                                <button
-                                    onClick={() => { setStartDate(''); setEndDate(''); }}
-                                    className="p-1 hover:bg-gray-100 text-gray-400 hover:text-gray-600 rounded transition-colors cursor-pointer"
-                                    title="Limpar Datas"
-                                >
-                                    <Icon path="M6 18L18 6M6 6l12 12" className="w-3.5 h-3.5" />
-                                </button>
+                    {/* CUSTOM REACT FILTER POPOVER DROPDOWN (Overview Tab) */}
+                    {activeTab === 'overview' && (
+                        <div className="relative">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setFilterDropdownOpen(!filterDropdownOpen)
+                                    setPeriodDropdownOpen(false)
+                                    setLimiterDropdownOpen(false)
+                                }}
+                                className="flex items-center gap-2 px-3.5 py-2 bg-white border border-gray-300 hover:border-gray-400 rounded-lg text-xs font-semibold text-gray-800 shadow-2xs transition-all cursor-pointer"
+                            >
+                                <span>
+                                    {filter === 'todos' && 'Todos os tipos'}
+                                    {filter === 'receita' && 'Apenas Receitas'}
+                                    {filter === 'despesa' && 'Apenas Despesas'}
+                                    {filter === 'pendente' && 'Apenas Pendentes'}
+                                </span>
+                                <Icon path="M19 9l-7 7-7-7" className={`w-3.5 h-3.5 text-gray-400 transition-transform ${filterDropdownOpen ? 'rotate-180' : ''}`} />
+                            </button>
+
+                            {filterDropdownOpen && (
+                                <div className="absolute right-0 mt-1.5 w-44 bg-white border border-gray-200 rounded-xl shadow-xl z-50 py-1 font-sans animate-fadeIn">
+                                    <button
+                                        onClick={() => { setFilter('todos'); setFilterDropdownOpen(false); }}
+                                        className={`w-full text-left px-3.5 py-2 text-xs font-semibold hover:bg-gray-50 flex items-center justify-between cursor-pointer ${filter === 'todos' ? 'text-[#7A3E4A] bg-rose-50/60 font-bold' : 'text-gray-700'}`}
+                                    >
+                                        <span>Todos os tipos</span>
+                                        {filter === 'todos' && <span className="text-[#7A3E4A]">✓</span>}
+                                    </button>
+                                    <button
+                                        onClick={() => { setFilter('receita'); setFilterDropdownOpen(false); }}
+                                        className={`w-full text-left px-3.5 py-2 text-xs font-semibold hover:bg-emerald-50 flex items-center justify-between cursor-pointer ${filter === 'receita' ? 'text-emerald-700 bg-emerald-50/60 font-bold' : 'text-gray-700'}`}
+                                    >
+                                        <span>Apenas Receitas</span>
+                                        {filter === 'receita' && <span className="text-emerald-700">✓</span>}
+                                    </button>
+                                    <button
+                                        onClick={() => { setFilter('despesa'); setFilterDropdownOpen(false); }}
+                                        className={`w-full text-left px-3.5 py-2 text-xs font-semibold hover:bg-red-50 flex items-center justify-between cursor-pointer ${filter === 'despesa' ? 'text-red-700 bg-red-50/60 font-bold' : 'text-gray-700'}`}
+                                    >
+                                        <span>Apenas Despesas</span>
+                                        {filter === 'despesa' && <span className="text-red-700">✓</span>}
+                                    </button>
+                                    <button
+                                        onClick={() => { setFilter('pendente'); setFilterDropdownOpen(false); }}
+                                        className={`w-full text-left px-3.5 py-2 text-xs font-semibold hover:bg-amber-50 flex items-center justify-between cursor-pointer ${filter === 'pendente' ? 'text-amber-700 bg-amber-50/60 font-bold' : 'text-gray-700'}`}
+                                    >
+                                        <span>Apenas Pendentes</span>
+                                        {filter === 'pendente' && <span className="text-amber-700">✓</span>}
+                                    </button>
+                                </div>
                             )}
                         </div>
                     )}
 
-                    {/* Filter for overview tab */}
-                    {activeTab === 'overview' && (
-                        <div className="relative">
-                            <select
-                                value={filter}
-                                onChange={(e) => setFilter(e.target.value)}
-                                className="appearance-none pl-3 pr-8 py-2 bg-white border border-gray-300 rounded-lg text-xs font-semibold text-gray-800 outline-none focus:ring-2 focus:ring-[#7A3E4A]/20 focus:border-[#7A3E4A] hover:border-gray-400 transition-all cursor-pointer shadow-2xs"
-                            >
-                                <option value="todos">Todos os tipos</option>
-                                <option value="receita">Apenas Receitas</option>
-                                <option value="despesa">Apenas Despesas</option>
-                                <option value="pendente">Apenas Pendentes</option>
-                            </select>
-                            <Icon path="M19 9l-7 7-7-7" className="w-3.5 h-3.5 text-gray-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                        </div>
-                    )}
-
-                    {/* Limiter dropdown */}
+                    {/* CUSTOM REACT LIMITER POPOVER DROPDOWN */}
                     <div className="relative">
-                        <select
-                            value={itemsPerPage}
-                            onChange={(e) => setItemsPerPage(e.target.value === 'all' ? 'all' : Number(e.target.value))}
-                            className="appearance-none pl-3 pr-8 py-2 bg-white border border-gray-300 rounded-lg text-xs font-semibold text-gray-800 outline-none focus:ring-2 focus:ring-[#7A3E4A]/20 focus:border-[#7A3E4A] hover:border-gray-400 transition-all cursor-pointer shadow-2xs"
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setLimiterDropdownOpen(!limiterDropdownOpen)
+                                setPeriodDropdownOpen(false)
+                                setFilterDropdownOpen(false)
+                            }}
+                            className="flex items-center gap-2 px-3.5 py-2 bg-white border border-gray-300 hover:border-gray-400 rounded-lg text-xs font-semibold text-gray-800 shadow-2xs transition-all cursor-pointer"
                         >
-                            <option value={10}>10 por pág</option>
-                            <option value={15}>15 por pág</option>
-                            <option value={30}>30 por pág</option>
-                            <option value={50}>50 por pág</option>
-                            <option value="all">Exibir Todos</option>
-                        </select>
-                        <Icon path="M19 9l-7 7-7-7" className="w-3.5 h-3.5 text-gray-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <span>{itemsPerPage === 'all' ? 'Exibir Todos' : `${itemsPerPage} por pág`}</span>
+                            <Icon path="M19 9l-7 7-7-7" className={`w-3.5 h-3.5 text-gray-400 transition-transform ${limiterDropdownOpen ? 'rotate-180' : ''}`} />
+                        </button>
+
+                        {limiterDropdownOpen && (
+                            <div className="absolute right-0 mt-1.5 w-36 bg-white border border-gray-200 rounded-xl shadow-xl z-50 py-1 font-sans animate-fadeIn">
+                                {[10, 15, 30, 50, 'all'].map((val) => (
+                                    <button
+                                        key={val}
+                                        onClick={() => { setItemsPerPage(val); setLimiterDropdownOpen(false); }}
+                                        className={`w-full text-left px-3.5 py-2 text-xs font-semibold hover:bg-gray-50 flex items-center justify-between cursor-pointer ${itemsPerPage === val ? 'text-[#7A3E4A] bg-rose-50/60 font-bold' : 'text-gray-700'}`}
+                                    >
+                                        <span>{val === 'all' ? 'Exibir Todos' : `${val} por pág`}</span>
+                                        {itemsPerPage === val && <span className="text-[#7A3E4A]">✓</span>}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
+
+            {/* EXECUTIVE DATE RANGE PICKER BAR */}
+            {period === 'personalizado' && (
+                <div className="bg-white p-3.5 border border-gray-200 rounded-xl shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-fadeIn">
+                    <div className="flex items-center gap-2 text-xs font-semibold text-gray-700">
+                        <Icon path="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" className="w-4 h-4 text-[#7A3E4A]" />
+                        <span>Intervalo Personalizado de Datas:</span>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-3">
+                        <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200">
+                            <span className="text-[11px] font-bold text-gray-500">De:</span>
+                            <input
+                                type="date"
+                                value={startDate}
+                                onChange={(e) => setStartDate(e.target.value)}
+                                className="bg-transparent text-xs font-semibold text-gray-900 outline-none cursor-pointer"
+                            />
+                        </div>
+
+                        <span className="text-gray-300 font-bold hidden sm:inline">•</span>
+
+                        <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200">
+                            <span className="text-[11px] font-bold text-gray-500">Até:</span>
+                            <input
+                                type="date"
+                                value={endDate}
+                                onChange={(e) => setEndDate(e.target.value)}
+                                className="bg-transparent text-xs font-semibold text-gray-900 outline-none cursor-pointer"
+                            />
+                        </div>
+
+                        {(startDate || endDate) && (
+                            <button
+                                onClick={() => { setStartDate(''); setEndDate(''); }}
+                                className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+                            >
+                                Limpar Datas
+                            </button>
+                        )}
+                    </div>
+                </div>
+            )}
 
             {/* TAB 1: UNIT ECONOMICS DATA TABLE (PRO HUMAN LAYOUT) */}
             {activeTab === 'custo_real' && (
