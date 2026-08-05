@@ -3271,33 +3271,43 @@ export function FinancialSection({
     return (
         <div className="space-y-6 font-sans">
             {/* Header section with tabs */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#EEEEEE] pb-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#EEEEEE] pb-4">
                 <div>
-                    <h2 className="text-base font-black text-gray-900 tracking-tight">Módulo de Gestão Financeira</h2>
-                    <p className="text-xs text-gray-400 font-medium mt-0.5">Controle de lucros reais, margem por pedido, receitas e despesas operacionais.</p>
+                    <h2 className="text-base font-black text-gray-900 tracking-tight">Módulo de Gestão Financeira Completo</h2>
+                    <p className="text-xs text-gray-400 font-medium mt-0.5">Controle de receitas, lançamento de gastos/despesas, margem real por pedido e DRE consolidado.</p>
                 </div>
 
-                <div className="flex items-center gap-2 bg-[#FAF9F5] p-1 rounded-2xl border border-[#EEEEEE]">
+                <div className="flex flex-wrap items-center gap-2">
                     <button
-                        onClick={() => setActiveTab('custo_real')}
-                        className={`px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
-                            activeTab === 'custo_real'
-                                ? 'bg-gradient-to-r from-[#7A3E4A] to-[#9A5060] text-white shadow-md'
-                                : 'text-gray-600 hover:text-gray-900'
-                        }`}
+                        onClick={() => setModalOpen(true)}
+                        className="px-4 py-2.5 bg-gradient-to-r from-[#7A3E4A] to-[#9A5060] text-white text-xs font-black uppercase tracking-wider rounded-xl hover:shadow-lg hover:shadow-[#7A3E4A]/25 transition-all cursor-pointer flex items-center justify-center gap-2"
                     >
-                        🎯 Custo Real da Venda
+                        <Icon path="M12 4v16m8-8H4" className="w-4 h-4" />
+                        Lançar Gasto / Receita
                     </button>
-                    <button
-                        onClick={() => setActiveTab('overview')}
-                        className={`px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
-                            activeTab === 'overview'
-                                ? 'bg-gradient-to-r from-[#7A3E4A] to-[#9A5060] text-white shadow-md'
-                                : 'text-gray-600 hover:text-gray-900'
-                        }`}
-                    >
-                        📊 DRE & Lançamentos
-                    </button>
+
+                    <div className="flex items-center gap-1 bg-[#FAF9F5] p-1 rounded-xl border border-[#EEEEEE]">
+                        <button
+                            onClick={() => setActiveTab('custo_real')}
+                            className={`px-3.5 py-2 rounded-lg text-xs font-extrabold transition-all cursor-pointer ${
+                                activeTab === 'custo_real'
+                                    ? 'bg-[#7A3E4A] text-white shadow-sm'
+                                    : 'text-gray-600 hover:text-gray-900'
+                            }`}
+                        >
+                            🎯 Custo Real da Venda
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('overview')}
+                            className={`px-3.5 py-2 rounded-lg text-xs font-extrabold transition-all cursor-pointer ${
+                                activeTab === 'overview'
+                                    ? 'bg-[#7A3E4A] text-white shadow-sm'
+                                    : 'text-gray-600 hover:text-gray-900'
+                            }`}
+                        >
+                            📊 DRE & Lançamentos
+                        </button>
+                    </div>
                 </div>
             </div>
 
