@@ -152,9 +152,9 @@ CREATE POLICY "Permitir acesso aos logs de marketing" ON public.marketing_logs F
 CREATE POLICY "Permitir cadastro em alertas de estoque" ON public.stock_alerts FOR ALL USING (true);
 
 -- Garantir cupons padrão das automações na tabela coupons se existir
-INSERT INTO public.coupons (code, value, type, is_active, min_purchase)
+INSERT INTO public.coupons (code, value, type, minpurchase)
 VALUES 
-    ('CARRINHO5', 5, 'percent', true, 0),
-    ('VOLTEI10', 10, 'percent', true, 0),
-    ('NIVER15', 15, 'percent', true, 0)
-ON CONFLICT (code) DO UPDATE SET is_active = true;
+    ('CARRINHO5', 5, 'percent', 0),
+    ('VOLTEI10', 10, 'percent', 0),
+    ('NIVER15', 15, 'percent', 0)
+ON CONFLICT (code) DO NOTHING;
