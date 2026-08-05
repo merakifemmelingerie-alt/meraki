@@ -341,30 +341,34 @@ export default function MaintenanceScreen({ config }) {
                 }}>
                     <div style={{ maxWidth: 560, width: '100%', textAlign: 'center' }}>
 
-                        {/* Status chip */}
+                        {/* Editorial status — thin rules + italic serif text */}
                         <div className="mnt-a2" style={{
-                            display: 'inline-flex', alignItems: 'center', gap: 8,
-                            padding: '7px 18px',
-                            borderRadius: 999,
-                            border: '1px solid rgba(198,167,106,0.3)',
-                            background: 'rgba(198,167,106,0.07)',
-                            marginBottom: 28,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            gap: 14, marginBottom: 28,
                         }}>
-                            <span style={{
-                                width: 6, height: 6, borderRadius: '50%',
-                                background: '#C6A76A', flexShrink: 0,
-                                display: 'inline-block',
+                            <div style={{
+                                height: 1, flex: 1, maxWidth: 60,
+                                background: 'linear-gradient(90deg, transparent, #C6A76A)',
+                                opacity: 0.5,
                             }} />
                             <span style={{
-                                fontFamily: "'Manrope', sans-serif",
-                                fontWeight: 700, fontSize: 9,
-                                letterSpacing: '0.2em',
-                                textTransform: 'uppercase',
+                                fontFamily: "'Lora', serif",
+                                fontStyle: 'italic',
+                                fontWeight: 400,
+                                fontSize: 13,
                                 color: '#9A7840',
+                                letterSpacing: '0.06em',
+                                whiteSpace: 'nowrap',
                             }}>
-                                Preparando algo especial
+                                Uma nova coleção está chegando
                             </span>
+                            <div style={{
+                                height: 1, flex: 1, maxWidth: 60,
+                                background: 'linear-gradient(90deg, #C6A76A, transparent)',
+                                opacity: 0.5,
+                            }} />
                         </div>
+
 
                         {/* Title */}
                         <h1 className="mnt-a2" style={{
