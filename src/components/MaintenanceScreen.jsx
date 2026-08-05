@@ -234,7 +234,7 @@ export default function MaintenanceScreen({ config }) {
                     background: 'radial-gradient(ellipse 80% 55% at 50% -5%, rgba(198,167,106,0.07) 0%, transparent 70%)',
                 }} />
 
-                {/* ── Flying butterflies — identical to AuthPage ── */}
+                {/* ── Flying butterflies — identical to AuthPage (drift + flutter) ── */}
                 {hasBfly && BUTTERFLIES.map(b => (
                     <img
                         key={b.id}
@@ -250,7 +250,7 @@ export default function MaintenanceScreen({ config }) {
                             pointerEvents: 'none',
                             userSelect: 'none',
                             zIndex: 1,
-                            animation: `${b.drift} ${b.duration}s ${b.delay}s linear infinite`,
+                            animation: `${b.drift} ${b.duration}s ${b.delay}s linear infinite, butterfly-flutter ${0.3 + (b.id % 4) * 0.08}s ease-in-out infinite`,
                             ...(b.left   ? { left:   b.left   } : { right: b.right }),
                             ...(b.bottom ? { bottom: b.bottom } : { top:   b.top   }),
                         }}
@@ -264,14 +264,14 @@ export default function MaintenanceScreen({ config }) {
                     position: 'relative',
                     zIndex: 10,
                 }}>
-                    {/* Logo — identical to Header.jsx */}
-                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 14 }}>
+                    {/* Logo — borboleta centralizada acima do texto */}
+                    <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
                         {hasBfly && (
                             <img
                                 src={butterflySrc}
                                 alt="Borboleta Meraki"
-                                className="mnt-hero-bfly"
-                                style={{ width: 50, height: 50, objectFit: 'contain' }}
+                                className="animate-butterfly-flight"
+                                style={{ width: 54, height: 54, objectFit: 'contain' }}
                             />
                         )}
                         <div style={{
@@ -327,23 +327,23 @@ export default function MaintenanceScreen({ config }) {
                             display: 'inline-flex', alignItems: 'center', gap: 8,
                             padding: '7px 18px',
                             borderRadius: 999,
-                            border: '1px solid rgba(122,62,74,0.16)',
-                            background: 'rgba(122,62,74,0.04)',
+                            border: '1px solid rgba(198,167,106,0.3)',
+                            background: 'rgba(198,167,106,0.07)',
                             marginBottom: 28,
                         }}>
                             <span style={{
                                 width: 6, height: 6, borderRadius: '50%',
-                                background: '#7A3E4A', flexShrink: 0,
+                                background: '#C6A76A', flexShrink: 0,
                                 display: 'inline-block',
                             }} />
                             <span style={{
                                 fontFamily: "'Manrope', sans-serif",
-                                fontWeight: 800, fontSize: 9,
-                                letterSpacing: '0.22em',
+                                fontWeight: 700, fontSize: 9,
+                                letterSpacing: '0.2em',
                                 textTransform: 'uppercase',
-                                color: '#7A3E4A',
+                                color: '#9A7840',
                             }}>
-                                Site em manutenção
+                                Preparando algo especial
                             </span>
                         </div>
 
