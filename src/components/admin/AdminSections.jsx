@@ -76,40 +76,60 @@ export function ProductsSection({
                             <table className="w-full text-left">
                                 <thead>
                                     <tr className="border-b border-[#F5F5F5]">
-                                        {['Produto', 'Categoria', 'Preço', 'Estoque', 'Seção', ''].map((h, i) => (
-                                            <th key={i} className={`px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest ${i === 5 ? 'text-right' : ''}`}>{h}</th>
+                                        {['Produto', 'Categoria', 'Preço Venda', 'Custo (CMV)', 'Margem Bruta', 'Estoque', 'Seção', ''].map((h, i) => (
+                                            <th key={i} className={`px-5 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest ${i === 7 ? 'text-right' : ''}`}>{h}</th>
                                         ))}
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-[#F8F8F8]">
-                                    {paginatedProducts.filter(p => p && p.name).map(p => (
-                                        <tr key={p.id} className="hover:bg-[#FAF9F5] transition-colors group">
-                                            <td className="px-6 py-3">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-10 h-14 bg-gray-50 rounded-xl overflow-hidden border border-[#EEEEEE] shrink-0">
-                                                        <img src={getProductImage(p)} alt="" className="w-full h-full object-cover" />
+                                    {paginatedProducts.filter(p => p && p.name).map(p => {
+                                        const price = Number(p.price) || 0
+                                        const cost = Number(p.cost_price || p.costPrice) || 0
+                                        const margin = price > 0 ? (((price - cost) / price) * 100).toFixed(1) : 0
+
+                                        return (
+                                            <tr key={p.id} className="hover:bg-[#FAF9F5] transition-colors group">
+                                                <td className="px-5 py-3">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-10 h-14 bg-gray-50 rounded-xl overflow-hidden border border-[#EEEEEE] shrink-0">
+                                                            <img src={getProductImage(p)} alt="" className="w-full h-full object-cover" />
+                                                        </div>
+                                                        <span className="text-sm font-bold text-gray-900">{p.name}</span>
                                                     </div>
-                                                    <span className="text-sm font-bold text-gray-900">{p.name}</span>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-3 text-xs text-gray-500 font-semibold">{typeof p.category === 'object' && p.category !== null ? p.category.name : p.category}</td>
-                                            <td className="px-6 py-3">
-                                                <span className="text-sm font-black text-[#7A3E4A]">R$ {p.price?.toFixed(2)}</span>
-                                            </td>
-                                            <td className="px-6 py-3 text-xs text-gray-500 font-bold">{p.stock !== undefined ? p.stock : 10} un</td>
-                                            <td className="px-6 py-3">
-                                                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#7A3E4A]/10 text-[#7A3E4A]">
-                                                    {sectionLabel(p.section)}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-3 text-right">
-                                                <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <button onClick={() => setModal({ open: true, editing: p.id })} className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[#7A3E4A] hover:bg-[#7A3E4A]/10 rounded-lg transition-colors cursor-pointer">Editar</button>
-                                                    <button onClick={() => setDeleteModal({ open: true, product: p })} className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer">Excluir</button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
+                                                </td>
+                                                <td className="px-5 py-3 text-xs text-gray-500 font-semibold">{typeof p.category === 'object' && p.category !== null ? p.category.name : p.category}</td>
+                                                <td className="px-5 py-3">
+                                                    <span className="text-sm font-black text-[#7A3E4A]">R$ {price.toFixed(2)}</span>
+                                                </td>
+                                                <td className="px-5 py-3">
+                                                    {cost > 0 ? (
+                                                        <span className="text-xs font-bold text-gray-700">R$ {cost.toFixed(2)}</span>
+                                                    ) : (
+                                                        <span className="text-[11px] text-gray-400 font-medium italic">Estimado (35%)</span>
+                                                    )}
+                                                </td>
+                                                <td className="px-5 py-3">
+                                                    <span className={`inline-block px-2 py-0.5 rounded text-[11px] font-bold ${
+                                                        cost > 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-600'
+                                                    }`}>
+                                                        {margin}%
+                                                    </span>
+                                                </td>
+                                                <td className="px-5 py-3 text-xs text-gray-500 font-bold">{p.stock !== undefined ? p.stock : 10} un</td>
+                                                <td className="px-5 py-3">
+                                                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#7A3E4A]/10 text-[#7A3E4A]">
+                                                        {sectionLabel(p.section)}
+                                                    </span>
+                                                </td>
+                                                <td className="px-5 py-3 text-right">
+                                                    <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <button onClick={() => setModal({ open: true, editing: p.id })} className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[#7A3E4A] hover:bg-[#7A3E4A]/10 rounded-lg transition-colors cursor-pointer">Editar</button>
+                                                        <button onClick={() => setDeleteModal({ open: true, product: p })} className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer">Excluir</button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        )
+                                    })}
                                 </tbody>
                             </table>
                         </div>
@@ -117,22 +137,33 @@ export function ProductsSection({
 
                     {/* Mobile Cards */}
                     <div className="md:hidden space-y-3">
-                        {paginatedProducts.filter(p => p && p.name).map(p => (
-                            <div key={p.id} className="bg-white rounded-2xl border border-[#EEEEEE] p-4 flex items-center gap-4">
-                                <div className="w-14 h-18 bg-gray-50 rounded-xl overflow-hidden border border-[#EEEEEE] shrink-0">
-                                    <img src={getProductImage(p)} alt="" className="w-full h-full object-cover" />
+                        {paginatedProducts.filter(p => p && p.name).map(p => {
+                            const price = Number(p.price) || 0
+                            const cost = Number(p.cost_price || p.costPrice) || 0
+                            const margin = price > 0 ? (((price - cost) / price) * 100).toFixed(1) : 0
+
+                            return (
+                                <div key={p.id} className="bg-white rounded-2xl border border-[#EEEEEE] p-4 flex items-center gap-4">
+                                    <div className="w-14 h-18 bg-gray-50 rounded-xl overflow-hidden border border-[#EEEEEE] shrink-0">
+                                        <img src={getProductImage(p)} alt="" className="w-full h-full object-cover" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-bold text-gray-900 truncate">{p.name}</p>
+                                        <p className="text-[10px] text-gray-400 font-medium mb-1">
+                                            {typeof p.category === 'object' && p.category !== null ? p.category.name : p.category} • Est: {p.stock !== undefined ? p.stock : 10} un
+                                        </p>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-base font-black text-[#7A3E4A]">R$ {price.toFixed(2)}</span>
+                                            {cost > 0 && <span className="text-xs text-gray-500">Custo: R$ {cost.toFixed(2)} ({margin}%)</span>}
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col gap-2 shrink-0">
+                                        <button onClick={() => setModal({ open: true, editing: p.id })} className="px-3 py-1.5 bg-[#7A3E4A]/10 text-[#7A3E4A] rounded-lg text-[10px] font-bold uppercase tracking-wider">Editar</button>
+                                        <button onClick={() => setDeleteModal({ open: true, product: p })} className="px-3 py-1.5 bg-red-50 text-red-500 rounded-lg text-[10px] font-bold uppercase tracking-wider">Excluir</button>
+                                    </div>
                                 </div>
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-bold text-gray-900 truncate">{p.name}</p>
-                                    <p className="text-[10px] text-gray-400 font-medium mb-1">{typeof p.category === 'object' && p.category !== null ? p.category.name : p.category} • Est: {p.stock !== undefined ? p.stock : 10} un • {sectionLabel(p.section)}</p>
-                                    <p className="text-base font-black text-[#7A3E4A]">R$ {p.price?.toFixed(2)}</p>
-                                </div>
-                                <div className="flex flex-col gap-2 shrink-0">
-                                    <button onClick={() => setModal({ open: true, editing: p.id })} className="px-3 py-1.5 text-[10px] font-bold bg-[#7A3E4A]/10 text-[#7A3E4A] rounded-lg cursor-pointer">Editar</button>
-                                    <button onClick={() => setDeleteModal({ open: true, product: p })} className="px-3 py-1.5 text-[10px] font-bold bg-red-50 text-red-500 rounded-lg cursor-pointer">Excluir</button>
-                                </div>
-                            </div>
-                        ))}
+                            )
+                        })}
                     </div>
 
                     {/* Pagination Controls */}
