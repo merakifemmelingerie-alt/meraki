@@ -14,8 +14,10 @@ import SearchOverlay from './components/SearchOverlay.jsx'
 import TrackingManager from './components/TrackingManager.jsx'
 import { isInitialSyncComplete } from './services/database.js'
 import { ErrorBoundary } from './components/ErrorBoundary.jsx'
+import { supabase } from './services/supabase.js'
 
 import MaintenanceScreen from './components/MaintenanceScreen.jsx'
+
 
 function ScrollToTopReset() {
     const { pathname } = useLocation()
@@ -113,6 +115,23 @@ function AppContent() {
         } catch { return {} }
     })
 
+    // Fetch from Supabase on mount so ALL users see the live maintenance_mode state
+    useEffect(() => {
+        supabase
+            .from('store_config')
+            .select('*')
+            .eq('id', 'default')
+            .maybeSingle()
+            .then(({ data }) => {
+                if (data) {
+                    const merged = { ...storeConfig, ...data }
+                    localStorage.setItem('meraki_store_config', JSON.stringify(merged))
+                    setStoreConfig(merged)
+                }
+            })
+            .catch(() => {}) // silently fall back to localStorage on network error
+    }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
     useEffect(() => {
         const updateConfig = () => {
             try {
@@ -134,6 +153,7 @@ function AppContent() {
     if (isMaintenance && !isAdminRoute) {
         return <MaintenanceScreen config={storeConfig} />
     }
+
 
     return (
         <>
