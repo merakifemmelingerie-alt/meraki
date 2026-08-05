@@ -1851,12 +1851,81 @@ export default function AdminPage() {
                                     </p>
                                 </div>
 
-                                <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                                    <div><label className={labelCls}>Preço Venda (R$)</label><input type="number" name="pPrice" step="0.01" min="0" required defaultValue={editingProduct?.price || ''} className={inputCls} /></div>
-                                    <div><label className={labelCls}>Preço Original (R$)</label><input type="number" name="pOriginalPrice" step="0.01" min="0" defaultValue={editingProduct?.original_price || '0'} className={inputCls} /></div>
-                                    <div><label className={labelCls}>Custo do Produto (R$)</label><input type="number" name="pCostPrice" step="0.01" min="0" defaultValue={editingProduct?.cost_price || editingProduct?.costPrice || '0'} className={inputCls} /></div>
-                                    <div><label className={labelCls}>Estoque Geral</label><input type="number" name="pStock" min="0" required defaultValue={editingProduct?.stock !== undefined ? editingProduct.stock : 10} className={inputCls} /></div>
+                                <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
+                                    <div>
+                                        <label className={labelCls}>Preço Venda (R$)</label>
+                                        <input
+                                            type="number"
+                                            name="pPrice"
+                                            step="0.01"
+                                            min="0"
+                                            required
+                                            value={modalPrice}
+                                            onChange={(e) => setModalPrice(e.target.value)}
+                                            className={inputCls}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className={labelCls}>Preço Original (R$)</label>
+                                        <input
+                                            type="number"
+                                            name="pOriginalPrice"
+                                            step="0.01"
+                                            min="0"
+                                            defaultValue={editingProduct?.original_price || '0'}
+                                            className={inputCls}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className={labelCls}>Preço Custo (R$)</label>
+                                        <input
+                                            type="number"
+                                            name="pCostPrice"
+                                            step="0.01"
+                                            min="0"
+                                            value={modalCostPrice}
+                                            onChange={(e) => setModalCostPrice(e.target.value)}
+                                            placeholder="Ex: 35.00"
+                                            className={inputCls}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className={labelCls}>Estoque Geral</label>
+                                        <input
+                                            type="number"
+                                            name="pStock"
+                                            min="0"
+                                            required
+                                            defaultValue={editingProduct?.stock !== undefined ? editingProduct.stock : 10}
+                                            className={inputCls}
+                                        />
+                                    </div>
                                 </div>
+
+                                {/* SIMULADOR DE LUCRO DO PRODUTO */}
+                                {(() => {
+                                    const p = parseFloat(modalPrice) || 0
+                                    const c = parseFloat(modalCostPrice) || 0
+                                    if (p > 0) {
+                                        const profit = p - c
+                                        const margin = ((profit / p) * 100).toFixed(1)
+                                        const markup = c > 0 ? (p / c).toFixed(2) : 'N/A'
+                                        return (
+                                            <div className="bg-emerald-50/80 p-3.5 rounded-xl border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs font-semibold text-emerald-900 mt-2">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse" />
+                                                    <span>Simulador de Lucro Unitário:</span>
+                                                </div>
+                                                <div className="flex items-center gap-4 flex-wrap text-emerald-800">
+                                                    <span>Lucro Bruto: <strong className="font-extrabold text-emerald-950">R$ {profit.toFixed(2)}</strong></span>
+                                                    <span>Margem Bruta: <strong className="font-extrabold text-emerald-950">{margin}%</strong></span>
+                                                    {c > 0 && <span>Markup: <strong className="font-extrabold text-emerald-950">{markup}x</strong></span>}
+                                                </div>
+                                            </div>
+                                        )
+                                    }
+                                    return null
+                                })()}
 
                                 <div>
                                     <label className={labelCls}>Tag / Etiqueta do Produto</label>
