@@ -4349,6 +4349,20 @@ export function AutomationsSection() {
     const inputCls = "w-full px-3 py-2.5 bg-[#FAF9F5] border border-[#EEEEEE] rounded-xl text-xs text-gray-800 outline-none focus:border-[#7A3E4A] focus:ring-2 focus:ring-[#7A3E4A]/10 transition-all font-medium"
     const labelCls = "block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1"
 
+    const iconPaths = {
+        zap: "M13 10V3L4 14h7v7l9-11h-7z",
+        cart: "M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z",
+        phone: "M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z",
+        mail: "M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z",
+        heart: "M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z",
+        megaphone: "M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z",
+        history: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2",
+        clock: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z",
+        gift: "M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V6a2 2 0 10-2 2h2zm0 13-4-4m4 4 4-4",
+        box: "M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4",
+        sparkles: "M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
+    }
+
     if (loading || !config) {
         return (
             <div className="p-8 text-center bg-white rounded-2xl border border-[#EEEEEE]">
@@ -4363,7 +4377,10 @@ export function AutomationsSection() {
             <div className="bg-white p-6 rounded-2xl border border-[#EEEEEE] shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div>
                     <h2 className="text-lg font-black text-gray-900 flex items-center gap-2">
-                        <span>⚡</span> Automação de Marketing & Relacionamento
+                        <span className="w-7 h-7 rounded-lg bg-[#7A3E4A]/10 flex items-center justify-center text-[#7A3E4A]">
+                            <Icon path={iconPaths.zap} className="w-4 h-4" />
+                        </span>
+                        Automação de Marketing & Relacionamento
                     </h2>
                     <p className="text-xs text-gray-500 mt-1">
                         Gerencie disparos automáticos para WhatsApp, E-mail, Carrinho Abandonado, Inativos e Aniversários.
@@ -4398,14 +4415,14 @@ export function AutomationsSection() {
                 </div>
             )}
 
-            {/* Sub Navegação por Abas */}
+            {/* Sub Navegação por Abas Limpas */}
             <div className="flex items-center gap-2 border-b border-[#EEEEEE] overflow-x-auto pb-1">
                 {[
-                    { id: 'carrinho', label: '🛒 Carrinho Abandonado', count: carts.length },
-                    { id: 'pedidos', label: '📱 WhatsApp & Pedidos' },
-                    { id: 'relacionamento', label: '💖 Inativos & Aniversário' },
-                    { id: 'posvenda', label: '📢 Lançamentos & Pós-Venda' },
-                    { id: 'logs', label: '📋 Histórico de Disparos', count: logs.length }
+                    { id: 'carrinho', label: 'Carrinho Abandonado', iconPath: iconPaths.cart, count: carts.length },
+                    { id: 'pedidos', label: 'WhatsApp & Pedidos', iconPath: iconPaths.phone },
+                    { id: 'relacionamento', label: 'Inativos & Aniversário', iconPath: iconPaths.heart },
+                    { id: 'posvenda', label: 'Lançamentos & Pós-Venda', iconPath: iconPaths.megaphone },
+                    { id: 'logs', label: 'Histórico de Disparos', iconPath: iconPaths.history, count: logs.length }
                 ].map(tab => (
                     <button
                         key={tab.id}
@@ -4416,6 +4433,7 @@ export function AutomationsSection() {
                                 : 'border-transparent text-gray-500 hover:text-gray-800'
                         }`}
                     >
+                        <Icon path={tab.iconPath} className="w-4 h-4 opacity-75" />
                         {tab.label}
                         {tab.count !== undefined && (
                             <span className="px-2 py-0.5 rounded-full text-[10px] bg-gray-100 font-extrabold text-gray-600">
@@ -4434,7 +4452,10 @@ export function AutomationsSection() {
                     <div className="bg-white p-6 rounded-2xl border border-[#EEEEEE] space-y-6">
                         <div className="flex items-center justify-between border-b border-[#EEEEEE] pb-4">
                             <div>
-                                <h3 className="text-sm font-bold text-gray-900">Automação de Recuperação de Carrinho</h3>
+                                <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                                    <Icon path={iconPaths.cart} className="w-4 h-4 text-[#7A3E4A]" />
+                                    Automação de Recuperação de Carrinho
+                                </h3>
                                 <p className="text-xs text-gray-400">Notifique clientes automaticamente em 30 min, 24 horas e 48 horas com cupons.</p>
                             </div>
                             <label className="flex items-center gap-2 cursor-pointer">
@@ -4451,7 +4472,10 @@ export function AutomationsSection() {
                         {/* Etapa 1: 30 minutos */}
                         <div className="p-4 bg-[#FAF9F5] rounded-xl border border-[#EEEEEE] space-y-3">
                             <div className="flex items-center justify-between">
-                                <span className="text-xs font-black text-[#7A3E4A] uppercase tracking-wider">⏱️ 1ª Etapa: Após 30 minutos</span>
+                                <span className="text-xs font-black text-[#7A3E4A] uppercase tracking-wider flex items-center gap-1.5">
+                                    <Icon path={iconPaths.clock} className="w-3.5 h-3.5" />
+                                    1ª Etapa: Após 30 minutos
+                                </span>
                                 <label className="flex items-center gap-1.5 cursor-pointer">
                                     <input
                                         type="checkbox"
@@ -4476,7 +4500,10 @@ export function AutomationsSection() {
                         {/* Etapa 2: 24 horas */}
                         <div className="p-4 bg-[#FAF9F5] rounded-xl border border-[#EEEEEE] space-y-3">
                             <div className="flex items-center justify-between">
-                                <span className="text-xs font-black text-[#7A3E4A] uppercase tracking-wider">⏱️ 2ª Etapa: Após 24 horas</span>
+                                <span className="text-xs font-black text-[#7A3E4A] uppercase tracking-wider flex items-center gap-1.5">
+                                    <Icon path={iconPaths.clock} className="w-3.5 h-3.5" />
+                                    2ª Etapa: Após 24 horas
+                                </span>
                                 <label className="flex items-center gap-1.5 cursor-pointer">
                                     <input
                                         type="checkbox"
@@ -4501,7 +4528,10 @@ export function AutomationsSection() {
                         {/* Etapa 3: 48 horas (Com Cupom) */}
                         <div className="p-4 bg-[#FAF9F5] rounded-xl border border-[#EEEEEE] space-y-3">
                             <div className="flex items-center justify-between">
-                                <span className="text-xs font-black text-[#7A3E4A] uppercase tracking-wider">🎁 3ª Etapa: Após 48 horas (Com Cupom 5% OFF)</span>
+                                <span className="text-xs font-black text-[#7A3E4A] uppercase tracking-wider flex items-center gap-1.5">
+                                    <Icon path={iconPaths.gift} className="w-3.5 h-3.5" />
+                                    3ª Etapa: Após 48 horas (Com Cupom 5% OFF)
+                                </span>
                                 <label className="flex items-center gap-1.5 cursor-pointer">
                                     <input
                                         type="checkbox"
@@ -4574,7 +4604,7 @@ export function AutomationsSection() {
                                                 <td className="py-3 text-gray-600">{Array.isArray(c.items) ? c.items.length : 0} produto(s)</td>
                                                 <td className="py-3 font-bold text-[#7A3E4A]">R$ {(Number(c.subtotal) || 0).toFixed(2)}</td>
                                                 <td className="py-3">
-                                                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
+                                                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 text-gray-700 border border-gray-200">
                                                         Estágio {c.stage || 0}/3
                                                     </span>
                                                 </td>
@@ -4583,7 +4613,7 @@ export function AutomationsSection() {
                                                         c.status === 'recovered' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
                                                         c.status === 'abandoned' ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-gray-50 text-gray-600 border-gray-200'
                                                     }`}>
-                                                        {c.status === 'recovered' ? 'Recuperado 🛒' : c.status === 'abandoned' ? 'Abandonado ⚠️' : 'Ativo 🛍️'}
+                                                        {c.status === 'recovered' ? 'Recuperado' : c.status === 'abandoned' ? 'Abandonado' : 'Ativo'}
                                                     </span>
                                                 </td>
                                                 <td className="py-3 text-gray-400 text-[10px]">
@@ -4603,7 +4633,10 @@ export function AutomationsSection() {
             {subTab === 'pedidos' && (
                 <div className="bg-white p-6 rounded-2xl border border-[#EEEEEE] space-y-6">
                     <div>
-                        <h3 className="text-sm font-bold text-gray-900">Integração WhatsApp & E-mail de Status de Pedido</h3>
+                        <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                            <Icon path={iconPaths.phone} className="w-4 h-4 text-[#7A3E4A]" />
+                            Integração WhatsApp & E-mail de Status de Pedido
+                        </h3>
                         <p className="text-xs text-gray-400">Configure suas APIs de envio e ative notificações instantâneas a cada alteração de pedido.</p>
                     </div>
 
@@ -4611,7 +4644,10 @@ export function AutomationsSection() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-b border-[#EEEEEE] pb-6">
                         <div className="p-4 bg-[#FAF9F5] rounded-xl border border-[#EEEEEE] space-y-3">
                             <div className="flex items-center justify-between">
-                                <span className="text-xs font-bold text-gray-800">📱 WhatsApp Provider (Z-API / Evolution / Webhook)</span>
+                                <span className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
+                                    <Icon path={iconPaths.phone} className="w-3.5 h-3.5 text-gray-500" />
+                                    WhatsApp Provider (Z-API / Evolution / Webhook)
+                                </span>
                                 <label className="flex items-center gap-1.5 cursor-pointer">
                                     <input
                                         type="checkbox"
@@ -4646,7 +4682,10 @@ export function AutomationsSection() {
 
                         <div className="p-4 bg-[#FAF9F5] rounded-xl border border-[#EEEEEE] space-y-3">
                             <div className="flex items-center justify-between">
-                                <span className="text-xs font-bold text-gray-800">📧 E-mail Provider (Resend / SendGrid / Webhook)</span>
+                                <span className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
+                                    <Icon path={iconPaths.mail} className="w-3.5 h-3.5 text-gray-500" />
+                                    E-mail Provider (Resend / SendGrid / Webhook)
+                                </span>
                                 <label className="flex items-center gap-1.5 cursor-pointer">
                                     <input
                                         type="checkbox"
@@ -4686,7 +4725,7 @@ export function AutomationsSection() {
 
                         <div className="p-4 bg-[#FAF9F5] rounded-xl border border-[#EEEEEE] space-y-2">
                             <div className="flex items-center justify-between">
-                                <span className="text-xs font-bold text-gray-800">🛍️ Pedido Confirmado</span>
+                                <span className="text-xs font-bold text-gray-800">Pedido Confirmado</span>
                                 <label className="flex items-center gap-1 cursor-pointer">
                                     <input type="checkbox" checked={config.order_confirmed_active} onChange={e => setConfig({ ...config, order_confirmed_active: e.target.checked })} className="w-3.5 h-3.5 accent-[#7A3E4A]" />
                                     <span className="text-[11px] font-bold">Ativo</span>
@@ -4697,7 +4736,7 @@ export function AutomationsSection() {
 
                         <div className="p-4 bg-[#FAF9F5] rounded-xl border border-[#EEEEEE] space-y-2">
                             <div className="flex items-center justify-between">
-                                <span className="text-xs font-bold text-gray-800">🎉 Pagamento Aprovado</span>
+                                <span className="text-xs font-bold text-gray-800">Pagamento Aprovado</span>
                                 <label className="flex items-center gap-1 cursor-pointer">
                                     <input type="checkbox" checked={config.payment_approved_active} onChange={e => setConfig({ ...config, payment_approved_active: e.target.checked })} className="w-3.5 h-3.5 accent-[#7A3E4A]" />
                                     <span className="text-[11px] font-bold">Ativo</span>
@@ -4708,7 +4747,7 @@ export function AutomationsSection() {
 
                         <div className="p-4 bg-[#FAF9F5] rounded-xl border border-[#EEEEEE] space-y-2">
                             <div className="flex items-center justify-between">
-                                <span className="text-xs font-bold text-gray-800">⏳ Pagamento Pendente (Lembrete)</span>
+                                <span className="text-xs font-bold text-gray-800">Pagamento Pendente (Lembrete)</span>
                                 <label className="flex items-center gap-1 cursor-pointer">
                                     <input type="checkbox" checked={config.payment_pending_active} onChange={e => setConfig({ ...config, payment_pending_active: e.target.checked })} className="w-3.5 h-3.5 accent-[#7A3E4A]" />
                                     <span className="text-[11px] font-bold">Ativo</span>
@@ -4719,7 +4758,7 @@ export function AutomationsSection() {
 
                         <div className="p-4 bg-[#FAF9F5] rounded-xl border border-[#EEEEEE] space-y-2">
                             <div className="flex items-center justify-between">
-                                <span className="text-xs font-bold text-gray-800">📦 Pedido Enviado (Com Rastreio)</span>
+                                <span className="text-xs font-bold text-gray-800">Pedido Enviado (Com Rastreio)</span>
                                 <label className="flex items-center gap-1 cursor-pointer">
                                     <input type="checkbox" checked={config.order_shipped_active} onChange={e => setConfig({ ...config, order_shipped_active: e.target.checked })} className="w-3.5 h-3.5 accent-[#7A3E4A]" />
                                     <span className="text-[11px] font-bold">Ativo</span>
@@ -4730,7 +4769,7 @@ export function AutomationsSection() {
 
                         <div className="p-4 bg-[#FAF9F5] rounded-xl border border-[#EEEEEE] space-y-2">
                             <div className="flex items-center justify-between">
-                                <span className="text-xs font-bold text-gray-800">💖 Pedido Entregue</span>
+                                <span className="text-xs font-bold text-gray-800">Pedido Entregue</span>
                                 <label className="flex items-center gap-1 cursor-pointer">
                                     <input type="checkbox" checked={config.order_delivered_active} onChange={e => setConfig({ ...config, order_delivered_active: e.target.checked })} className="w-3.5 h-3.5 accent-[#7A3E4A]" />
                                     <span className="text-[11px] font-bold">Ativo</span>
@@ -4746,14 +4785,17 @@ export function AutomationsSection() {
             {subTab === 'relacionamento' && (
                 <div className="bg-white p-6 rounded-2xl border border-[#EEEEEE] space-y-6">
                     <div>
-                        <h3 className="text-sm font-bold text-gray-900">Relacionamento com Clientes</h3>
+                        <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                            <Icon path={iconPaths.heart} className="w-4 h-4 text-[#7A3E4A]" />
+                            Relacionamento com Clientes
+                        </h3>
                         <p className="text-xs text-gray-400">Reengaje clientes sem compras há 90 dias e envie mimos no dia do aniversário.</p>
                     </div>
 
                     {/* 90 Dias Inativos */}
                     <div className="p-4 bg-[#FAF9F5] rounded-xl border border-[#EEEEEE] space-y-4">
                         <div className="flex items-center justify-between">
-                            <span className="text-xs font-black text-[#7A3E4A] uppercase tracking-wider">❤️ Clientes Inativos (90 Dias Sem Comprar)</span>
+                            <span className="text-xs font-black text-[#7A3E4A] uppercase tracking-wider">Clientes Inativos (90 Dias Sem Comprar)</span>
                             <label className="flex items-center gap-1.5 cursor-pointer">
                                 <input
                                     type="checkbox"
@@ -4798,7 +4840,10 @@ export function AutomationsSection() {
                     {/* Aniversariantes */}
                     <div className="p-4 bg-[#FAF9F5] rounded-xl border border-[#EEEEEE] space-y-4">
                         <div className="flex items-center justify-between">
-                            <span className="text-xs font-black text-[#7A3E4A] uppercase tracking-wider">🎉 Mensagem de Aniversário</span>
+                            <span className="text-xs font-black text-[#7A3E4A] uppercase tracking-wider flex items-center gap-1.5">
+                                <Icon path={iconPaths.sparkles} className="w-3.5 h-3.5" />
+                                Mensagem de Aniversário
+                            </span>
                             <label className="flex items-center gap-1.5 cursor-pointer">
                                 <input
                                     type="checkbox"
@@ -4846,13 +4891,16 @@ export function AutomationsSection() {
             {subTab === 'posvenda' && (
                 <div className="bg-white p-6 rounded-2xl border border-[#EEEEEE] space-y-6">
                     <div>
-                        <h3 className="text-sm font-bold text-gray-900">Pós-Venda & Lançamento de Coleção</h3>
+                        <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                            <Icon path={iconPaths.megaphone} className="w-4 h-4 text-[#7A3E4A]" />
+                            Pós-Venda & Lançamento de Coleção
+                        </h3>
                         <p className="text-xs text-gray-400">Envie pesquisas de satisfação e lance transmissões de novas coleções.</p>
                     </div>
 
                     {/* Transmissão de Lançamento */}
                     <div className="p-4 bg-[#FAF9F5] rounded-xl border border-[#EEEEEE] space-y-4">
-                        <span className="text-xs font-black text-[#7A3E4A] uppercase tracking-wider">📢 Transmissão de Nova Coleção</span>
+                        <span className="text-xs font-black text-[#7A3E4A] uppercase tracking-wider">Transmissão de Nova Coleção</span>
                         <div>
                             <label className={labelCls}>Modelo de Mensagem de Lançamento</label>
                             <textarea
@@ -4883,7 +4931,7 @@ export function AutomationsSection() {
                     {/* Pós-Venda */}
                     <div className="p-4 bg-[#FAF9F5] rounded-xl border border-[#EEEEEE] space-y-4">
                         <div className="flex items-center justify-between">
-                            <span className="text-xs font-black text-[#7A3E4A] uppercase tracking-wider">🎁 Mensagem de Pós-Venda (Avaliação & Foto)</span>
+                            <span className="text-xs font-black text-[#7A3E4A] uppercase tracking-wider">Mensagem de Pós-Venda (Avaliação & Foto)</span>
                             <label className="flex items-center gap-1.5 cursor-pointer">
                                 <input
                                     type="checkbox"
@@ -4919,7 +4967,10 @@ export function AutomationsSection() {
             {/* ABA 5: HISTÓRICO DE LOGS */}
             {subTab === 'logs' && (
                 <div className="bg-white p-6 rounded-2xl border border-[#EEEEEE] space-y-4">
-                    <h3 className="text-sm font-bold text-gray-900">Histórico de Disparos de Automação</h3>
+                    <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                        <Icon path={iconPaths.history} className="w-4 h-4 text-[#7A3E4A]" />
+                        Histórico de Disparos de Automação
+                    </h3>
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
                             <thead>
@@ -4940,8 +4991,9 @@ export function AutomationsSection() {
                                     logs.map(log => (
                                         <tr key={log.id} className="hover:bg-[#FAF9F5] transition-colors">
                                             <td className="py-3">
-                                                <span className="font-bold text-gray-800 uppercase text-[10px] tracking-wider block">
-                                                    {log.channel === 'whatsapp' ? '📱 WhatsApp' : '📧 E-mail'}
+                                                <span className="font-bold text-gray-800 uppercase text-[10px] tracking-wider block flex items-center gap-1">
+                                                    <Icon path={log.channel === 'whatsapp' ? iconPaths.phone : iconPaths.mail} className="w-3 h-3 text-gray-500" />
+                                                    {log.channel === 'whatsapp' ? 'WhatsApp' : 'E-mail'}
                                                 </span>
                                                 <span className="text-[10px] text-[#7A3E4A] font-semibold">{log.event_type}</span>
                                             </td>
@@ -4954,9 +5006,9 @@ export function AutomationsSection() {
                                             </td>
                                             <td className="py-3">
                                                 <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
-                                                    log.status === 'sent' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'
+                                                    log.status === 'sent' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-gray-100 text-gray-700 border-gray-200'
                                                 }`}>
-                                                    {log.status === 'sent' ? 'Enviado ✅' : 'Simulado / Log 📝'}
+                                                    {log.status === 'sent' ? 'Enviado' : 'Simulado / Log'}
                                                 </span>
                                             </td>
                                             <td className="py-3 text-gray-400 text-[10px]">
