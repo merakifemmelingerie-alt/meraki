@@ -234,28 +234,46 @@ export default function MaintenanceScreen({ config }) {
                     background: 'radial-gradient(ellipse 80% 55% at 50% -5%, rgba(198,167,106,0.07) 0%, transparent 70%)',
                 }} />
 
-                {/* ── Flying butterflies — identical to AuthPage (drift + flutter) ── */}
-                {hasBfly && BUTTERFLIES.map(b => (
-                    <img
-                        key={b.id}
-                        src={butterflySrc}
-                        alt=""
-                        aria-hidden="true"
-                        style={{
-                            position: 'absolute',
-                            width: b.size,
-                            height: b.size,
-                            objectFit: 'contain',
-                            opacity: b.opacity,
-                            pointerEvents: 'none',
-                            userSelect: 'none',
-                            zIndex: 1,
-                            animation: `${b.drift} ${b.duration}s ${b.delay}s linear infinite, butterfly-flutter ${0.3 + (b.id % 4) * 0.08}s ease-in-out infinite`,
-                            ...(b.left   ? { left:   b.left   } : { right: b.right }),
-                            ...(b.bottom ? { bottom: b.bottom } : { top:   b.top   }),
-                        }}
-                    />
-                ))}
+                {/* ── Flying butterflies ──
+                    Div externo: butterfly-drift (translate + rotate)
+                    Img interno: butterfly-flutter (scaleX das asas)
+                    Separados em dois elementos para não conflitarem no transform
+                ── */}
+                {hasBfly && BUTTERFLIES.map(b => {
+                    const flutterDur = (0.28 + (b.id % 5) * 0.06).toFixed(2)
+                    return (
+                        <div
+                            key={b.id}
+                            aria-hidden="true"
+                            style={{
+                                position: 'absolute',
+                                width: b.size,
+                                height: b.size,
+                                pointerEvents: 'none',
+                                userSelect: 'none',
+                                zIndex: 1,
+                                opacity: b.opacity,
+                                animation: `${b.drift} ${b.duration}s ${b.delay}s linear infinite`,
+                                ...(b.left   ? { left:   b.left   } : { right: b.right }),
+                                ...(b.bottom ? { bottom: b.bottom } : { top:   b.top   }),
+                            }}
+                        >
+                            <img
+                                src={butterflySrc}
+                                alt=""
+                                style={{
+                                    width: '100%',
+                                    height: '100%',
+                                    objectFit: 'contain',
+                                    display: 'block',
+                                    animation: `butterfly-flutter ${flutterDur}s ease-in-out infinite`,
+                                    transformOrigin: 'center center',
+                                }}
+                            />
+                        </div>
+                    )
+                })}
+
 
                 {/* ── HEADER ── */}
                 <header className="mnt-a1" style={{
