@@ -3134,7 +3134,7 @@ export function FinancialSection({
         localStorage.setItem('meraki_store_config', JSON.stringify(updated))
         if (updateStoreConfig) await updateStoreConfig(updated)
         setShowCostConfig(false)
-        alert('Configurações salvas com sucesso no banco de dados!')
+        alert('Taxas operacionais salvas com sucesso!')
     }
 
     const [txType, setTxType] = useState('despesa')
@@ -3146,7 +3146,7 @@ export function FinancialSection({
     const [txMethod, setTxMethod] = useState('PIX')
     const [txNotes, setTxNotes] = useState('')
 
-    // Reset pagination when filters change
+    // Reset pagination on filter change
     useEffect(() => {
         setCurrentPage(1)
     }, [searchQuery, filter, period, itemsPerPage, activeTab])
@@ -3190,7 +3190,6 @@ export function FinancialSection({
         }
     })
 
-    // Filter Order DRE list by Search and Period
     const now = new Date()
     const filteredOrdersDRE = orderCostAnalysis.filter(order => {
         const orderDate = new Date(order.created_at || order.date)
@@ -3221,13 +3220,12 @@ export function FinancialSection({
     const totalNetProfitReal = filteredOrdersDRE.reduce((sum, o) => sum + o.netProfit, 0)
     const averageMarginReal = totalRealRevenue > 0 ? ((totalNetProfitReal / totalRealRevenue) * 100).toFixed(1) : 0
 
-    // Auto-calculate order revenues for general DRE
     const paidOrders = orders.filter(o => ['Pago', 'Enviado', 'Entregue'].includes(o.status))
     const orderRevenues = paidOrders.map(o => ({
         id: `ord-${o.id}`,
         isOrder: true,
         type: 'receita',
-        title: `Venda Online Pedido #${o.id.toString().slice(-6)} (${o.customerName || 'Cliente'})`,
+        title: `Venda Online - Pedido #${o.id.toString().slice(-6)} (${o.customerName || 'Cliente'})`,
         category: 'Vendas Loja',
         amount: Number(o.total) || 0,
         due_date: o.created_at ? o.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
@@ -3239,7 +3237,6 @@ export function FinancialSection({
 
     const allTransactionsList = [...transactions, ...orderRevenues]
 
-    // Filter General Transactions list
     const filteredTransactionsList = allTransactionsList.filter(item => {
         const itemDate = new Date(item.due_date || item.created_at)
         if (period === 'mes') {
@@ -3281,7 +3278,7 @@ export function FinancialSection({
     const lucroLiquido = totalReceitas - totalDespesas
     const margemLucro = totalReceitas > 0 ? ((lucroLiquido / totalReceitas) * 100).toFixed(1) : 0
 
-    // Pagination Calculation
+    // Pagination
     const targetList = activeTab === 'custo_real' ? filteredOrdersDRE : filteredTransactionsList
     const limit = itemsPerPage === 'all' ? targetList.length : Number(itemsPerPage)
     const totalPages = Math.ceil(targetList.length / limit) || 1
@@ -3292,7 +3289,7 @@ export function FinancialSection({
     const handleSubmit = async (e) => {
         e.preventDefault()
         if (!txTitle || !txAmount) {
-            alert('Preencha o título e o valor do lançamento.')
+            alert('Preencha a descrição e o valor do lançamento.')
             return
         }
         setSubmitting(true)
@@ -3314,621 +3311,467 @@ export function FinancialSection({
     }
 
     return (
-        <div className="space-y-6 font-sans">
-            {/* LUXURY HERO HEADER BANNER */}
-            <div className="bg-gradient-to-r from-[#1E0D11] via-[#3D1A21] to-[#602B36] text-white p-6 sm:p-8 rounded-[2.5rem] shadow-2xl shadow-[#7A3E4A]/15 border border-[#7A3E4A]/30 relative overflow-hidden">
-                {/* Gold ambient background blur */}
-                <div className="absolute -right-10 -bottom-10 w-72 h-72 bg-[#D4AF37]/15 rounded-full blur-3xl pointer-events-none" />
-                <div className="absolute left-1/3 -top-10 w-48 h-48 bg-[#7A3E4A]/40 rounded-full blur-2xl pointer-events-none" />
+        <div className="space-y-6 font-sans text-gray-900">
+            {/* CLEAN EXECUTIVE HEADER */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-200 pb-5">
+                <div>
+                    <h2 className="text-xl font-bold text-gray-900 tracking-tight">Gestão Financeira & DRE</h2>
+                    <p className="text-xs text-gray-500 mt-1 font-normal">
+                        Demonstrativo de resultado do exercício, lucro líquido por pedido e controle de lançamentos.
+                    </p>
+                </div>
 
-                <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-                    <div className="space-y-2 max-w-xl">
-                        <div className="inline-flex items-center gap-2 bg-[#D4AF37]/15 backdrop-blur-md px-3.5 py-1 rounded-full border border-[#D4AF37]/30">
-                            <span className="w-2 h-2 rounded-full bg-[#D4AF37] animate-pulse" />
-                            <span className="text-[10px] font-black tracking-widest uppercase text-[#F3E5AB]">Gestão Financeira & DRE</span>
-                        </div>
-                        <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-tight">
-                            Controle Financeiro da Meraki
-                        </h2>
-                        <p className="text-xs text-rose-100/80 font-medium leading-relaxed">
-                            Acompanhe em tempo real o Lucro Líquido Real das vendas, deduções automáticas e fluxo de caixa operacional.
-                        </p>
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                        {/* UNIQUE LUXURY CTA BUTTON */}
-                        <button
-                            onClick={() => setModalOpen(true)}
-                            className="px-6 py-3.5 bg-gradient-to-r from-[#D4AF37] via-[#E5C98B] to-[#C6A76A] hover:from-[#C6A76A] hover:to-[#D4AF37] text-[#1E0D11] font-black text-xs uppercase tracking-wider rounded-2xl shadow-xl shadow-[#D4AF37]/20 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2 border border-[#FFF8E7]"
-                        >
-                            <Icon path="M12 4v16m8-8H4" className="w-4 h-4 text-[#1E0D11]" />
-                            + Lançar Gasto / Receita
-                        </button>
-
-                        {/* LUXURY SEGMENTED TAB SWITCHER */}
-                        <div className="bg-[#100709]/60 backdrop-blur-md p-1.5 rounded-2xl border border-white/10 flex items-center gap-1">
-                            <button
-                                onClick={() => setActiveTab('custo_real')}
-                                className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
-                                    activeTab === 'custo_real'
-                                        ? 'bg-[#7A3E4A] text-white shadow-lg shadow-[#7A3E4A]/50 border border-rose-400/30'
-                                        : 'text-rose-200/70 hover:text-white'
-                                }`}
-                            >
-                                🎯 Custo Real Vendas
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('overview')}
-                                className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
-                                    activeTab === 'overview'
-                                        ? 'bg-[#7A3E4A] text-white shadow-lg shadow-[#7A3E4A]/50 border border-rose-400/30'
-                                        : 'text-rose-200/70 hover:text-white'
-                                }`}
-                            >
-                                📊 DRE & Lançamentos
-                            </button>
-                        </div>
-                    </div>
+                <div className="flex items-center gap-2.5">
+                    <button
+                        onClick={() => setShowCostConfig(!showCostConfig)}
+                        className="px-3.5 py-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-xs font-medium rounded-lg shadow-2xs transition-colors cursor-pointer"
+                    >
+                        {showCostConfig ? 'Ocultar Taxas' : '⚙ Taxas da Loja'}
+                    </button>
+                    <button
+                        onClick={() => setModalOpen(true)}
+                        className="px-4 py-2 bg-[#7A3E4A] hover:bg-[#603039] text-white text-xs font-semibold rounded-lg shadow-sm transition-colors cursor-pointer flex items-center gap-1.5"
+                    >
+                        <Icon path="M12 4v16m8-8H4" className="w-4 h-4" />
+                        + Novo Lançamento
+                    </button>
                 </div>
             </div>
 
-            {/* CONTROL BAR: SEARCH & LIMITER FILTER */}
-            <div className="bg-white rounded-3xl p-4 border border-[#EEEEEE] shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                {/* Search Container */}
+            {/* COLLAPSIBLE STORE COSTS PANEL */}
+            {showCostConfig && (
+                <div className="bg-gray-50 rounded-xl p-5 border border-gray-200 space-y-4 animate-fadeIn">
+                    <div className="flex items-center justify-between">
+                        <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider">Parâmetros de Custos Fixos & Taxas</h3>
+                        <span className="text-[11px] text-gray-500">Usado para calcular a margem líquida por pedido</span>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <div>
+                            <label className="block text-[11px] font-medium text-gray-600 mb-1">Taxa Cartão Crédito (%)</label>
+                            <input
+                                type="number"
+                                step="0.01"
+                                value={cardFeePercent}
+                                onChange={(e) => setCardFeePercent(e.target.value)}
+                                className="w-full px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-[#7A3E4A] outline-none"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-[11px] font-medium text-gray-600 mb-1">Taxa PIX (%)</label>
+                            <input
+                                type="number"
+                                step="0.01"
+                                value={pixFeePercent}
+                                onChange={(e) => setPixFeePercent(e.target.value)}
+                                className="w-full px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-[#7A3E4A] outline-none"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-[11px] font-medium text-gray-600 mb-1">Custo Embalagem (R$/ped)</label>
+                            <input
+                                type="number"
+                                step="0.50"
+                                value={packagingCost}
+                                onChange={(e) => setPackagingCost(e.target.value)}
+                                className="w-full px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-[#7A3E4A] outline-none"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-[11px] font-medium text-gray-600 mb-1">Frete Subsidiado (R$/ped)</label>
+                            <input
+                                type="number"
+                                step="1.00"
+                                value={subsidyCost}
+                                onChange={(e) => setSubsidyCost(e.target.value)}
+                                className="w-full px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-[#7A3E4A] outline-none"
+                            />
+                        </div>
+                    </div>
+                    <div className="flex justify-end">
+                        <button
+                            onClick={handleSaveCostConfig}
+                            className="px-4 py-2 bg-[#7A3E4A] text-white text-xs font-medium rounded-lg hover:bg-[#603039] transition-colors cursor-pointer"
+                        >
+                            Salvar Configurações
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* STRIPE-STYLE EXECUTIVE METRICS STRIP */}
+            <div className="bg-white rounded-xl border border-gray-200 divide-y md:divide-y-0 md:divide-x divide-gray-200 grid grid-cols-1 md:grid-cols-4 shadow-2xs">
+                <div className="p-5">
+                    <p className="text-xs font-medium text-gray-500">Receita Bruta Total</p>
+                    <p className="text-2xl font-bold text-gray-900 mt-1">
+                        R$ {totalReceitas.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </p>
+                    <p className="text-[11px] text-gray-400 mt-1">Acumulado vendas + entradas</p>
+                </div>
+
+                <div className="p-5">
+                    <p className="text-xs font-medium text-gray-500">Custos Operacionais & CMV</p>
+                    <p className="text-2xl font-bold text-gray-900 mt-1">
+                        R$ {(totalProductCost + totalPaymentFees + totalPackagingCosts + totalSubsidyCosts + totalDespesas).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </p>
+                    <p className="text-[11px] text-gray-400 mt-1">Produtos, taxas e saídas</p>
+                </div>
+
+                <div className="p-5">
+                    <div className="flex items-center justify-between">
+                        <p className="text-xs font-medium text-gray-500">Lucro Líquido Real</p>
+                        <span className={`text-[11px] font-bold px-2 py-0.5 rounded-md ${lucroLiquido >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>
+                            {margemLucro}% margem
+                        </span>
+                    </div>
+                    <p className={`text-2xl font-bold mt-1 ${lucroLiquido >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>
+                        R$ {lucroLiquido.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </p>
+                    <p className="text-[11px] text-gray-400 mt-1">Lucro líquido acumulado</p>
+                </div>
+
+                <div className="p-5">
+                    <p className="text-xs font-medium text-gray-500">Contas Pendentes</p>
+                    <p className="text-2xl font-bold text-amber-600 mt-1">
+                        R$ {Math.abs(totalPendentes).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </p>
+                    <p className="text-[11px] text-gray-400 mt-1">Pendências em aberto</p>
+                </div>
+            </div>
+
+            {/* TAB SUB-NAVIGATION (SHOPIFY/STRIPE UNDERLINE STYLE) */}
+            <div className="border-b border-gray-200">
+                <nav className="flex space-x-6">
+                    <button
+                        onClick={() => setActiveTab('custo_real')}
+                        className={`pb-3 text-xs font-semibold transition-all border-b-2 cursor-pointer ${
+                            activeTab === 'custo_real'
+                                ? 'border-[#7A3E4A] text-[#7A3E4A]'
+                                : 'border-transparent text-gray-500 hover:text-gray-700'
+                        }`}
+                    >
+                        Margem por Pedido (Unit Economics)
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('overview')}
+                        className={`pb-3 text-xs font-semibold transition-all border-b-2 cursor-pointer ${
+                            activeTab === 'overview'
+                                ? 'border-[#7A3E4A] text-[#7A3E4A]'
+                                : 'border-transparent text-gray-500 hover:text-gray-700'
+                        }`}
+                    >
+                        Fluxo de Caixa & Lançamentos
+                    </button>
+                </nav>
+            </div>
+
+            {/* TOOLBAR & FILTERS */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3 border border-gray-200 rounded-xl shadow-2xs">
+                {/* Search Bar */}
                 <div className="relative flex-1">
-                    <span className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#7A3E4A]/60">
+                    <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                         <Icon path="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" className="w-4 h-4" />
                     </span>
                     <input
                         type="text"
-                        placeholder={activeTab === 'custo_real' ? "Buscar por pedido, cliente ou meio de pagamento..." : "Buscar por gasto, categoria, notas..."}
+                        placeholder="Pesquisar por ID, cliente, descrição ou categoria..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-11 pr-10 py-3 bg-[#FAF9F5] border border-[#EEEEEE] rounded-2xl text-xs font-bold text-gray-900 outline-none focus:border-[#7A3E4A] focus:bg-white transition-all placeholder-gray-400"
+                        className="w-full pl-9 pr-8 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs outline-none focus:bg-white focus:border-gray-400 transition-colors"
                     />
                     {searchQuery && (
-                        <button onClick={() => setSearchQuery('')} className="absolute inset-y-0 right-0 pr-4 flex items-center text-xs font-bold text-gray-400 hover:text-gray-600">✕</button>
+                        <button onClick={() => setSearchQuery('')} className="absolute inset-y-0 right-0 pr-3 flex items-center text-xs text-gray-400 hover:text-gray-600">✕</button>
                     )}
                 </div>
 
-                <div className="flex flex-wrap items-center gap-3">
-                    {/* Period Filter */}
-                    <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Período:</span>
-                        <select
-                            value={period}
-                            onChange={(e) => setPeriod(e.target.value)}
-                            className="px-3.5 py-2.5 bg-[#FAF9F5] border border-[#EEEEEE] rounded-2xl text-xs font-bold text-gray-800 outline-none focus:border-[#7A3E4A] cursor-pointer"
-                        >
-                            <option value="todos">Todo o Histórico</option>
-                            <option value="mes">Este Mês</option>
-                            <option value="30dias">Últimos 30 Dias</option>
-                        </select>
-                    </div>
+                <div className="flex flex-wrap items-center gap-2">
+                    {/* Period Selector */}
+                    <select
+                        value={period}
+                        onChange={(e) => setPeriod(e.target.value)}
+                        className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-medium text-gray-700 outline-none cursor-pointer hover:bg-gray-100"
+                    >
+                        <option value="todos">Todo o Período</option>
+                        <option value="mes">Este Mês</option>
+                        <option value="30dias">Últimos 30 dias</option>
+                    </select>
 
-                    {/* DRE Type Filters */}
+                    {/* Filter for overview tab */}
                     {activeTab === 'overview' && (
-                        <div className="flex items-center gap-1 bg-[#FAF9F5] p-1 rounded-2xl border border-[#EEEEEE]">
-                            {[
-                                { id: 'todos', label: 'Todos' },
-                                { id: 'receita', label: '🟢 Receitas' },
-                                { id: 'despesa', label: '🔴 Despesas' },
-                                { id: 'pendente', label: '⏳ Pendentes' },
-                            ].map(f => (
-                                <button
-                                    key={f.id}
-                                    onClick={() => setFilter(f.id)}
-                                    className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${filter === f.id
-                                        ? 'bg-[#7A3E4A] text-white shadow-xs'
-                                        : 'text-gray-600 hover:text-gray-900'
-                                    }`}
-                                >
-                                    {f.label}
-                                </button>
-                            ))}
-                        </div>
+                        <select
+                            value={filter}
+                            onChange={(e) => setFilter(e.target.value)}
+                            className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-medium text-gray-700 outline-none cursor-pointer hover:bg-gray-100"
+                        >
+                            <option value="todos">Todos os tipos</option>
+                            <option value="receita">Apenas Receitas</option>
+                            <option value="despesa">Apenas Despesas</option>
+                            <option value="pendente">Apenas Pendentes</option>
+                        </select>
                     )}
 
-                    {/* ITEMS PER PAGE LIMITER */}
-                    <div className="flex items-center gap-2 border-l border-gray-100 pl-3">
-                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Exibir:</span>
-                        <select
-                            value={itemsPerPage}
-                            onChange={(e) => setItemsPerPage(e.target.value === 'all' ? 'all' : Number(e.target.value))}
-                            className="px-3.5 py-2.5 bg-[#FAF9F5] border border-[#EEEEEE] rounded-2xl text-xs font-bold text-gray-800 outline-none focus:border-[#7A3E4A] cursor-pointer"
-                        >
-                            <option value={10}>10 itens</option>
-                            <option value={15}>15 itens</option>
-                            <option value={30}>30 itens</option>
-                            <option value={50}>50 itens</option>
-                            <option value="all">Exibir Todos</option>
-                        </select>
-                    </div>
+                    {/* Limiter dropdown */}
+                    <select
+                        value={itemsPerPage}
+                        onChange={(e) => setItemsPerPage(e.target.value === 'all' ? 'all' : Number(e.target.value))}
+                        className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-medium text-gray-700 outline-none cursor-pointer hover:bg-gray-100"
+                    >
+                        <option value={10}>10 por pág</option>
+                        <option value={15}>15 por pág</option>
+                        <option value={30}>30 por pág</option>
+                        <option value={50}>50 por pág</option>
+                        <option value="all">Exibir Todos</option>
+                    </select>
                 </div>
             </div>
 
-            {/* TAB 1: CUSTO REAL DA VENDA (UNIT ECONOMICS) */}
+            {/* TAB 1: UNIT ECONOMICS DATA TABLE (PRO HUMAN LAYOUT) */}
             {activeTab === 'custo_real' && (
-                <div className="space-y-6">
-                    {/* Collapsible Cost Drawer Bar */}
-                    <div className="bg-white rounded-3xl p-5 border border-[#EEEEEE] shadow-sm space-y-3">
-                        <div className="flex items-center justify-between">
+                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-2xs">
+                    {paginatedItems.length === 0 ? (
+                        <div className="p-12 text-center text-gray-500 text-xs">
+                            Nenhum pedido localizado no período ou busca informada.
+                        </div>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left text-xs text-gray-700">
+                                <thead className="bg-gray-50 border-b border-gray-200 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
+                                    <tr>
+                                        <th className="px-4 py-3">Pedido / Cliente</th>
+                                        <th className="px-4 py-3">Pagamento</th>
+                                        <th className="px-4 py-3 text-right">Valor Venda</th>
+                                        <th className="px-4 py-3 text-right">Custo Prod. (CMV)</th>
+                                        <th className="px-4 py-3 text-right">Taxa Pagto</th>
+                                        <th className="px-4 py-3 text-right">Embalagem/Frete</th>
+                                        <th className="px-4 py-3 text-right">Lucro Líquido</th>
+                                        <th className="px-4 py-3 text-right">Margem %</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-200">
+                                    {paginatedItems.map((order, idx) => (
+                                        <tr key={order.id || idx} className="hover:bg-gray-50/80 transition-colors">
+                                            <td className="px-4 py-3">
+                                                <div className="font-semibold text-gray-900">#{order.id.toString().slice(-6)}</div>
+                                                <div className="text-[11px] text-gray-500">{order.customerName || 'Cliente'}</div>
+                                            </td>
+                                            <td className="px-4 py-3 text-gray-600">
+                                                {order.paymentMethod || 'PIX'}
+                                            </td>
+                                            <td className="px-4 py-3 text-right font-medium text-gray-900">
+                                                R$ {order.salePrice.toFixed(2)}
+                                            </td>
+                                            <td className="px-4 py-3 text-right text-red-600">
+                                                - R$ {order.productCost.toFixed(2)}
+                                            </td>
+                                            <td className="px-4 py-3 text-right text-red-600">
+                                                - R$ {order.paymentFee.toFixed(2)}
+                                            </td>
+                                            <td className="px-4 py-3 text-right text-red-600">
+                                                - R$ {(order.packagingCost + order.subsidyCost).toFixed(2)}
+                                            </td>
+                                            <td className={`px-4 py-3 text-right font-bold ${order.netProfit >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>
+                                                R$ {order.netProfit.toFixed(2)}
+                                            </td>
+                                            <td className="px-4 py-3 text-right">
+                                                <span className={`inline-block px-2 py-0.5 rounded text-[11px] font-semibold ${
+                                                    order.netProfit >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
+                                                }`}>
+                                                    {order.profitMarginPercent}%
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+
+                    {/* PAGINATION FOOTER */}
+                    {totalPages > 1 && (
+                        <div className="px-4 py-3 border-t border-gray-200 bg-gray-50 flex items-center justify-between text-xs text-gray-600">
+                            <span>Exibindo {paginatedItems.length} de {targetList.length} pedidos</span>
                             <div className="flex items-center gap-2">
-                                <span className="w-2 h-2 rounded-full bg-[#7A3E4A]" />
-                                <h3 className="text-xs font-black uppercase tracking-wider text-gray-900">Configuração de Taxas e Custos Padrão</h3>
                                 <button
-                                    onClick={() => setShowCostConfig(!showCostConfig)}
-                                    className="px-3 py-1 bg-[#FAF9F5] hover:bg-[#7A3E4A]/10 text-[#7A3E4A] border border-[#7A3E4A]/20 rounded-full text-[10px] font-black transition-all cursor-pointer ml-2"
+                                    disabled={currentPage === 1}
+                                    onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
+                                    className="px-3 py-1 bg-white border border-gray-300 rounded text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                                 >
-                                    {showCostConfig ? '▲ Ocultar Parâmetros' : '⚙️ Configurar Taxas Cartão / PIX / Embalagem'}
+                                    Anterior
+                                </button>
+                                <span className="font-semibold text-gray-800">Página {currentPage} de {totalPages}</span>
+                                <button
+                                    disabled={currentPage === totalPages}
+                                    onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
+                                    className="px-3 py-1 bg-[#7A3E4A] text-white rounded text-xs font-medium hover:bg-[#603039] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                                >
+                                    Próxima
                                 </button>
                             </div>
-                            <span className="text-[10px] text-gray-400 font-bold hidden md:inline">
-                                Fórmula: Venda − Custo Produto − Taxas − Embalagem − Frete = Lucro Real
-                            </span>
                         </div>
-
-                        {showCostConfig && (
-                            <div className="pt-4 border-t border-gray-100 space-y-4 animate-fadeIn">
-                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                                    <div className="bg-[#FAF9F5] p-3 rounded-2xl border border-gray-100">
-                                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1">Taxa Cartão Crédito (%)</label>
-                                        <input
-                                            type="number"
-                                            step="0.01"
-                                            value={cardFeePercent}
-                                            onChange={(e) => setCardFeePercent(e.target.value)}
-                                            className="w-full px-3 py-2 bg-white border border-[#EEEEEE] rounded-xl text-xs font-black outline-none focus:border-[#7A3E4A]"
-                                        />
-                                    </div>
-                                    <div className="bg-[#FAF9F5] p-3 rounded-2xl border border-gray-100">
-                                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1">Taxa PIX (%)</label>
-                                        <input
-                                            type="number"
-                                            step="0.01"
-                                            value={pixFeePercent}
-                                            onChange={(e) => setPixFeePercent(e.target.value)}
-                                            className="w-full px-3 py-2 bg-white border border-[#EEEEEE] rounded-xl text-xs font-black outline-none focus:border-[#7A3E4A]"
-                                        />
-                                    </div>
-                                    <div className="bg-[#FAF9F5] p-3 rounded-2xl border border-gray-100">
-                                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1">Embalagem (R$/pedido)</label>
-                                        <input
-                                            type="number"
-                                            step="0.50"
-                                            value={packagingCost}
-                                            onChange={(e) => setPackagingCost(e.target.value)}
-                                            className="w-full px-3 py-2 bg-white border border-[#EEEEEE] rounded-xl text-xs font-black outline-none focus:border-[#7A3E4A]"
-                                        />
-                                    </div>
-                                    <div className="bg-[#FAF9F5] p-3 rounded-2xl border border-gray-100">
-                                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1">Frete Subsidiado (R$/pedido)</label>
-                                        <input
-                                            type="number"
-                                            step="1.00"
-                                            value={subsidyCost}
-                                            onChange={(e) => setSubsidyCost(e.target.value)}
-                                            className="w-full px-3 py-2 bg-white border border-[#EEEEEE] rounded-xl text-xs font-black outline-none focus:border-[#7A3E4A]"
-                                        />
-                                    </div>
-                                </div>
-                                <div className="flex justify-end">
-                                    <button
-                                        onClick={handleSaveCostConfig}
-                                        className="px-6 py-2.5 bg-[#7A3E4A] hover:bg-[#603039] text-white text-xs font-black rounded-xl shadow-md transition-all cursor-pointer uppercase tracking-wider"
-                                    >
-                                        Salvar Alterações de Taxas
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* KPI CARDS LUXURY GRID */}
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                        {/* Card 1: Lucro Líquido Real */}
-                        <div className="bg-gradient-to-br from-emerald-50 to-emerald-100/40 rounded-[2rem] p-6 border border-emerald-200/80 shadow-sm relative overflow-hidden group">
-                            <div className="flex items-center justify-between mb-3">
-                                <span className="text-[10px] font-black uppercase tracking-widest text-emerald-700">Lucro Líquido Real</span>
-                                <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-md">
-                                    <Icon path="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" className="w-4 h-4" />
-                                </div>
-                            </div>
-                            <p className="text-2xl sm:text-3xl font-black text-emerald-950 tracking-tight">
-                                R$ {totalNetProfitReal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                            </p>
-                            <div className="mt-3 pt-3 border-t border-emerald-200/50 flex items-center justify-between text-[10px]">
-                                <span className="text-emerald-700 font-bold">Margem Média Real:</span>
-                                <span className="px-2 py-0.5 rounded-full bg-emerald-600 text-white font-black">{averageMarginReal}%</span>
-                            </div>
-                        </div>
-
-                        {/* Card 2: CMV Custo Produtos */}
-                        <div className="bg-gradient-to-br from-amber-50 to-amber-100/40 rounded-[2rem] p-6 border border-amber-200/80 shadow-sm relative overflow-hidden">
-                            <div className="flex items-center justify-between mb-3">
-                                <span className="text-[10px] font-black uppercase tracking-widest text-amber-700">Custo Produtos (CMV)</span>
-                                <div className="w-8 h-8 rounded-xl bg-amber-600 text-white flex items-center justify-center shadow-md">
-                                    <Icon path="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" className="w-4 h-4" />
-                                </div>
-                            </div>
-                            <p className="text-2xl sm:text-3xl font-black text-amber-950 tracking-tight">
-                                R$ {totalProductCost.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                            </p>
-                            <div className="mt-3 pt-3 border-t border-amber-200/50 flex items-center justify-between text-[10px]">
-                                <span className="text-amber-700 font-bold">Total Vendas Brutas:</span>
-                                <span className="font-black text-amber-900">R$ {totalRealRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                            </div>
-                        </div>
-
-                        {/* Card 3: Taxas Bancarias */}
-                        <div className="bg-gradient-to-br from-blue-50 to-blue-100/40 rounded-[2rem] p-6 border border-blue-200/80 shadow-sm relative overflow-hidden">
-                            <div className="flex items-center justify-between mb-3">
-                                <span className="text-[10px] font-black uppercase tracking-widest text-blue-700">Taxas Cartão & PIX</span>
-                                <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-md">
-                                    <Icon path="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" className="w-4 h-4" />
-                                </div>
-                            </div>
-                            <p className="text-2xl sm:text-3xl font-black text-blue-950 tracking-tight">
-                                R$ {totalPaymentFees.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                            </p>
-                            <div className="mt-3 pt-3 border-t border-blue-200/50 flex items-center justify-between text-[10px]">
-                                <span className="text-blue-700 font-bold">Taxas Aplicadas:</span>
-                                <span className="font-black text-blue-900">Cartão {cardFeePercent}% • PIX {pixFeePercent}%</span>
-                            </div>
-                        </div>
-
-                        {/* Card 4: Embalagem & Envio */}
-                        <div className="bg-gradient-to-br from-purple-50 to-purple-100/40 rounded-[2rem] p-6 border border-purple-200/80 shadow-sm relative overflow-hidden">
-                            <div className="flex items-center justify-between mb-3">
-                                <span className="text-[10px] font-black uppercase tracking-widest text-purple-700">Embalagem & Frete</span>
-                                <div className="w-8 h-8 rounded-xl bg-purple-600 text-white flex items-center justify-center shadow-md">
-                                    <Icon path="M5 8h14M5 8a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v1a2 2 0 01-2 2M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" className="w-4 h-4" />
-                                </div>
-                            </div>
-                            <p className="text-2xl sm:text-3xl font-black text-purple-950 tracking-tight">
-                                R$ {(totalPackagingCosts + totalSubsidyCosts).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                            </p>
-                            <div className="mt-3 pt-3 border-t border-purple-200/50 flex items-center justify-between text-[10px]">
-                                <span className="text-purple-700 font-bold">Por Pedido:</span>
-                                <span className="font-black text-purple-900">R$ {(packagingCost + subsidyCost).toFixed(2)}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* TABLE OF ORDERS WITH LUXURY RECEIPT CARDS */}
-                    <div className="bg-white rounded-[2.5rem] border border-[#EEEEEE] overflow-hidden shadow-sm">
-                        <div className="p-5 border-b border-[#EEEEEE] flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#FAF9F5]">
-                            <div className="flex items-center gap-2">
-                                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-                                <h3 className="text-xs font-black uppercase tracking-wider text-gray-900">
-                                    Demonstrativo de Lucro Real por Pedido ({filteredOrdersDRE.length} encontrados)
-                                </h3>
-                            </div>
-                            <span className="text-[10px] font-black text-gray-400">
-                                Página {currentPage} de {totalPages}
-                            </span>
-                        </div>
-
-                        {paginatedItems.length === 0 ? (
-                            <div className="p-16 text-center text-gray-400 space-y-2">
-                                <Icon path="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" className="w-10 h-10 mx-auto text-gray-300" />
-                                <p className="text-xs font-bold text-gray-500">Nenhum pedido encontrado para esta pesquisa ou filtro.</p>
-                            </div>
-                        ) : (
-                            <div className="divide-y divide-[#EEEEEE]">
-                                {paginatedItems.map((order, idx) => (
-                                    <div key={order.id || idx} className="p-5 hover:bg-gray-50/80 transition-all space-y-3">
-                                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-2xl bg-[#7A3E4A]/10 border border-[#7A3E4A]/20 flex items-center justify-center shrink-0">
-                                                    <span className="text-xs font-black text-[#7A3E4A]">#{order.id.toString().slice(-4)}</span>
-                                                </div>
-                                                <div>
-                                                    <h4 className="text-xs font-black text-gray-900">{order.customerName || 'Cliente Meraki'}</h4>
-                                                    <p className="text-[10px] text-gray-400 font-bold mt-0.5">
-                                                        Pagamento: {order.paymentMethod || 'PIX'} • Data: {order.created_at ? order.created_at.split('T')[0] : 'Hoje'}
-                                                    </p>
-                                                </div>
-                                            </div>
-
-                                            <div className="flex items-center gap-2">
-                                                <span className={`px-4 py-1.5 rounded-full text-xs font-black shadow-xs ${
-                                                    order.netProfit >= 0
-                                                        ? 'bg-emerald-100 text-emerald-800 border border-emerald-300/60'
-                                                        : 'bg-red-100 text-red-700 border border-red-300/60'
-                                                }`}>
-                                                    Lucro Líquido: R$ {order.netProfit.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} ({order.profitMarginPercent}%)
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        {/* Formula Breakdown Chips */}
-                                        <div className="grid grid-cols-2 sm:grid-cols-6 gap-2 bg-[#FAF9F5] p-3.5 rounded-2xl border border-gray-100">
-                                            <div className="bg-white p-2.5 rounded-xl border border-gray-100 shadow-2xs">
-                                                <span className="text-[9px] font-black uppercase text-gray-400 block">Preço de Venda</span>
-                                                <strong className="text-xs font-black text-gray-900">R$ {order.salePrice.toFixed(2)}</strong>
-                                            </div>
-                                            <div className="bg-white p-2.5 rounded-xl border border-red-100 shadow-2xs">
-                                                <span className="text-[9px] font-black uppercase text-red-500 block">(-) Custo Produto</span>
-                                                <strong className="text-xs font-black text-red-600">R$ {order.productCost.toFixed(2)}</strong>
-                                            </div>
-                                            <div className="bg-white p-2.5 rounded-xl border border-red-100 shadow-2xs">
-                                                <span className="text-[9px] font-black uppercase text-red-500 block">(-) Taxa Cartão/PIX</span>
-                                                <strong className="text-xs font-black text-red-600">R$ {order.paymentFee.toFixed(2)}</strong>
-                                            </div>
-                                            <div className="bg-white p-2.5 rounded-xl border border-red-100 shadow-2xs">
-                                                <span className="text-[9px] font-black uppercase text-red-500 block">(-) Embalagem</span>
-                                                <strong className="text-xs font-black text-red-600">R$ {order.packagingCost.toFixed(2)}</strong>
-                                            </div>
-                                            <div className="bg-white p-2.5 rounded-xl border border-red-100 shadow-2xs">
-                                                <span className="text-[9px] font-black uppercase text-red-500 block">(-) Frete Subsidiado</span>
-                                                <strong className="text-xs font-black text-red-600">R$ {order.subsidyCost.toFixed(2)}</strong>
-                                            </div>
-                                            <div className="bg-emerald-500 text-white p-2.5 rounded-xl shadow-xs">
-                                                <span className="text-[9px] font-black uppercase text-emerald-100 block">(=) Lucro Líquido</span>
-                                                <strong className="text-xs font-black">R$ {order.netProfit.toFixed(2)}</strong>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-
-                        {/* PAGINATION FOOTER */}
-                        {totalPages > 1 && (
-                            <div className="p-4 border-t border-[#EEEEEE] bg-[#FAF9F5] flex items-center justify-between">
-                                <span className="text-xs font-bold text-gray-500">
-                                    Exibindo {paginatedItems.length} de {targetList.length} pedidos
-                                </span>
-                                <div className="flex items-center gap-2">
-                                    <button
-                                        disabled={currentPage === 1}
-                                        onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
-                                        className="px-4 py-2 bg-white border border-[#EEEEEE] rounded-xl text-xs font-bold text-gray-800 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
-                                    >
-                                        Anterior
-                                    </button>
-                                    <span className="text-xs font-black text-gray-700 px-2">
-                                        Pág {currentPage} / {totalPages}
-                                    </span>
-                                    <button
-                                        disabled={currentPage === totalPages}
-                                        onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
-                                        className="px-4 py-2 bg-[#7A3E4A] text-white rounded-xl text-xs font-bold hover:bg-[#603039] disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-xs"
-                                    >
-                                        Próxima
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-                    </div>
+                    )}
                 </div>
             )}
 
-            {/* TAB 2: OVERVIEW & GENERAL TRANSACTIONS (DRE & CASH FLOW) */}
+            {/* TAB 2: GENERAL TRANSACTIONS DATA TABLE (PRO HUMAN LAYOUT) */}
             {activeTab === 'overview' && (
-                <div className="space-y-6">
-                    {/* KPI CARDS GENERAL DRE */}
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 rounded-[2rem] p-6 border border-emerald-200/80 shadow-sm relative overflow-hidden">
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="text-[10px] font-black uppercase tracking-widest text-emerald-700">Receita Bruta Total</span>
-                                <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-md">
-                                    <Icon path="M7 11l5-5m0 0l5 5m-5-5v12" className="w-4 h-4" />
-                                </div>
-                            </div>
-                            <p className="text-2xl sm:text-3xl font-black text-emerald-950 tracking-tight">
-                                R$ {totalReceitas.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                            </p>
-                            <span className="text-[10px] text-emerald-700 font-bold mt-1 block">Vendas Loja + Entradas Manuais</span>
+                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-2xs">
+                    {paginatedItems.length === 0 ? (
+                        <div className="p-12 text-center text-gray-500 text-xs">
+                            Nenhum lançamento localizado no filtro selecionado.
                         </div>
-
-                        <div className="bg-gradient-to-br from-red-50 to-red-100/50 rounded-[2rem] p-6 border border-red-200/80 shadow-sm relative overflow-hidden">
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="text-[10px] font-black uppercase tracking-widest text-red-700">Despesas Totais</span>
-                                <div className="w-8 h-8 rounded-xl bg-red-600 text-white flex items-center justify-center shadow-md">
-                                    <Icon path="M17 13l-5 5m0 0l-5-5m5 5V6" className="w-4 h-4" />
-                                </div>
-                            </div>
-                            <p className="text-2xl sm:text-3xl font-black text-red-950 tracking-tight">
-                                R$ {totalDespesas.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                            </p>
-                            <span className="text-[10px] text-red-700 font-bold mt-1 block">Gastos Operacionais & Custos</span>
-                        </div>
-
-                        <div className="bg-gradient-to-br from-[#FAF9F5] to-rose-50 rounded-[2rem] p-6 border border-[#7A3E4A]/20 shadow-sm relative overflow-hidden">
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="text-[10px] font-black uppercase tracking-widest text-[#7A3E4A]">Lucro Operacional Líquido</span>
-                                <div className="w-8 h-8 rounded-xl bg-[#7A3E4A] text-white flex items-center justify-center shadow-md">
-                                    <Icon path="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" className="w-4 h-4" />
-                                </div>
-                            </div>
-                            <p className={`text-2xl sm:text-3xl font-black tracking-tight ${lucroLiquido >= 0 ? 'text-gray-900' : 'text-red-600'}`}>
-                                R$ {lucroLiquido.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                            </p>
-                            <span className="text-[10px] text-gray-500 font-bold mt-1 block">Margem Geral: <strong className="text-[#7A3E4A]">{margemLucro}%</strong></span>
-                        </div>
-
-                        <div className="bg-gradient-to-br from-amber-50 to-amber-100/50 rounded-[2rem] p-6 border border-amber-200/80 shadow-sm relative overflow-hidden">
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="text-[10px] font-black uppercase tracking-widest text-amber-700">Contas Pendentes</span>
-                                <div className="w-8 h-8 rounded-xl bg-amber-600 text-white flex items-center justify-center shadow-md">
-                                    <Icon path="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" className="w-4 h-4" />
-                                </div>
-                            </div>
-                            <p className="text-2xl sm:text-3xl font-black text-amber-950 tracking-tight">
-                                R$ {Math.abs(totalPendentes).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                            </p>
-                            <span className="text-[10px] text-amber-700 font-bold mt-1 block">A Pagar ou A Receber</span>
-                        </div>
-                    </div>
-
-                    {/* TRANSACTIONS LIST WITH LUXURY FEED CARDS */}
-                    <div className="bg-white rounded-[2.5rem] border border-[#EEEEEE] overflow-hidden shadow-sm">
-                        <div className="p-5 border-b border-[#EEEEEE] flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#FAF9F5]">
-                            <div className="flex items-center gap-2">
-                                <span className="w-2.5 h-2.5 rounded-full bg-[#7A3E4A]" />
-                                <h3 className="text-xs font-black uppercase tracking-wider text-gray-900">
-                                    Fluxo de Lançamentos ({filteredTransactionsList.length} itens)
-                                </h3>
-                            </div>
-                            <span className="text-[10px] font-black text-gray-400">
-                                Página {currentPage} de {totalPages}
-                            </span>
-                        </div>
-
-                        {paginatedItems.length === 0 ? (
-                            <div className="p-16 text-center text-gray-400 space-y-2">
-                                <Icon path="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" className="w-10 h-10 mx-auto text-gray-300" />
-                                <p className="text-xs font-bold text-gray-500">Nenhum lançamento encontrado neste filtro.</p>
-                            </div>
-                        ) : (
-                            <div className="divide-y divide-[#EEEEEE]">
-                                {paginatedItems.map((item, idx) => (
-                                    <div key={item.id || idx} className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-gray-50/80 transition-all">
-                                        <div className="flex items-start gap-3.5 min-w-0">
-                                            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 text-sm font-black shadow-xs ${
-                                                item.type === 'receita' ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'
-                                            }`}>
-                                                {item.type === 'receita' ? '↑' : '↓'}
-                                            </div>
-                                            <div className="min-w-0 space-y-1">
-                                                <div className="flex items-center gap-2 flex-wrap">
-                                                    <h4 className="text-xs font-black text-gray-900 truncate">{item.title}</h4>
-                                                    <span className="px-2.5 py-0.5 rounded-full text-[9px] font-black bg-gray-100 text-gray-600 border border-gray-200">
-                                                        {item.category}
-                                                    </span>
-                                                    {item.isOrder && (
-                                                        <span className="px-2.5 py-0.5 rounded-full text-[9px] font-black bg-blue-50 text-blue-700 border border-blue-200">
-                                                            Venda Loja Online
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                <p className="text-[10px] text-gray-400 font-bold">
-                                                    Vencimento: {item.due_date || 'N/I'} • Meio: {item.payment_method || 'PIX'} {item.notes && `• ${item.notes}`}
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex items-center justify-between sm:justify-end gap-5 shrink-0 border-t sm:border-t-0 pt-3 sm:pt-0 border-gray-100">
-                                            <div className="text-right">
-                                                <p className={`text-base font-black tracking-tight ${item.type === 'receita' ? 'text-emerald-600' : 'text-rose-600'}`}>
-                                                    {item.type === 'receita' ? '+' : '-'} R$ {Number(item.amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                                                </p>
-                                                <span className={`inline-block text-[9px] font-black uppercase px-2.5 py-0.5 rounded-full mt-1 ${
-                                                    item.status === 'pago' 
-                                                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
-                                                        : 'bg-amber-50 text-amber-700 border border-amber-200'
-                                                }`}>
-                                                    {item.status === 'pago' ? 'Liquidado' : 'Pendente'}
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left text-xs text-gray-700">
+                                <thead className="bg-gray-50 border-b border-gray-200 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
+                                    <tr>
+                                        <th className="px-4 py-3">Data / Vencimento</th>
+                                        <th className="px-4 py-3">Descrição</th>
+                                        <th className="px-4 py-3">Categoria</th>
+                                        <th className="px-4 py-3">Forma Pagto</th>
+                                        <th className="px-4 py-3">Tipo</th>
+                                        <th className="px-4 py-3 text-right">Valor (R$)</th>
+                                        <th className="px-4 py-3 text-center">Status</th>
+                                        <th className="px-4 py-3 text-right">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-200">
+                                    {paginatedItems.map((item, idx) => (
+                                        <tr key={item.id || idx} className="hover:bg-gray-50/80 transition-colors">
+                                            <td className="px-4 py-3 text-gray-500">
+                                                {item.due_date || item.created_at?.split('T')[0] || 'N/A'}
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                <div className="font-semibold text-gray-900">{item.title}</div>
+                                                {item.notes && <div className="text-[11px] text-gray-400">{item.notes}</div>}
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                <span className="inline-block px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-[11px] font-medium">
+                                                    {item.category}
                                                 </span>
-                                            </div>
+                                            </td>
+                                            <td className="px-4 py-3 text-gray-600">
+                                                {item.payment_method || 'PIX'}
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                <span className={`inline-block px-2 py-0.5 rounded text-[11px] font-semibold ${
+                                                    item.type === 'receita' ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
+                                                }`}>
+                                                    {item.type === 'receita' ? 'Receita' : 'Despesa'}
+                                                </span>
+                                            </td>
+                                            <td className={`px-4 py-3 text-right font-bold ${
+                                                item.type === 'receita' ? 'text-emerald-700' : 'text-red-600'
+                                            }`}>
+                                                {item.type === 'receita' ? '+' : '-'} R$ {Number(item.amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                            </td>
+                                            <td className="px-4 py-3 text-center">
+                                                <span className={`inline-block px-2 py-0.5 rounded text-[11px] font-semibold ${
+                                                    item.status === 'pago' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'
+                                                }`}>
+                                                    {item.status === 'pago' ? 'Pago' : 'Pendente'}
+                                                </span>
+                                            </td>
+                                            <td className="px-4 py-3 text-right">
+                                                {!item.isOrder ? (
+                                                    <div className="inline-flex items-center gap-1">
+                                                        <button
+                                                            onClick={() => onUpdateTransactionStatus(item.id, item.status === 'pago' ? 'pendente' : 'pago')}
+                                                            className="p-1 hover:bg-gray-100 text-gray-500 rounded transition-colors cursor-pointer"
+                                                            title="Alternar Status"
+                                                        >
+                                                            <Icon path="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" className="w-3.5 h-3.5" />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => onDeleteTransaction(item.id)}
+                                                            className="p-1 hover:bg-red-50 text-red-500 rounded transition-colors cursor-pointer"
+                                                            title="Excluir Lançamento"
+                                                        >
+                                                            <Icon path="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" className="w-3.5 h-3.5" />
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-[11px] text-gray-400 font-medium">Automático</span>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
 
-                                            {!item.isOrder && (
-                                                <div className="flex items-center gap-1 bg-[#FAF9F5] p-1 rounded-xl border border-gray-200/60">
-                                                    <button
-                                                        onClick={() => onUpdateTransactionStatus(item.id, item.status === 'pago' ? 'pendente' : 'pago')}
-                                                        className="p-2 hover:bg-white rounded-lg text-gray-600 hover:text-gray-900 transition-all cursor-pointer shadow-2xs"
-                                                        title="Alternar Status (Pago/Pendente)"
-                                                    >
-                                                        <Icon path="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" className="w-3.5 h-3.5" />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => onDeleteTransaction(item.id)}
-                                                        className="p-2 hover:bg-red-50 rounded-lg text-red-400 hover:text-red-600 transition-all cursor-pointer"
-                                                        title="Excluir Lançamento"
-                                                    >
-                                                        <Icon path="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" className="w-3.5 h-3.5" />
-                                                    </button>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                ))}
+                    {/* PAGINATION FOOTER */}
+                    {totalPages > 1 && (
+                        <div className="px-4 py-3 border-t border-gray-200 bg-gray-50 flex items-center justify-between text-xs text-gray-600">
+                            <span>Exibindo {paginatedItems.length} de {targetList.length} lançamentos</span>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    disabled={currentPage === 1}
+                                    onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
+                                    className="px-3 py-1 bg-white border border-gray-300 rounded text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                                >
+                                    Anterior
+                                </button>
+                                <span className="font-semibold text-gray-800">Página {currentPage} de {totalPages}</span>
+                                <button
+                                    disabled={currentPage === totalPages}
+                                    onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
+                                    className="px-3 py-1 bg-[#7A3E4A] text-white rounded text-xs font-medium hover:bg-[#603039] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                                >
+                                    Próxima
+                                </button>
                             </div>
-                        )}
-
-                        {/* PAGINATION FOOTER */}
-                        {totalPages > 1 && (
-                            <div className="p-4 border-t border-[#EEEEEE] bg-[#FAF9F5] flex items-center justify-between">
-                                <span className="text-xs font-bold text-gray-500">
-                                    Exibindo {paginatedItems.length} de {targetList.length} lançamentos
-                                </span>
-                                <div className="flex items-center gap-2">
-                                    <button
-                                        disabled={currentPage === 1}
-                                        onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
-                                        className="px-4 py-2 bg-white border border-[#EEEEEE] rounded-xl text-xs font-bold text-gray-800 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
-                                    >
-                                        Anterior
-                                    </button>
-                                    <span className="text-xs font-black text-gray-700 px-2">
-                                        Pág {currentPage} / {totalPages}
-                                    </span>
-                                    <button
-                                        disabled={currentPage === totalPages}
-                                        onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
-                                        className="px-4 py-2 bg-[#7A3E4A] text-white rounded-xl text-xs font-bold hover:bg-[#603039] disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-xs"
-                                    >
-                                        Próxima
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-                    </div>
+                        </div>
+                    )}
                 </div>
             )}
 
-            {/* MODAL: NOVO LANÇAMENTO FINANCEIRO DE ALTO LUXO */}
+            {/* MODAL: NOVO LANÇAMENTO FINANCEIRO (CLEAN STRIPE STYLE DIALOG) */}
             {modalOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fadeIn">
-                    <div className="bg-white rounded-[2.5rem] p-6 sm:p-8 w-full max-w-lg border border-gray-100 shadow-2xl space-y-5 relative">
-                        <div className="flex items-center justify-between border-b border-gray-100 pb-4">
-                            <div>
-                                <span className="text-[10px] font-black text-[#7A3E4A] uppercase tracking-widest block">Meraki Financeiro</span>
-                                <h3 className="text-lg font-black text-gray-900 tracking-tight">Novo Lançamento no Fluxo</h3>
-                            </div>
-                            <button onClick={() => setModalOpen(false)} className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 text-sm font-black cursor-pointer transition-colors">✕</button>
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-2xs animate-fadeIn">
+                    <div className="bg-white rounded-xl p-6 w-full max-w-md border border-gray-200 shadow-xl space-y-4">
+                        <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                            <h3 className="text-sm font-bold text-gray-900">Novo Lançamento Financeiro</h3>
+                            <button onClick={() => setModalOpen(false)} className="text-gray-400 hover:text-gray-600 text-sm font-bold p-1 cursor-pointer">✕</button>
                         </div>
 
                         <form onSubmit={handleSubmit} className="space-y-4">
-                            {/* Type Selector */}
-                            <div className="grid grid-cols-2 gap-2 p-1.5 bg-[#FAF9F5] rounded-2xl border border-gray-200/60">
+                            {/* Type Toggle */}
+                            <div className="grid grid-cols-2 gap-2 bg-gray-100 p-1 rounded-lg">
                                 <button
                                     type="button"
                                     onClick={() => setTxType('receita')}
-                                    className={`py-3 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                                        txType === 'receita' ? 'bg-emerald-600 text-white shadow-md' : 'text-gray-600 hover:text-gray-900'
+                                    className={`py-1.5 rounded text-xs font-semibold transition-colors cursor-pointer ${
+                                        txType === 'receita' ? 'bg-white text-emerald-700 shadow-2xs' : 'text-gray-600'
                                     }`}
                                 >
-                                    🟢 Receita (Entrada)
+                                    Receita (Entrada)
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => setTxType('despesa')}
-                                    className={`py-3 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                                        txType === 'despesa' ? 'bg-rose-600 text-white shadow-md' : 'text-gray-600 hover:text-gray-900'
+                                    className={`py-1.5 rounded text-xs font-semibold transition-colors cursor-pointer ${
+                                        txType === 'despesa' ? 'bg-white text-red-700 shadow-2xs' : 'text-gray-600'
                                     }`}
                                 >
-                                    🔴 Despesa (Gasto / Saída)
+                                    Despesa (Saída)
                                 </button>
                             </div>
 
                             <div>
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1">Nome do Gasto ou Entrada</label>
+                                <label className="block text-[11px] font-semibold text-gray-600 mb-1">Descrição / Nome do Gasto</label>
                                 <input
                                     type="text"
                                     required
-                                    placeholder="Ex: Compra de Tecidos, Anúncios Meta Ads, Luz..."
+                                    placeholder="Ex: Compra de Tecidos, Anúncios Meta, Luz..."
                                     value={txTitle}
                                     onChange={(e) => setTxTitle(e.target.value)}
-                                    className="w-full px-4 py-3 bg-[#FAF9F5] border border-gray-200 rounded-2xl text-xs font-bold text-gray-900 outline-none focus:border-[#7A3E4A] focus:bg-white transition-all"
+                                    className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-xs font-medium focus:bg-white focus:border-[#7A3E4A] outline-none"
                                 />
                             </div>
 
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1">Valor (R$)</label>
+                                    <label className="block text-[11px] font-semibold text-gray-600 mb-1">Valor (R$)</label>
                                     <input
                                         type="number"
                                         step="0.01"
@@ -3936,15 +3779,15 @@ export function FinancialSection({
                                         placeholder="0.00"
                                         value={txAmount}
                                         onChange={(e) => setTxAmount(e.target.value)}
-                                        className="w-full px-4 py-3 bg-[#FAF9F5] border border-gray-200 rounded-2xl text-xs font-black text-gray-900 outline-none focus:border-[#7A3E4A] focus:bg-white transition-all"
+                                        className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-xs font-bold focus:bg-white focus:border-[#7A3E4A] outline-none"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1">Categoria</label>
+                                    <label className="block text-[11px] font-semibold text-gray-600 mb-1">Categoria</label>
                                     <select
                                         value={txCategory}
                                         onChange={(e) => setTxCategory(e.target.value)}
-                                        className="w-full px-4 py-3 bg-[#FAF9F5] border border-gray-200 rounded-2xl text-xs font-bold text-gray-900 outline-none focus:border-[#7A3E4A] cursor-pointer"
+                                        className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-xs font-medium focus:bg-white focus:border-[#7A3E4A] outline-none cursor-pointer"
                                     >
                                         <option value="Fornecedores">Fornecedores / Matéria Prima</option>
                                         <option value="Marketing">Marketing & Anúncios</option>
@@ -3959,33 +3802,33 @@ export function FinancialSection({
 
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1">Data Vencimento</label>
+                                    <label className="block text-[11px] font-semibold text-gray-600 mb-1">Data / Vencimento</label>
                                     <input
                                         type="date"
                                         value={txDueDate}
                                         onChange={(e) => setTxDueDate(e.target.value)}
-                                        className="w-full px-4 py-3 bg-[#FAF9F5] border border-gray-200 rounded-2xl text-xs font-bold text-gray-900 outline-none focus:border-[#7A3E4A]"
+                                        className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-xs font-medium focus:bg-white focus:border-[#7A3E4A] outline-none"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1">Status</label>
+                                    <label className="block text-[11px] font-semibold text-gray-600 mb-1">Status</label>
                                     <select
                                         value={txStatus}
                                         onChange={(e) => setTxStatus(e.target.value)}
-                                        className="w-full px-4 py-3 bg-[#FAF9F5] border border-gray-200 rounded-2xl text-xs font-bold text-gray-900 outline-none focus:border-[#7A3E4A] cursor-pointer"
+                                        className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-xs font-medium focus:bg-white focus:border-[#7A3E4A] outline-none cursor-pointer"
                                     >
-                                        <option value="pago">Pago / Liquidado</option>
+                                        <option value="pago">Pago / Confirmado</option>
                                         <option value="pendente">Pendente</option>
                                     </select>
                                 </div>
                             </div>
 
                             <div>
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1">Forma de Pagamento</label>
+                                <label className="block text-[11px] font-semibold text-gray-600 mb-1">Forma de Pagamento</label>
                                 <select
                                     value={txMethod}
                                     onChange={(e) => setTxMethod(e.target.value)}
-                                    className="w-full px-4 py-3 bg-[#FAF9F5] border border-gray-200 rounded-2xl text-xs font-bold text-gray-900 outline-none focus:border-[#7A3E4A] cursor-pointer"
+                                    className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-xs font-medium focus:bg-white focus:border-[#7A3E4A] outline-none cursor-pointer"
                                 >
                                     <option value="PIX">PIX</option>
                                     <option value="Cartão de Crédito">Cartão de Crédito</option>
@@ -3997,28 +3840,28 @@ export function FinancialSection({
                             </div>
 
                             <div>
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1">Observações (Opcional)</label>
+                                <label className="block text-[11px] font-semibold text-gray-600 mb-1">Observações (Opcional)</label>
                                 <textarea
                                     rows="2"
-                                    placeholder="Detalhes adicionais do lançamento..."
+                                    placeholder="Notas adicionais..."
                                     value={txNotes}
                                     onChange={(e) => setTxNotes(e.target.value)}
-                                    className="w-full px-4 py-3 bg-[#FAF9F5] border border-gray-200 rounded-2xl text-xs font-bold text-gray-900 outline-none focus:border-[#7A3E4A]"
+                                    className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-xs font-medium focus:bg-white focus:border-[#7A3E4A] outline-none"
                                 />
                             </div>
 
-                            <div className="flex justify-end gap-3 pt-3 border-t border-gray-100">
+                            <div className="flex justify-end gap-2 pt-2 border-t border-gray-100">
                                 <button
                                     type="button"
                                     onClick={() => setModalOpen(false)}
-                                    className="px-5 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-2xl text-xs font-black uppercase tracking-wider cursor-pointer transition-colors"
+                                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-xs font-medium cursor-pointer hover:bg-gray-200 transition-colors"
                                 >
                                     Cancelar
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={submitting}
-                                    className="px-7 py-3 bg-[#7A3E4A] hover:bg-[#603039] text-white rounded-2xl text-xs font-black uppercase tracking-wider shadow-lg shadow-[#7A3E4A]/25 cursor-pointer transition-all"
+                                    className="px-5 py-2 bg-[#7A3E4A] hover:bg-[#603039] text-white rounded-lg text-xs font-semibold shadow-xs cursor-pointer transition-colors"
                                 >
                                     {submitting ? 'Salvando...' : 'Salvar Lançamento'}
                                 </button>
