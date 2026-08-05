@@ -1290,6 +1290,7 @@ export default function AdminPage() {
                             compressImage={compressImage}
                             uploadMultipleImages={uploadMultipleImages}
                             getAssetUrl={getAssetUrl}
+                            updateStoreConfig={updateStoreConfig}
                         />
                     )}
 

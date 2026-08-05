@@ -776,7 +776,8 @@ export function EditorialSection({
     setSaving,
     compressImage,
     uploadMultipleImages,
-    getAssetUrl
+    getAssetUrl,
+    updateStoreConfig
 }) {
     return (
         <div className="space-y-5">
@@ -814,6 +815,9 @@ export function EditorialSection({
                         }
                         setEditorial(updated)
                         localStorage.setItem('meraki_editorial', JSON.stringify(updated))
+                        if (updateStoreConfig) {
+                            await updateStoreConfig({ editorial: updated })
+                        }
                         window.dispatchEvent(new Event('editorialUpdated'))
                         setSaving(false)
                         alert('Manifesto Editorial atualizado com sucesso!')
