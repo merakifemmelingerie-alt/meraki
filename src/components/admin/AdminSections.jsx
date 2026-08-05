@@ -3324,16 +3324,17 @@ export function FinancialSection({
                 <div className="flex items-center gap-2.5">
                     <button
                         onClick={() => setShowCostConfig(!showCostConfig)}
-                        className="px-3.5 py-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-xs font-medium rounded-lg shadow-2xs transition-colors cursor-pointer"
+                        className="px-3.5 py-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-xs font-medium rounded-lg shadow-2xs transition-colors cursor-pointer flex items-center gap-1.5"
                     >
-                        {showCostConfig ? 'Ocultar Taxas' : '⚙ Taxas da Loja'}
+                        <Icon path="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z" className="w-3.5 h-3.5 text-gray-500" />
+                        {showCostConfig ? 'Ocultar Taxas' : 'Taxas da Loja'}
                     </button>
                     <button
                         onClick={() => setModalOpen(true)}
                         className="px-4 py-2 bg-[#7A3E4A] hover:bg-[#603039] text-white text-xs font-semibold rounded-lg shadow-sm transition-colors cursor-pointer flex items-center gap-1.5"
                     >
-                        <Icon path="M12 4v16m8-8H4" className="w-4 h-4" />
-                        + Novo Lançamento
+                        <Icon path="M12 4v16m8-8H4" className="w-3.5 h-3.5" />
+                        Novo Lançamento
                     </button>
                 </div>
             </div>
@@ -3342,7 +3343,10 @@ export function FinancialSection({
             {showCostConfig && (
                 <div className="bg-gray-50 rounded-xl p-5 border border-gray-200 space-y-4 animate-fadeIn">
                     <div className="flex items-center justify-between">
-                        <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider">Parâmetros de Custos Fixos & Taxas</h3>
+                        <div className="flex items-center gap-2">
+                            <Icon path="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z" className="w-4 h-4 text-gray-500" />
+                            <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider">Parâmetros de Custos Fixos & Taxas</h3>
+                        </div>
                         <span className="text-[11px] text-gray-500">Usado para calcular a margem líquida por pedido</span>
                     </div>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -3398,10 +3402,13 @@ export function FinancialSection({
                 </div>
             )}
 
-            {/* STRIPE-STYLE EXECUTIVE METRICS STRIP */}
+            {/* STRIPE-STYLE EXECUTIVE METRICS STRIP WITH MONOCHROME ICONS */}
             <div className="bg-white rounded-xl border border-gray-200 divide-y md:divide-y-0 md:divide-x divide-gray-200 grid grid-cols-1 md:grid-cols-4 shadow-2xs">
                 <div className="p-5">
-                    <p className="text-xs font-medium text-gray-500">Receita Bruta Total</p>
+                    <div className="flex items-center justify-between">
+                        <p className="text-xs font-medium text-gray-500">Receita Bruta Total</p>
+                        <Icon path="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" className="w-4 h-4 text-gray-400" />
+                    </div>
                     <p className="text-2xl font-bold text-gray-900 mt-1">
                         R$ {totalReceitas.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </p>
@@ -3409,7 +3416,10 @@ export function FinancialSection({
                 </div>
 
                 <div className="p-5">
-                    <p className="text-xs font-medium text-gray-500">Custos Operacionais & CMV</p>
+                    <div className="flex items-center justify-between">
+                        <p className="text-xs font-medium text-gray-500">Custos Operacionais & CMV</p>
+                        <Icon path="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" className="w-4 h-4 text-gray-400" />
+                    </div>
                     <p className="text-2xl font-bold text-gray-900 mt-1">
                         R$ {(totalProductCost + totalPaymentFees + totalPackagingCosts + totalSubsidyCosts + totalDespesas).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </p>
@@ -3418,7 +3428,10 @@ export function FinancialSection({
 
                 <div className="p-5">
                     <div className="flex items-center justify-between">
-                        <p className="text-xs font-medium text-gray-500">Lucro Líquido Real</p>
+                        <div className="flex items-center gap-1.5">
+                            <p className="text-xs font-medium text-gray-500">Lucro Líquido Real</p>
+                            <Icon path="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" className="w-4 h-4 text-gray-400" />
+                        </div>
                         <span className={`text-[11px] font-bold px-2 py-0.5 rounded-md ${lucroLiquido >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>
                             {margemLucro}% margem
                         </span>
@@ -3430,7 +3443,10 @@ export function FinancialSection({
                 </div>
 
                 <div className="p-5">
-                    <p className="text-xs font-medium text-gray-500">Contas Pendentes</p>
+                    <div className="flex items-center justify-between">
+                        <p className="text-xs font-medium text-gray-500">Contas Pendentes</p>
+                        <Icon path="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" className="w-4 h-4 text-gray-400" />
+                    </div>
                     <p className="text-2xl font-bold text-amber-600 mt-1">
                         R$ {Math.abs(totalPendentes).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </p>
@@ -3438,27 +3454,29 @@ export function FinancialSection({
                 </div>
             </div>
 
-            {/* TAB SUB-NAVIGATION (SHOPIFY/STRIPE UNDERLINE STYLE) */}
+            {/* TAB SUB-NAVIGATION (SHOPIFY/STRIPE UNDERLINE STYLE WITH ICONS) */}
             <div className="border-b border-gray-200">
                 <nav className="flex space-x-6">
                     <button
                         onClick={() => setActiveTab('custo_real')}
-                        className={`pb-3 text-xs font-semibold transition-all border-b-2 cursor-pointer ${
+                        className={`pb-3 text-xs font-semibold transition-all border-b-2 cursor-pointer flex items-center gap-1.5 ${
                             activeTab === 'custo_real'
                                 ? 'border-[#7A3E4A] text-[#7A3E4A]'
                                 : 'border-transparent text-gray-500 hover:text-gray-700'
                         }`}
                     >
+                        <Icon path="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" className="w-4 h-4 text-current" />
                         Margem por Pedido (Unit Economics)
                     </button>
                     <button
                         onClick={() => setActiveTab('overview')}
-                        className={`pb-3 text-xs font-semibold transition-all border-b-2 cursor-pointer ${
+                        className={`pb-3 text-xs font-semibold transition-all border-b-2 cursor-pointer flex items-center gap-1.5 ${
                             activeTab === 'overview'
                                 ? 'border-[#7A3E4A] text-[#7A3E4A]'
                                 : 'border-transparent text-gray-500 hover:text-gray-700'
                         }`}
                     >
+                        <Icon path="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l4-2 4 2 4-2 4 2z" className="w-4 h-4 text-current" />
                         Fluxo de Caixa & Lançamentos
                     </button>
                 </nav>
