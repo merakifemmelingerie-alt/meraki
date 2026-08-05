@@ -30,21 +30,25 @@ export function useAuth() {
         loadAuth()
 
         const { data: { subscription } } = onAuthStateChange(async (event, newSession) => {
-            setSession(newSession)
+            try {
+                setSession(newSession)
 
-            if (newSession) {
-                const { user: newUser } = await getUser()
-                setUser(newUser)
+                if (newSession) {
+                    const { user: newUser } = await getUser()
+                    setUser(newUser)
 
-                if (newUser) {
-                    const { profile: userProfile } = await getUserProfile(newUser.id)
-                    setProfile(userProfile)
-                    setAdmin(userProfile?.tipo_user === 'admin')
+                    if (newUser) {
+                        const { profile: userProfile } = await getUserProfile(newUser.id)
+                        setProfile(userProfile)
+                        setAdmin(userProfile?.tipo_user === 'admin')
+                    }
+                } else {
+                    setUser(null)
+                    setProfile(null)
+                    setAdmin(false)
                 }
-            } else {
-                setUser(null)
-                setProfile(null)
-                setAdmin(false)
+            } catch (e) {
+                console.error('Erro em useAuth onAuthStateChange:', e)
             }
         })
 

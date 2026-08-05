@@ -7,9 +7,12 @@ const authListeners = new Set()
 supabase.auth.onAuthStateChange((event, session) => {
     for (const listener of authListeners) {
         try {
-            listener(event, session)
+            const res = listener(event, session)
+            if (res && typeof res.catch === 'function') {
+                res.catch(e => console.error('Erro assíncrono no ouvinte de autenticação:', e))
+            }
         } catch (e) {
-            console.error(e)
+            console.error('Erro síncrono no ouvinte de autenticação:', e)
         }
     }
 })

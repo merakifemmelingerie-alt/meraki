@@ -13,6 +13,7 @@ import CartDrawer from './components/CartDrawer.jsx'
 import SearchOverlay from './components/SearchOverlay.jsx'
 import TrackingManager from './components/TrackingManager.jsx'
 import { isInitialSyncComplete } from './services/database.js'
+import { ErrorBoundary } from './components/ErrorBoundary.jsx'
 
 function ScrollToTopReset() {
     const { pathname } = useLocation()
@@ -119,43 +120,45 @@ export default function App() {
     }, [])
 
     return (
-        <HashRouter>
-            <SplashLoader loading={loading} />
-            <ScrollToTopReset />
-            <TrackingManager />
-            <CartDrawer />
-            <SearchOverlay />
-            <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/auth" element={<AuthPage />} />
-                <Route path="/login" element={<AuthPage />} />
-                <Route path="/account" element={<AuthPage />} />
-                <Route path="/orders" element={<AuthPage />} />
-                <Route path="/admin" element={<AdminPage />} />
-                <Route path="/category/:slug" element={<CategoryPage />} />
-                <Route path="/product/:id" element={<ProductPage />} />
-                <Route path="/checkout" element={<CheckoutPage />} />
-                <Route path="/profile" element={<ProfilePage />} />
-                <Route path="/order-success/:orderId" element={<OrderSuccessPage />} />
-                
-                {/* Institutional & Atendimento Routes */}
-                <Route path="/story" element={<InfoPage tab="story" />} />
-                <Route path="/revenda" element={<InfoPage tab="revenda" />} />
-                <Route path="/connect" element={<InfoPage tab="connect" />} />
-                <Route path="/security" element={<InfoPage tab="security" />} />
-                <Route path="/payment" element={<InfoPage tab="payment" />} />
-                <Route path="/delivery" element={<InfoPage tab="delivery" />} />
-                <Route path="/returns" element={<InfoPage tab="returns" />} />
-                <Route path="/withdrawal" element={<InfoPage tab="withdrawal" />} />
-                <Route path="/privacy" element={<InfoPage tab="privacy" />} />
-                <Route path="/promotional-rules" element={<InfoPage tab="promotional-rules" />} />
-                <Route path="/stores" element={<InfoPage tab="stores" />} />
-                <Route path="/wishlist" element={<InfoPage tab="wishlist" />} />
-                <Route path="/info/:tab" element={<InfoPage />} />
+        <ErrorBoundary>
+            <HashRouter>
+                <SplashLoader loading={loading} />
+                <ScrollToTopReset />
+                <TrackingManager />
+                <CartDrawer />
+                <SearchOverlay />
+                <Routes>
+                    <Route path="/" element={<HomePage />} />
+                    <Route path="/auth" element={<AuthPage />} />
+                    <Route path="/login" element={<AuthPage />} />
+                    <Route path="/account" element={<AuthPage />} />
+                    <Route path="/orders" element={<AuthPage />} />
+                    <Route path="/admin" element={<AdminPage />} />
+                    <Route path="/category/:slug" element={<CategoryPage />} />
+                    <Route path="/product/:id" element={<ProductPage />} />
+                    <Route path="/checkout" element={<CheckoutPage />} />
+                    <Route path="/profile" element={<ProfilePage />} />
+                    <Route path="/order-success/:orderId" element={<OrderSuccessPage />} />
+                    
+                    {/* Institutional & Atendimento Routes */}
+                    <Route path="/story" element={<InfoPage tab="story" />} />
+                    <Route path="/revenda" element={<InfoPage tab="revenda" />} />
+                    <Route path="/connect" element={<InfoPage tab="connect" />} />
+                    <Route path="/security" element={<InfoPage tab="security" />} />
+                    <Route path="/payment" element={<InfoPage tab="payment" />} />
+                    <Route path="/delivery" element={<InfoPage tab="delivery" />} />
+                    <Route path="/returns" element={<InfoPage tab="returns" />} />
+                    <Route path="/withdrawal" element={<InfoPage tab="withdrawal" />} />
+                    <Route path="/privacy" element={<InfoPage tab="privacy" />} />
+                    <Route path="/promotional-rules" element={<InfoPage tab="promotional-rules" />} />
+                    <Route path="/stores" element={<InfoPage tab="stores" />} />
+                    <Route path="/wishlist" element={<InfoPage tab="wishlist" />} />
+                    <Route path="/info/:tab" element={<InfoPage />} />
 
-                {/* Fallback wildcard route */}
-                <Route path="*" element={<HomePage />} />
-            </Routes>
-        </HashRouter>
+                    {/* Fallback wildcard route */}
+                    <Route path="*" element={<HomePage />} />
+                </Routes>
+            </HashRouter>
+        </ErrorBoundary>
     )
 }

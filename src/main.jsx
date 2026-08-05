@@ -24,10 +24,12 @@ cleanSessionData()
 window.addEventListener('pagehide', cleanSessionData)
 window.addEventListener('beforeunload', cleanSessionData)
 
-// Auto-recover from stale Vercel asset 404s after new deployments
+// Auto-recover strictly from real stale asset 404s after new deployments (e.g. SCRIPT/LINK network errors or dynamic import failures)
 window.addEventListener('error', (event) => {
-    const src = event?.target?.src || event?.filename || ''
-    if (src.includes('/assets/') || event?.message?.includes('chunk') || event?.message?.includes('Importing a module')) {
+    const isScriptOrLinkTag = event?.target && (event.target.tagName === 'SCRIPT' || event.target.tagName === 'LINK')
+    const isChunkImportError = event?.message?.includes('dynamically imported module') || event?.message?.includes('Loading chunk')
+    
+    if (isScriptOrLinkTag || isChunkImportError) {
         const reloaded = sessionStorage.getItem('meraki_asset_reload')
         if (!reloaded) {
             sessionStorage.setItem('meraki_asset_reload', 'true')
