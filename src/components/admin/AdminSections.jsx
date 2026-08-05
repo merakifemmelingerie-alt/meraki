@@ -3660,6 +3660,151 @@ export function FinancialSection({
                     </div>
                 </div>
             )}
+
+            {/* Modal: Novo Lançamento Financeiro */}
+            {modalOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fadeIn">
+                    <div className="bg-white rounded-3xl p-6 w-full max-w-md border border-gray-100 shadow-2xl space-y-4">
+                        <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                            <h3 className="text-sm font-black text-gray-900">Novo Lançamento Financeiro</h3>
+                            <button onClick={() => setModalOpen(false)} className="text-gray-400 hover:text-gray-600 p-1 cursor-pointer">✕</button>
+                        </div>
+
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <div className="grid grid-cols-2 gap-2 p-1 bg-[#FAF9F5] rounded-xl border border-gray-100">
+                                <button
+                                    type="button"
+                                    onClick={() => setTxType('receita')}
+                                    className={`py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                                        txType === 'receita' ? 'bg-emerald-600 text-white shadow-sm' : 'text-gray-600'
+                                    }`}
+                                >
+                                    🟢 Receita (Entrada)
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setTxType('despesa')}
+                                    className={`py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                                        txType === 'despesa' ? 'bg-red-600 text-white shadow-sm' : 'text-gray-600'
+                                    }`}
+                                >
+                                    🔴 Despesa (Gasto / Saída)
+                                </button>
+                            </div>
+
+                            <div>
+                                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Nome do Gasto / Receita</label>
+                                <input
+                                    type="text"
+                                    required
+                                    placeholder="Ex: Compra de tecidos e rendas, Anúncios Meta Ads..."
+                                    value={txTitle}
+                                    onChange={(e) => setTxTitle(e.target.value)}
+                                    className="w-full px-3 py-2.5 bg-[#FAF9F5] border border-gray-200 rounded-xl text-xs outline-none focus:border-[#7A3E4A]"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Valor (R$)</label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        required
+                                        placeholder="0.00"
+                                        value={txAmount}
+                                        onChange={(e) => setTxAmount(e.target.value)}
+                                        className="w-full px-3 py-2.5 bg-[#FAF9F5] border border-gray-200 rounded-xl text-xs outline-none focus:border-[#7A3E4A]"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Categoria</label>
+                                    <select
+                                        value={txCategory}
+                                        onChange={(e) => setTxCategory(e.target.value)}
+                                        className="w-full px-3 py-2.5 bg-[#FAF9F5] border border-gray-200 rounded-xl text-xs outline-none focus:border-[#7A3E4A]"
+                                    >
+                                        <option value="Fornecedores">Fornecedores / Matéria Prima</option>
+                                        <option value="Marketing">Marketing & Anúncios</option>
+                                        <option value="Vendas">Vendas / Entradas</option>
+                                        <option value="Impostos">Impostos & Taxas</option>
+                                        <option value="Fretes">Logística & Fretes</option>
+                                        <option value="Salarios">Salários / Pró-labore</option>
+                                        <option value="Outros">Outros</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Data Vencimento</label>
+                                    <input
+                                        type="date"
+                                        value={txDueDate}
+                                        onChange={(e) => setTxDueDate(e.target.value)}
+                                        className="w-full px-3 py-2.5 bg-[#FAF9F5] border border-gray-200 rounded-xl text-xs outline-none focus:border-[#7A3E4A]"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Status</label>
+                                    <select
+                                        value={txStatus}
+                                        onChange={(e) => setTxStatus(e.target.value)}
+                                        className="w-full px-3 py-2.5 bg-[#FAF9F5] border border-gray-200 rounded-xl text-xs outline-none focus:border-[#7A3E4A]"
+                                    >
+                                        <option value="pago">Pago / Liquidado</option>
+                                        <option value="pendente">Pendente</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Forma de Pagamento</label>
+                                <select
+                                    value={txMethod}
+                                    onChange={(e) => setTxMethod(e.target.value)}
+                                    className="w-full px-3 py-2.5 bg-[#FAF9F5] border border-gray-200 rounded-xl text-xs outline-none focus:border-[#7A3E4A]"
+                                >
+                                    <option value="PIX">PIX</option>
+                                    <option value="Cartão de Crédito">Cartão de Crédito</option>
+                                    <option value="Cartão de Débito">Cartão de Débito</option>
+                                    <option value="Boleto">Boleto Bancário</option>
+                                    <option value="Transferência">Transferência</option>
+                                    <option value="Dinheiro">Dinheiro</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Observações (Opcional)</label>
+                                <textarea
+                                    rows="2"
+                                    placeholder="Detalhes adicionais..."
+                                    value={txNotes}
+                                    onChange={(e) => setTxNotes(e.target.value)}
+                                    className="w-full px-3 py-2.5 bg-[#FAF9F5] border border-gray-200 rounded-xl text-xs outline-none focus:border-[#7A3E4A]"
+                                />
+                            </div>
+
+                            <div className="flex justify-end gap-2 pt-2 border-t border-gray-100">
+                                <button
+                                    type="button"
+                                    onClick={() => setModalOpen(false)}
+                                    className="px-4 py-2.5 bg-gray-100 text-gray-600 rounded-xl text-xs font-bold uppercase tracking-wider cursor-pointer"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={submitting}
+                                    className="px-6 py-2.5 bg-[#7A3E4A] hover:bg-[#603039] text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-md cursor-pointer"
+                                >
+                                    {submitting ? 'Salvando...' : 'Salvar Lançamento'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }
