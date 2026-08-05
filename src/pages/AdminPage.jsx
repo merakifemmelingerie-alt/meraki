@@ -263,6 +263,8 @@ export default function AdminPage() {
     const [newSectionLabel, setNewSectionLabel] = useState('')
     const [selectedModalSection, setSelectedModalSection] = useState('best-sellers')
     const [selectedModalSubcategory, setSelectedModalSubcategory] = useState('')
+    const [modalPrice, setModalPrice] = useState('')
+    const [modalCostPrice, setModalCostPrice] = useState('')
 
     const [selectedModalColors, setSelectedModalColors] = useState([])
     const [modalColorStock, setModalColorStock] = useState({})
@@ -661,11 +663,15 @@ export default function AdminPage() {
                     ? (typeof rawEmojis === 'string' ? rawEmojis.split(',').map(e => e.trim()) : rawEmojis)
                     : masterEmojisList
             )
+            setModalPrice(product?.price !== undefined ? String(product.price) : '')
+            setModalCostPrice(product?.cost_price || product?.costPrice ? String(product.cost_price || product.costPrice) : '')
         } else if (modal.open && !modal.editing) {
             setExistingImages([])
             setImageFiles([])
             setSelectedModalCategory(categories[0]?.name || '')
             setSelectedModalSubcategory('')
+            setModalPrice('')
+            setModalCostPrice('')
             setSelectedModalSizes(['P', 'M', 'G', 'GG'])
             setSelectedModalSection(sections[0]?.id || 'best-sellers')
             setSelectedModalColors([])
