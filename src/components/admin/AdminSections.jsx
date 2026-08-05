@@ -630,7 +630,8 @@ export function PromoComboSection({
     setSaving,
     compressImage,
     uploadMultipleImages,
-    getAssetUrl
+    getAssetUrl,
+    updateStoreConfig
 }) {
     return (
         <div className="space-y-5">
@@ -672,6 +673,9 @@ export function PromoComboSection({
                         }
                         setPromoCombo(updated)
                         localStorage.setItem('meraki_promo_combo', JSON.stringify(updated))
+                        if (updateStoreConfig) {
+                            await updateStoreConfig({ promoCombo: updated })
+                        }
                         window.dispatchEvent(new Event('promoComboUpdated'))
                         setSaving(false)
                         alert('Promoção atualizada com sucesso!')

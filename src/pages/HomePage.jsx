@@ -43,12 +43,18 @@ export default function HomePage() {
     const [promoCombo, setPromoCombo] = useState(() => {
         const stored = localStorage.getItem('meraki_promo_combo')
         if (stored) {
-            try { return JSON.parse(stored) } catch (e) { console.error(e) }
+            try {
+                const parsed = JSON.parse(stored)
+                if (parsed?.image && parsed.image.includes('photo-1616422285623')) {
+                    parsed.image = '/assets/categories/cat-conjuntos.jpg'
+                }
+                return parsed
+            } catch (e) { console.error(e) }
         }
         return {
             title: 'Combo Sutiã',
             subtitle: 'Do P ao EG. Diversos modelos para você escolher.',
-            image: 'https://images.unsplash.com/photo-1616422285623-13ff0162193c?w=800&auto=format&fit=crop&q=80',
+            image: '/assets/categories/cat-conjuntos.jpg',
             price2Items: 139,
             price3Items: 169,
             link: '/category/promo-combo',

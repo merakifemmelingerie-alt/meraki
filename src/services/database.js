@@ -372,7 +372,12 @@ export async function initSupabaseSync() {
                 const homeCats = Array.isArray(rawHomeCats) ? rawHomeCats.filter(c => c && c.name) : rawHomeCats
                 localStorage.setItem('meraki_homepage_categories', JSON.stringify(homeCats))
             }
-            if (dbConfig.promoCombo) localStorage.setItem('meraki_promo_combo', JSON.stringify(dbConfig.promoCombo))
+            if (dbConfig.promoCombo) {
+                if (dbConfig.promoCombo.image && dbConfig.promoCombo.image.includes('photo-1616422285623')) {
+                    dbConfig.promoCombo.image = '/assets/categories/cat-conjuntos.jpg'
+                }
+                localStorage.setItem('meraki_promo_combo', JSON.stringify(dbConfig.promoCombo))
+            }
             if (dbConfig.editorial) localStorage.setItem('meraki_editorial', JSON.stringify(dbConfig.editorial))
             localStorage.setItem('meraki_shipping_message', dbConfig.shippingMessage || 'Frete grátis para a região Centro-Oeste nas compras acima de R$ 299,90.')
             localStorage.setItem('meraki_promo_message', dbConfig.promoMessage || '10% OFF na primeira compra com o cupom: BEMVINDA10 (Ganhe R$ 10 OFF)')
