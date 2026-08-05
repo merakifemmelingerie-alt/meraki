@@ -3136,10 +3136,14 @@ export function FinancialSection({
     const [calendarMonth, setCalendarMonth] = useState(() => new Date().getMonth())
 
     const dropdownRef = useRef(null)
+    const calendarRef = useRef(null)
 
     useEffect(() => {
         const handleClickOutside = (event) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+            const isDropdown = dropdownRef.current && dropdownRef.current.contains(event.target)
+            const isCalendar = calendarRef.current && calendarRef.current.contains(event.target)
+
+            if (!isDropdown && !isCalendar) {
                 setPeriodDropdownOpen(false)
                 setFilterDropdownOpen(false)
                 setLimiterDropdownOpen(false)
@@ -3729,7 +3733,7 @@ export function FinancialSection({
 
             {/* CUSTOM REACT LUXURY DATE RANGE PICKER (ZERO OS NATIVE POPUPS) */}
             {period === 'personalizado' && (
-                <div className="relative bg-white p-3.5 border border-gray-200 rounded-xl shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-fadeIn">
+                <div className="relative bg-white p-3.5 border border-gray-200 rounded-xl shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-fadeIn" ref={calendarRef}>
                     <div className="flex items-center gap-2 text-xs font-semibold text-gray-700">
                         <Icon path="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" className="w-4 h-4 text-[#7A3E4A]" />
                         <span>Intervalo Personalizado de Datas:</span>
@@ -3857,10 +3861,10 @@ export function FinancialSection({
                                                     key={d}
                                                     type="button"
                                                     onClick={() => {
-                                                        if (!startDate || (startDate && endDate)) {
+                                                        if (!startDate || (startDate && endDate && startDate !== endDate)) {
                                                             setStartDate(isoDate)
-                                                            setEndDate('')
-                                                        } else if (startDate && !endDate) {
+                                                            setEndDate(isoDate)
+                                                        } else if (startDate && (endDate === startDate || !endDate)) {
                                                             if (isoDate < startDate) {
                                                                 setEndDate(startDate)
                                                                 setStartDate(isoDate)
@@ -3888,6 +3892,7 @@ export function FinancialSection({
                                                 const today = new Date().toISOString().split('T')[0]
                                                 setStartDate(today)
                                                 setEndDate(today)
+                                                setCustomCalendarOpen(false)
                                             }}
                                             className="px-2.5 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md font-semibold transition-colors cursor-pointer"
                                         >
@@ -3901,6 +3906,7 @@ export function FinancialSection({
                                                 const last = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0]
                                                 setStartDate(first)
                                                 setEndDate(last)
+                                                setCustomCalendarOpen(false)
                                             }}
                                             className="px-2.5 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md font-semibold transition-colors cursor-pointer"
                                         >
@@ -3910,9 +3916,9 @@ export function FinancialSection({
                                     <button
                                         type="button"
                                         onClick={() => setCustomCalendarOpen(false)}
-                                        className="text-[#7A3E4A] hover:underline font-bold px-2 py-1 cursor-pointer"
+                                        className="px-3 py-1 bg-[#7A3E4A] text-white rounded-md font-bold hover:bg-[#603039] transition-colors cursor-pointer"
                                     >
-                                        Concluído
+                                        Aplicar
                                     </button>
                                 </div>
                             </div>
