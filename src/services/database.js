@@ -1171,3 +1171,112 @@ export async function updateReturnStatusInDb(returnId, status, postageCode = '')
 
     return { data: null, error: null }
 }
+
+// ─── FINANCIAL TRANSACTIONS / GESTÃO FINANCEIRA ──────────────────────────────────
+
+export async function getFinancialTransactions() {
+    const local = JSON.parse(localStorage.getItem('meraki_financial_transactions') || '[]')
+    try {
+        const { data, error } = await supabase
+            .from('financial_transactions')
+            .select('*')
+            .order('created_at', { ascending: false })
+            
+        if (!error && data) {
+            localStorage.setItem('meraki_financial_transactions', JSON.stringify(data))
+            return { data, error: null }
+        }
+    } catch (e) {
+        console.warn('Erro ao buscar transações financeiras no Supabase:', e)
+    }
+    return { data: local, error: null }
+}
+
+export async function createFinancialTransaction(transaction) {
+    const localList = JSON.parse(localStorage.getItem('meraki_financial_transactions') || '[]')
+    const newTx = {
+        id: transaction.id || generateUUID(),
+        type: transaction.type || 'despesa',
+        title: transaction.title || 'Lançamento sem título',
+        category: transaction.category || 'Outros',
+        amount: parseFloat(transaction.amount) || 0,
+        due_date: transaction.due_date || new Date().toISOString().split('T')[0],
+        payment_date: transaction.payment_date || (transaction.status === 'pago' ? new Date().toISOString().split('T')[0] : null),
+        status: transaction.status || 'pago',
+        payment_method: transaction.payment_method || 'PIX',
+        notes: transaction.notes || '',
+        order_id: transaction.order_id || null,
+        created_at: new Date().toISOString()
+    }
+
+    const updatedList = [newTx, ...localList]
+    localStorage.setItem('meraki_financial_transactions', JSON.stringify(updatedList))
+
+    try {
+        const { data, error } = await supabase
+            .from('financial_transactions')
+            .insert([newTx])
+            .select()
+            .single()
+
+        if (!error && data) {
+            return { data, error: null }
+        }
+    } catch (e) {
+        console.warn('Erro ao salvar transação financeira no Supabase:', e)
+    }
+
+    return { data: newTx, error: null }
+}
+
+export async function updateFinancialTransactionStatus(id, status, payment_date = null) {
+    const localList = JSON.parse(localStorage.getItem('meraki_financial_transactions') || '[]')
+    const idx = localList.findIndex(t => t.id === id)
+    if (idx !== -1) {
+        localList[idx].status = status
+        if (status === 'pago') {
+            localList[idx].payment_date = payment_date || new Date().toISOString().split('T')[0]
+        }
+        localStorage.setItem('meraki_financial_transactions', JSON.stringify(localList))
+    }
+
+    try {
+        const payload = { status }
+        if (status === 'pago') {
+            payload.payment_date = payment_date || new Date().toISOString().split('T')[0]
+        }
+        const { data, error } = await supabase
+            .from('financial_transactions')
+            .update(payload)
+            .eq('id', id)
+            .select()
+            .single()
+
+        if (!error && data) {
+            return { data, error: null }
+        }
+    } catch (e) {
+        console.warn('Erro ao atualizar status da transação financeira:', e)
+    }
+
+    return { data: localList[idx] || null, error: null }
+}
+
+export async function deleteFinancialTransaction(id) {
+    const localList = JSON.parse(localStorage.getItem('meraki_financial_transactions') || '[]')
+    const filtered = localList.filter(t => t.id !== id)
+    localStorage.setItem('meraki_financial_transactions', JSON.stringify(filtered))
+
+    try {
+        const { error } = await supabase
+            .from('financial_transactions')
+            .delete()
+            .eq('id', id)
+
+        if (!error) return { error: null }
+    } catch (e) {
+        console.warn('Erro ao excluir transação financeira no Supabase:', e)
+    }
+
+    return { error: null }
+}

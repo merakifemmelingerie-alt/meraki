@@ -4,7 +4,7 @@ import { useAuth } from '../hooks/useAuth.js'
 import { getAssetUrl } from '../utils/assets.js'
 import { useProducts } from '../hooks/useProducts.js'
 import { supabase } from '../services/supabase.js'
-import { createProduct, updateProduct, deleteProduct, uploadMultipleImages, deleteImage, createCategory, getProfiles, updateStoreConfig, clearProductBadges, generateUUID } from '../services/database.js'
+import { createProduct, updateProduct, deleteProduct, uploadMultipleImages, deleteImage, createCategory, getProfiles, updateStoreConfig, clearProductBadges, generateUUID, getFinancialTransactions, createFinancialTransaction, updateFinancialTransactionStatus, deleteFinancialTransaction } from '../services/database.js'
 import { signOut } from '../services/auth.js'
 import AdminSidebar from '../components/admin/AdminSidebar.jsx'
 import DashboardSection from '../components/admin/DashboardSection.jsx'
@@ -19,7 +19,8 @@ import {
     CustomersSection,
     ReturnsSection,
     SettingsSection,
-    InstitutionalSection
+    InstitutionalSection,
+    FinancialSection
 } from '../components/admin/AdminSections.jsx'
 
 // ─── Icon Component ───────────────────────────────────────────────────────────
@@ -88,7 +89,32 @@ export default function AdminPage() {
     const [banners, setBanners] = useState([])
     const [customers, setCustomers] = useState([])
     const [returns, setReturns] = useState([])
+    const [transactions, setTransactions] = useState([])
     const [selectedReturn, setSelectedReturn] = useState(null)
+
+    useEffect(() => {
+        getFinancialTransactions().then(({ data }) => {
+            if (data) setTransactions(data)
+        })
+    }, [])
+
+    const handleCreateTransaction = async (txData) => {
+        const { data } = await createFinancialTransaction(txData)
+        if (data) {
+            setTransactions(prev => [data, ...prev.filter(t => t.id !== data.id)])
+        }
+    }
+
+    const handleUpdateTransactionStatus = async (id, status) => {
+        const { data } = await updateFinancialTransactionStatus(id, status)
+        setTransactions(prev => prev.map(t => t.id === id ? { ...t, status } : t))
+    }
+
+    const handleDeleteTransaction = async (id) => {
+        await deleteFinancialTransaction(id)
+        setTransactions(prev => prev.filter(t => t.id !== id))
+    }
+
     const [topbarMessages, setTopbarMessages] = useState([])
     const [newTopbarMsg, setNewTopbarMsg] = useState('')
     const [shippingMessage, setShippingMessage] = useState(() => {
@@ -1076,6 +1102,7 @@ export default function AdminPage() {
         { id: 'products', label: 'Produtos',         icon: 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4' },
         { id: 'categories', label: 'Categorias',     icon: 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10' },
         { id: 'orders',   label: 'Pedidos',           icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2' },
+        { id: 'financial', label: 'Gestão Financeira', icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
         { id: 'coupons',  label: 'Cupons',            icon: 'M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z' },
         { id: 'banners',  label: 'Banners Home',      icon: 'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z' },
         { id: 'promocombo', label: 'Promoção Combo', icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
@@ -1225,6 +1252,19 @@ export default function AdminPage() {
                             renderPagination={renderPagination}
                             oPage={oPage}
                             setOPage={setOPage}
+                        />
+                    )}
+
+                    {/* ═══════════════════════════════════════════════════════════ */}
+                    {/* SECTION: FINANCIAL MANAGEMENT */}
+                    {/* ═══════════════════════════════════════════════════════════ */}
+                    {activeSection === 'financial' && (
+                        <FinancialSection
+                            orders={orders}
+                            transactions={transactions}
+                            onCreateTransaction={handleCreateTransaction}
+                            onUpdateTransactionStatus={handleUpdateTransactionStatus}
+                            onDeleteTransaction={handleDeleteTransaction}
                         />
                     )}
 
