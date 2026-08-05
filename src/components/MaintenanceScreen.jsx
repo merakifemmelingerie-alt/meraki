@@ -179,12 +179,13 @@ export default function MaintenanceScreen({ config }) {
                     min-width: 64px;
                 }
                 .mnt-cd-number {
-                    font-family: 'Cormorant Garamond', serif;
+                    font-family: 'Lora', serif;
                     font-weight: 700;
-                    font-size: clamp(42px, 8vw, 64px);
+                    font-size: clamp(48px, 9vw, 72px);
                     line-height: 1;
                     color: #1A1A1A;
-                    letter-spacing: -0.02em;
+                    letter-spacing: -0.03em;
+                    font-variant-numeric: tabular-nums;
                 }
                 .mnt-cd-label {
                     font-family: 'Manrope', sans-serif;
@@ -193,16 +194,16 @@ export default function MaintenanceScreen({ config }) {
                     letter-spacing: 0.22em;
                     text-transform: uppercase;
                     color: #7A3E4A;
-                    margin-top: 6px;
+                    margin-top: 8px;
                 }
                 .mnt-cd-sep {
-                    font-family: 'Cormorant Garamond', serif;
-                    font-size: clamp(32px, 6vw, 50px);
+                    font-family: 'Lora', serif;
+                    font-size: clamp(36px, 6vw, 56px);
                     color: #C6A76A;
-                    opacity: 0.4;
-                    font-weight: 300;
+                    opacity: 0.45;
+                    font-weight: 400;
                     align-self: flex-start;
-                    padding-top: 8px;
+                    padding-top: 6px;
                     line-height: 1;
                 }
 
