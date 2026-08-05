@@ -4330,7 +4330,7 @@ export function AutomationsSection() {
         setTimeout(() => setFeedback(null), 5000)
     }
 
-    async function handleBroadcastCollection(e) {
+    async function handleBroadcastNewCollection(e) {
         e.preventDefault()
         if (!collectionInput.trim()) return
         setRunning(true)
