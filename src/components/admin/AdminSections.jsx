@@ -3130,6 +3130,11 @@ export function FinancialSection({
     const [filterDropdownOpen, setFilterDropdownOpen] = useState(false)
     const [limiterDropdownOpen, setLimiterDropdownOpen] = useState(false)
 
+    // Custom React Calendar states (Zero OS popups)
+    const [customCalendarOpen, setCustomCalendarOpen] = useState(false)
+    const [calendarYear, setCalendarYear] = useState(() => new Date().getFullYear())
+    const [calendarMonth, setCalendarMonth] = useState(() => new Date().getMonth())
+
     const dropdownRef = useRef(null)
 
     useEffect(() => {
@@ -3138,6 +3143,7 @@ export function FinancialSection({
                 setPeriodDropdownOpen(false)
                 setFilterDropdownOpen(false)
                 setLimiterDropdownOpen(false)
+                setCustomCalendarOpen(false)
             }
         }
         document.addEventListener('mousedown', handleClickOutside)
@@ -3721,44 +3727,195 @@ export function FinancialSection({
                 </div>
             </div>
 
-            {/* EXECUTIVE DATE RANGE PICKER BAR */}
+            {/* CUSTOM REACT LUXURY DATE RANGE PICKER (ZERO OS NATIVE POPUPS) */}
             {period === 'personalizado' && (
-                <div className="bg-white p-3.5 border border-gray-200 rounded-xl shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-fadeIn">
+                <div className="relative bg-white p-3.5 border border-gray-200 rounded-xl shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-fadeIn">
                     <div className="flex items-center gap-2 text-xs font-semibold text-gray-700">
                         <Icon path="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" className="w-4 h-4 text-[#7A3E4A]" />
                         <span>Intervalo Personalizado de Datas:</span>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-3">
-                        <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200">
-                            <span className="text-[11px] font-bold text-gray-500">De:</span>
-                            <input
-                                type="date"
-                                value={startDate}
-                                onChange={(e) => setStartDate(e.target.value)}
-                                className="bg-transparent text-xs font-semibold text-gray-900 outline-none cursor-pointer"
-                            />
-                        </div>
-
-                        <span className="text-gray-300 font-bold hidden sm:inline">•</span>
-
-                        <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200">
-                            <span className="text-[11px] font-bold text-gray-500">Até:</span>
-                            <input
-                                type="date"
-                                value={endDate}
-                                onChange={(e) => setEndDate(e.target.value)}
-                                className="bg-transparent text-xs font-semibold text-gray-900 outline-none cursor-pointer"
-                            />
-                        </div>
+                    <div className="flex flex-wrap items-center gap-3 relative">
+                        {/* TRIGGER BUTTON THAT OPENS CUSTOM REACT CALENDAR */}
+                        <button
+                            type="button"
+                            onClick={() => setCustomCalendarOpen(!customCalendarOpen)}
+                            className="flex items-center gap-2.5 px-4 py-2 bg-gray-50 hover:bg-gray-100 border border-gray-300 rounded-xl text-xs font-bold text-gray-800 transition-all cursor-pointer shadow-2xs"
+                        >
+                            <Icon path="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" className="w-4 h-4 text-[#7A3E4A]" />
+                            <span>
+                                {startDate ? (
+                                    <>
+                                        <span className="text-gray-500 font-normal">De: </span>
+                                        <strong className="text-gray-900">{startDate.split('-').reverse().join('/')}</strong>
+                                    </>
+                                ) : (
+                                    <span className="text-gray-400">Data Inicial</span>
+                                )}
+                                {'  •  '}
+                                {endDate ? (
+                                    <>
+                                        <span className="text-gray-500 font-normal">Até: </span>
+                                        <strong className="text-gray-900">{endDate.split('-').reverse().join('/')}</strong>
+                                    </>
+                                ) : (
+                                    <span className="text-gray-400">Data Final</span>
+                                )}
+                            </span>
+                            <Icon path="M19 9l-7 7-7-7" className={`w-3.5 h-3.5 text-gray-400 transition-transform ${customCalendarOpen ? 'rotate-180' : ''}`} />
+                        </button>
 
                         {(startDate || endDate) && (
                             <button
                                 onClick={() => { setStartDate(''); setEndDate(''); }}
-                                className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+                                className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
                             >
                                 Limpar Datas
                             </button>
+                        )}
+
+                        {/* FLOATING CUSTOM REACT CALENDAR POPOVER */}
+                        {customCalendarOpen && (
+                            <div className="absolute right-0 top-full mt-2 w-80 bg-white border border-gray-200 rounded-2xl shadow-2xl z-50 p-4 font-sans animate-fadeIn">
+                                {/* Calendar Header & Navigation */}
+                                <div className="flex items-center justify-between border-b border-gray-100 pb-3 mb-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            if (calendarMonth === 0) {
+                                                setCalendarMonth(11)
+                                                setCalendarYear(y => y - 1)
+                                            } else {
+                                                setCalendarMonth(m => m - 1)
+                                            }
+                                        }}
+                                        className="w-7 h-7 flex items-center justify-center hover:bg-gray-100 rounded-lg text-gray-700 font-bold transition-colors cursor-pointer"
+                                    >
+                                        ‹
+                                    </button>
+                                    <span className="text-xs font-bold text-gray-900 uppercase tracking-wide">
+                                        {['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'][calendarMonth]} {calendarYear}
+                                    </span>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            if (calendarMonth === 11) {
+                                                setCalendarMonth(0)
+                                                setCalendarYear(y => y + 1)
+                                            } else {
+                                                setCalendarMonth(m => m + 1)
+                                            }
+                                        }}
+                                        className="w-7 h-7 flex items-center justify-center hover:bg-gray-100 rounded-lg text-gray-700 font-bold transition-colors cursor-pointer"
+                                    >
+                                        ›
+                                    </button>
+                                </div>
+
+                                {/* Week Day Headers */}
+                                <div className="grid grid-cols-7 text-center mb-1">
+                                    {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(day => (
+                                        <span key={day} className="text-[10px] font-bold text-gray-400 uppercase tracking-wider py-1">
+                                            {day}
+                                        </span>
+                                    ))}
+                                </div>
+
+                                {/* Days Grid */}
+                                <div className="grid grid-cols-7 gap-1 text-center">
+                                    {(() => {
+                                        const firstDayIndex = new Date(calendarYear, calendarMonth, 1).getDay()
+                                        const daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate()
+                                        const todayStr = new Date().toISOString().split('T')[0]
+                                        
+                                        const cells = []
+                                        for (let i = 0; i < firstDayIndex; i++) {
+                                            cells.push(<div key={`empty-${i}`} className="h-8" />)
+                                        }
+
+                                        for (let d = 1; d <= daysInMonth; d++) {
+                                            const monthStr = String(calendarMonth + 1).padStart(2, '0')
+                                            const dayStr = String(d).padStart(2, '0')
+                                            const isoDate = `${calendarYear}-${monthStr}-${dayStr}`
+                                            
+                                            const isStart = startDate === isoDate
+                                            const isEnd = endDate === isoDate
+                                            const isInRange = startDate && endDate && isoDate >= startDate && isoDate <= endDate
+                                            const isToday = isoDate === todayStr
+
+                                            let cellStyle = "hover:bg-rose-50 text-gray-800"
+                                            if (isStart || isEnd) {
+                                                cellStyle = "bg-[#7A3E4A] text-white font-extrabold shadow-sm"
+                                            } else if (isInRange) {
+                                                cellStyle = "bg-[#7A3E4A]/15 text-[#7A3E4A] font-bold"
+                                            } else if (isToday) {
+                                                cellStyle = "border border-[#7A3E4A] text-[#7A3E4A] font-bold"
+                                            }
+
+                                            cells.push(
+                                                <button
+                                                    key={d}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        if (!startDate || (startDate && endDate)) {
+                                                            setStartDate(isoDate)
+                                                            setEndDate('')
+                                                        } else if (startDate && !endDate) {
+                                                            if (isoDate < startDate) {
+                                                                setEndDate(startDate)
+                                                                setStartDate(isoDate)
+                                                            } else {
+                                                                setEndDate(isoDate)
+                                                            }
+                                                        }
+                                                    }}
+                                                    className={`h-8 w-full rounded-lg text-xs font-semibold flex items-center justify-center transition-all cursor-pointer ${cellStyle}`}
+                                                >
+                                                    {d}
+                                                </button>
+                                            )
+                                        }
+                                        return cells
+                                    })()}
+                                </div>
+
+                                {/* Preset Actions & Close */}
+                                <div className="flex items-center justify-between pt-3 mt-3 border-t border-gray-100 text-[11px]">
+                                    <div className="flex items-center gap-1.5">
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                const today = new Date().toISOString().split('T')[0]
+                                                setStartDate(today)
+                                                setEndDate(today)
+                                            }}
+                                            className="px-2.5 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md font-semibold transition-colors cursor-pointer"
+                                        >
+                                            Hoje
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                const now = new Date()
+                                                const first = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]
+                                                const last = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0]
+                                                setStartDate(first)
+                                                setEndDate(last)
+                                            }}
+                                            className="px-2.5 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md font-semibold transition-colors cursor-pointer"
+                                        >
+                                            Este Mês
+                                        </button>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => setCustomCalendarOpen(false)}
+                                        className="text-[#7A3E4A] hover:underline font-bold px-2 py-1 cursor-pointer"
+                                    >
+                                        Concluído
+                                    </button>
+                                </div>
+                            </div>
                         )}
                     </div>
                 </div>
