@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef } from 'react'
 import { supabase } from '../../services/supabase.js'
 import { getAssetUrl } from '../../utils/assets.js'
 import MediaDisplay from '../MediaDisplay.jsx'
+import { getMarketingConfig, updateMarketingConfig, getMarketingLogs, getAbandonedCarts, processMarketingAutomations, broadcastNewCollection } from '../../services/marketing.js'
 
 function Icon({ path, className = 'w-5 h-5' }) {
     return (
@@ -4276,3 +4277,700 @@ export function FinancialSection({
         </div>
     )
 }
+
+// ─── SECTION: MARKETING AUTOMATIONS ───────────────────────────────────────────
+export function AutomationsSection() {
+    const [subTab, setSubTab] = useState('carrinho')
+    const [loading, setLoading] = useState(true)
+    const [saving, setSaving] = useState(false)
+    const [running, setRunning] = useState(false)
+    const [config, setConfig] = useState(null)
+    const [logs, setLogs] = useState([])
+    const [carts, setCarts] = useState([])
+    const [feedback, setFeedback] = useState(null)
+    const [collectionInput, setCollectionInput] = useState('')
+
+    useEffect(() => {
+        loadData()
+    }, [])
+
+    async function loadData() {
+        setLoading(true)
+        const cfg = await getMarketingConfig()
+        setConfig(cfg)
+        const lgs = await getMarketingLogs()
+        setLogs(lgs)
+        const cts = await getAbandonedCarts()
+        setCarts(cts)
+        setLoading(false)
+    }
+
+    async function handleSaveConfig() {
+        setSaving(true)
+        const res = await updateMarketingConfig(config)
+        setSaving(false)
+        if (res.success) {
+            setFeedback({ type: 'success', message: 'Configurações de automação salvas com sucesso!' })
+        } else {
+            setFeedback({ type: 'error', message: 'Erro ao salvar: ' + res.error })
+        }
+        setTimeout(() => setFeedback(null), 4000)
+    }
+
+    async function handleRunEngineNow() {
+        setRunning(true)
+        const res = await processMarketingAutomations()
+        setRunning(false)
+        if (res.success) {
+            setFeedback({ type: 'success', message: `Motor de automações executado! ${res.executedCount || 0} ações disparadas.` })
+            await loadData()
+        } else {
+            setFeedback({ type: 'error', message: 'Erro ao executar automações: ' + res.error })
+        }
+        setTimeout(() => setFeedback(null), 5000)
+    }
+
+    async function handleBroadcastCollection(e) {
+        e.preventDefault()
+        if (!collectionInput.trim()) return
+        setRunning(true)
+        const res = await broadcastNewCollection(collectionInput.trim())
+        setRunning(false)
+        if (res.success) {
+            setFeedback({ type: 'success', message: res.message || `Transmissão disparada para ${res.count} destinatários!` })
+            setCollectionInput('')
+            await loadData()
+        } else {
+            setFeedback({ type: 'error', message: 'Erro ao transmitir lançamento: ' + res.error })
+        }
+        setTimeout(() => setFeedback(null), 5000)
+    }
+
+    const inputCls = "w-full px-3 py-2.5 bg-[#FAF9F5] border border-[#EEEEEE] rounded-xl text-xs text-gray-800 outline-none focus:border-[#7A3E4A] focus:ring-2 focus:ring-[#7A3E4A]/10 transition-all font-medium"
+    const labelCls = "block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1"
+
+    if (loading || !config) {
+        return (
+            <div className="p-8 text-center bg-white rounded-2xl border border-[#EEEEEE]">
+                <p className="text-xs font-bold text-gray-400 animate-pulse">Carregando automações de marketing...</p>
+            </div>
+        )
+    }
+
+    return (
+        <div className="space-y-6">
+            {/* Header com Ação Principal */}
+            <div className="bg-white p-6 rounded-2xl border border-[#EEEEEE] shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div>
+                    <h2 className="text-lg font-black text-gray-900 flex items-center gap-2">
+                        <span>⚡</span> Automação de Marketing & Relacionamento
+                    </h2>
+                    <p className="text-xs text-gray-500 mt-1">
+                        Gerencie disparos automáticos para WhatsApp, E-mail, Carrinho Abandonado, Inativos e Aniversários.
+                    </p>
+                </div>
+                <div className="flex flex-wrap items-center gap-3">
+                    <button
+                        onClick={handleRunEngineNow}
+                        disabled={running}
+                        className="px-4 py-2.5 bg-[#7A3E4A] hover:bg-[#603039] text-white text-xs font-bold rounded-xl shadow-sm transition-all cursor-pointer flex items-center gap-2 disabled:opacity-50"
+                    >
+                        <Icon path="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z M21 12a9 9 0 11-18 0 9 9 0 0118 0z" className="w-4 h-4" />
+                        {running ? 'Executando...' : 'Executar Verificação Agora'}
+                    </button>
+                    <button
+                        onClick={handleSaveConfig}
+                        disabled={saving}
+                        className="px-5 py-2.5 bg-gradient-to-r from-[#C6A76A] to-[#D4B87C] text-white text-xs font-bold uppercase tracking-wider rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer disabled:opacity-50"
+                    >
+                        {saving ? 'Salvando...' : 'Salvar Alterações'}
+                    </button>
+                </div>
+            </div>
+
+            {/* Mensagem de Feedback */}
+            {feedback && (
+                <div className={`p-4 rounded-xl text-xs font-bold flex items-center justify-between border ${
+                    feedback.type === 'success' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-red-50 text-red-800 border-red-200'
+                }`}>
+                    <span>{feedback.message}</span>
+                    <button onClick={() => setFeedback(null)} className="text-xs opacity-60 hover:opacity-100 cursor-pointer">✕</button>
+                </div>
+            )}
+
+            {/* Sub Navegação por Abas */}
+            <div className="flex items-center gap-2 border-b border-[#EEEEEE] overflow-x-auto pb-1">
+                {[
+                    { id: 'carrinho', label: '🛒 Carrinho Abandonado', count: carts.length },
+                    { id: 'pedidos', label: '📱 WhatsApp & Pedidos' },
+                    { id: 'relacionamento', label: '💖 Inativos & Aniversário' },
+                    { id: 'posvenda', label: '📢 Lançamentos & Pós-Venda' },
+                    { id: 'logs', label: '📋 Histórico de Disparos', count: logs.length }
+                ].map(tab => (
+                    <button
+                        key={tab.id}
+                        onClick={() => setSubTab(tab.id)}
+                        className={`px-4 py-3 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap flex items-center gap-2 ${
+                            subTab === tab.id
+                                ? 'border-[#7A3E4A] text-[#7A3E4A] bg-[#7A3E4A]/5 rounded-t-xl'
+                                : 'border-transparent text-gray-500 hover:text-gray-800'
+                        }`}
+                    >
+                        {tab.label}
+                        {tab.count !== undefined && (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] bg-gray-100 font-extrabold text-gray-600">
+                                {tab.count}
+                            </span>
+                        )}
+                    </button>
+                ))}
+            </div>
+
+            {/* CONTEÚDO DAS ABAS */}
+
+            {/* ABA 1: CARRINHO ABANDONADO */}
+            {subTab === 'carrinho' && (
+                <div className="space-y-6">
+                    <div className="bg-white p-6 rounded-2xl border border-[#EEEEEE] space-y-6">
+                        <div className="flex items-center justify-between border-b border-[#EEEEEE] pb-4">
+                            <div>
+                                <h3 className="text-sm font-bold text-gray-900">Automação de Recuperação de Carrinho</h3>
+                                <p className="text-xs text-gray-400">Notifique clientes automaticamente em 30 min, 24 horas e 48 horas com cupons.</p>
+                            </div>
+                            <label className="flex items-center gap-2 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={config.cart_abandoned_active}
+                                    onChange={e => setConfig({ ...config, cart_abandoned_active: e.target.checked })}
+                                    className="w-4 h-4 accent-[#7A3E4A] cursor-pointer"
+                                />
+                                <span className="text-xs font-bold text-gray-700">Ativar Carrinho Abandonado</span>
+                            </label>
+                        </div>
+
+                        {/* Etapa 1: 30 minutos */}
+                        <div className="p-4 bg-[#FAF9F5] rounded-xl border border-[#EEEEEE] space-y-3">
+                            <div className="flex items-center justify-between">
+                                <span className="text-xs font-black text-[#7A3E4A] uppercase tracking-wider">⏱️ 1ª Etapa: Após 30 minutos</span>
+                                <label className="flex items-center gap-1.5 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={config.cart_30m_active}
+                                        onChange={e => setConfig({ ...config, cart_30m_active: e.target.checked })}
+                                        className="w-3.5 h-3.5 accent-[#7A3E4A] cursor-pointer"
+                                    />
+                                    <span className="text-[11px] font-bold text-gray-600">Ativo</span>
+                                </label>
+                            </div>
+                            <div>
+                                <label className={labelCls}>Mensagem (Use &#123;nome&#125; e &#123;link_carrinho&#125;)</label>
+                                <textarea
+                                    rows="2"
+                                    value={config.cart_30m_message}
+                                    onChange={e => setConfig({ ...config, cart_30m_message: e.target.value })}
+                                    className={inputCls}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Etapa 2: 24 horas */}
+                        <div className="p-4 bg-[#FAF9F5] rounded-xl border border-[#EEEEEE] space-y-3">
+                            <div className="flex items-center justify-between">
+                                <span className="text-xs font-black text-[#7A3E4A] uppercase tracking-wider">⏱️ 2ª Etapa: Após 24 horas</span>
+                                <label className="flex items-center gap-1.5 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={config.cart_24h_active}
+                                        onChange={e => setConfig({ ...config, cart_24h_active: e.target.checked })}
+                                        className="w-3.5 h-3.5 accent-[#7A3E4A] cursor-pointer"
+                                    />
+                                    <span className="text-[11px] font-bold text-gray-600">Ativo</span>
+                                </label>
+                            </div>
+                            <div>
+                                <label className={labelCls}>Mensagem (Use &#123;nome&#125; e &#123;link_carrinho&#125;)</label>
+                                <textarea
+                                    rows="2"
+                                    value={config.cart_24h_message}
+                                    onChange={e => setConfig({ ...config, cart_24h_message: e.target.value })}
+                                    className={inputCls}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Etapa 3: 48 horas (Com Cupom) */}
+                        <div className="p-4 bg-[#FAF9F5] rounded-xl border border-[#EEEEEE] space-y-3">
+                            <div className="flex items-center justify-between">
+                                <span className="text-xs font-black text-[#7A3E4A] uppercase tracking-wider">🎁 3ª Etapa: Após 48 horas (Com Cupom 5% OFF)</span>
+                                <label className="flex items-center gap-1.5 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={config.cart_48h_active}
+                                        onChange={e => setConfig({ ...config, cart_48h_active: e.target.checked })}
+                                        className="w-3.5 h-3.5 accent-[#7A3E4A] cursor-pointer"
+                                    />
+                                    <span className="text-[11px] font-bold text-gray-600">Ativo</span>
+                                </label>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className={labelCls}>Código do Cupom</label>
+                                    <input
+                                        type="text"
+                                        value={config.cart_48h_coupon}
+                                        onChange={e => setConfig({ ...config, cart_48h_coupon: e.target.value.toUpperCase() })}
+                                        className={`${inputCls} uppercase font-bold`}
+                                    />
+                                </div>
+                                <div>
+                                    <label className={labelCls}>Desconto (%)</label>
+                                    <input
+                                        type="number"
+                                        value={config.cart_48h_discount_percent}
+                                        onChange={e => setConfig({ ...config, cart_48h_discount_percent: parseFloat(e.target.value) || 0 })}
+                                        className={inputCls}
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <label className={labelCls}>Mensagem (Use &#123;nome&#125;, &#123;cupom&#125; e &#123;link_carrinho&#125;)</label>
+                                <textarea
+                                    rows="2"
+                                    value={config.cart_48h_message}
+                                    onChange={e => setConfig({ ...config, cart_48h_message: e.target.value })}
+                                    className={inputCls}
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Lista de Carrinhos Monitorados */}
+                    <div className="bg-white p-6 rounded-2xl border border-[#EEEEEE] space-y-4">
+                        <h3 className="text-sm font-bold text-gray-900">Carrinhos Monitorados Recentemente</h3>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left border-collapse">
+                                <thead>
+                                    <tr className="border-b border-[#EEEEEE] text-[10px] uppercase tracking-wider text-gray-400 font-bold">
+                                        <th className="pb-3">Sessão / Cliente</th>
+                                        <th className="pb-3">Itens</th>
+                                        <th className="pb-3">Subtotal</th>
+                                        <th className="pb-3">Estágio Notificado</th>
+                                        <th className="pb-3">Status</th>
+                                        <th className="pb-3">Última Atividade</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-[#EEEEEE] text-xs">
+                                    {carts.length === 0 ? (
+                                        <tr>
+                                            <td colSpan="6" className="py-6 text-center text-gray-400 italic">Nenhum carrinho registrado ainda.</td>
+                                        </tr>
+                                    ) : (
+                                        carts.map(c => (
+                                            <tr key={c.id} className="hover:bg-[#FAF9F5] transition-colors">
+                                                <td className="py-3 font-semibold text-gray-800">
+                                                    <div>{c.customer_name || c.customer_email || c.customer_phone || c.session_id}</div>
+                                                    {c.customer_phone && <div className="text-[10px] text-gray-400 font-normal">{c.customer_phone}</div>}
+                                                </td>
+                                                <td className="py-3 text-gray-600">{Array.isArray(c.items) ? c.items.length : 0} produto(s)</td>
+                                                <td className="py-3 font-bold text-[#7A3E4A]">R$ {(Number(c.subtotal) || 0).toFixed(2)}</td>
+                                                <td className="py-3">
+                                                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
+                                                        Estágio {c.stage || 0}/3
+                                                    </span>
+                                                </td>
+                                                <td className="py-3">
+                                                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                                                        c.status === 'recovered' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                                                        c.status === 'abandoned' ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-gray-50 text-gray-600 border-gray-200'
+                                                    }`}>
+                                                        {c.status === 'recovered' ? 'Recuperado 🛒' : c.status === 'abandoned' ? 'Abandonado ⚠️' : 'Ativo 🛍️'}
+                                                    </span>
+                                                </td>
+                                                <td className="py-3 text-gray-400 text-[10px]">
+                                                    {new Date(c.last_activity || c.created_at).toLocaleString('pt-BR')}
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ABA 2: WHATSAPP & PEDIDOS */}
+            {subTab === 'pedidos' && (
+                <div className="bg-white p-6 rounded-2xl border border-[#EEEEEE] space-y-6">
+                    <div>
+                        <h3 className="text-sm font-bold text-gray-900">Integração WhatsApp & E-mail de Status de Pedido</h3>
+                        <p className="text-xs text-gray-400">Configure suas APIs de envio e ative notificações instantâneas a cada alteração de pedido.</p>
+                    </div>
+
+                    {/* Provedores de API */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-b border-[#EEEEEE] pb-6">
+                        <div className="p-4 bg-[#FAF9F5] rounded-xl border border-[#EEEEEE] space-y-3">
+                            <div className="flex items-center justify-between">
+                                <span className="text-xs font-bold text-gray-800">📱 WhatsApp Provider (Z-API / Evolution / Webhook)</span>
+                                <label className="flex items-center gap-1.5 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={config.whatsapp_enabled}
+                                        onChange={e => setConfig({ ...config, whatsapp_enabled: e.target.checked })}
+                                        className="w-3.5 h-3.5 accent-[#7A3E4A] cursor-pointer"
+                                    />
+                                    <span className="text-[11px] font-bold text-gray-600">Ativo</span>
+                                </label>
+                            </div>
+                            <div>
+                                <label className={labelCls}>API Webhook URL</label>
+                                <input
+                                    type="text"
+                                    placeholder="https://api.z-api.io/instances/..."
+                                    value={config.whatsapp_api_url}
+                                    onChange={e => setConfig({ ...config, whatsapp_api_url: e.target.value })}
+                                    className={inputCls}
+                                />
+                            </div>
+                            <div>
+                                <label className={labelCls}>API Token / Key</label>
+                                <input
+                                    type="password"
+                                    placeholder="••••••••••••••••"
+                                    value={config.whatsapp_api_token}
+                                    onChange={e => setConfig({ ...config, whatsapp_api_token: e.target.value })}
+                                    className={inputCls}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="p-4 bg-[#FAF9F5] rounded-xl border border-[#EEEEEE] space-y-3">
+                            <div className="flex items-center justify-between">
+                                <span className="text-xs font-bold text-gray-800">📧 E-mail Provider (Resend / SendGrid / Webhook)</span>
+                                <label className="flex items-center gap-1.5 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={config.email_enabled}
+                                        onChange={e => setConfig({ ...config, email_enabled: e.target.checked })}
+                                        className="w-3.5 h-3.5 accent-[#7A3E4A] cursor-pointer"
+                                    />
+                                    <span className="text-[11px] font-bold text-gray-600">Ativo</span>
+                                </label>
+                            </div>
+                            <div>
+                                <label className={labelCls}>API Webhook URL</label>
+                                <input
+                                    type="text"
+                                    placeholder="https://api.resend.com/emails"
+                                    value={config.email_api_url}
+                                    onChange={e => setConfig({ ...config, email_api_url: e.target.value })}
+                                    className={inputCls}
+                                />
+                            </div>
+                            <div>
+                                <label className={labelCls}>API Token / Key</label>
+                                <input
+                                    type="password"
+                                    placeholder="re_••••••••••••••••"
+                                    value={config.email_api_token}
+                                    onChange={e => setConfig({ ...config, email_api_token: e.target.value })}
+                                    className={inputCls}
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Modelos de Mensagens por Status */}
+                    <div className="space-y-4">
+                        <h4 className="text-xs font-black text-gray-900 uppercase tracking-wider">Modelos de Notificação de Pedido</h4>
+
+                        <div className="p-4 bg-[#FAF9F5] rounded-xl border border-[#EEEEEE] space-y-2">
+                            <div className="flex items-center justify-between">
+                                <span className="text-xs font-bold text-gray-800">🛍️ Pedido Confirmado</span>
+                                <label className="flex items-center gap-1 cursor-pointer">
+                                    <input type="checkbox" checked={config.order_confirmed_active} onChange={e => setConfig({ ...config, order_confirmed_active: e.target.checked })} className="w-3.5 h-3.5 accent-[#7A3E4A]" />
+                                    <span className="text-[11px] font-bold">Ativo</span>
+                                </label>
+                            </div>
+                            <textarea rows="2" value={config.order_confirmed_message} onChange={e => setConfig({ ...config, order_confirmed_message: e.target.value })} className={inputCls} />
+                        </div>
+
+                        <div className="p-4 bg-[#FAF9F5] rounded-xl border border-[#EEEEEE] space-y-2">
+                            <div className="flex items-center justify-between">
+                                <span className="text-xs font-bold text-gray-800">🎉 Pagamento Aprovado</span>
+                                <label className="flex items-center gap-1 cursor-pointer">
+                                    <input type="checkbox" checked={config.payment_approved_active} onChange={e => setConfig({ ...config, payment_approved_active: e.target.checked })} className="w-3.5 h-3.5 accent-[#7A3E4A]" />
+                                    <span className="text-[11px] font-bold">Ativo</span>
+                                </label>
+                            </div>
+                            <textarea rows="2" value={config.payment_approved_message} onChange={e => setConfig({ ...config, payment_approved_message: e.target.value })} className={inputCls} />
+                        </div>
+
+                        <div className="p-4 bg-[#FAF9F5] rounded-xl border border-[#EEEEEE] space-y-2">
+                            <div className="flex items-center justify-between">
+                                <span className="text-xs font-bold text-gray-800">⏳ Pagamento Pendente (Lembrete)</span>
+                                <label className="flex items-center gap-1 cursor-pointer">
+                                    <input type="checkbox" checked={config.payment_pending_active} onChange={e => setConfig({ ...config, payment_pending_active: e.target.checked })} className="w-3.5 h-3.5 accent-[#7A3E4A]" />
+                                    <span className="text-[11px] font-bold">Ativo</span>
+                                </label>
+                            </div>
+                            <textarea rows="2" value={config.payment_pending_message} onChange={e => setConfig({ ...config, payment_pending_message: e.target.value })} className={inputCls} />
+                        </div>
+
+                        <div className="p-4 bg-[#FAF9F5] rounded-xl border border-[#EEEEEE] space-y-2">
+                            <div className="flex items-center justify-between">
+                                <span className="text-xs font-bold text-gray-800">📦 Pedido Enviado (Com Rastreio)</span>
+                                <label className="flex items-center gap-1 cursor-pointer">
+                                    <input type="checkbox" checked={config.order_shipped_active} onChange={e => setConfig({ ...config, order_shipped_active: e.target.checked })} className="w-3.5 h-3.5 accent-[#7A3E4A]" />
+                                    <span className="text-[11px] font-bold">Ativo</span>
+                                </label>
+                            </div>
+                            <textarea rows="2" value={config.order_shipped_message} onChange={e => setConfig({ ...config, order_shipped_message: e.target.value })} className={inputCls} />
+                        </div>
+
+                        <div className="p-4 bg-[#FAF9F5] rounded-xl border border-[#EEEEEE] space-y-2">
+                            <div className="flex items-center justify-between">
+                                <span className="text-xs font-bold text-gray-800">💖 Pedido Entregue</span>
+                                <label className="flex items-center gap-1 cursor-pointer">
+                                    <input type="checkbox" checked={config.order_delivered_active} onChange={e => setConfig({ ...config, order_delivered_active: e.target.checked })} className="w-3.5 h-3.5 accent-[#7A3E4A]" />
+                                    <span className="text-[11px] font-bold">Ativo</span>
+                                </label>
+                            </div>
+                            <textarea rows="2" value={config.order_delivered_message} onChange={e => setConfig({ ...config, order_delivered_message: e.target.value })} className={inputCls} />
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ABA 3: INATIVOS & ANIVERSÁRIO */}
+            {subTab === 'relacionamento' && (
+                <div className="bg-white p-6 rounded-2xl border border-[#EEEEEE] space-y-6">
+                    <div>
+                        <h3 className="text-sm font-bold text-gray-900">Relacionamento com Clientes</h3>
+                        <p className="text-xs text-gray-400">Reengaje clientes sem compras há 90 dias e envie mimos no dia do aniversário.</p>
+                    </div>
+
+                    {/* 90 Dias Inativos */}
+                    <div className="p-4 bg-[#FAF9F5] rounded-xl border border-[#EEEEEE] space-y-4">
+                        <div className="flex items-center justify-between">
+                            <span className="text-xs font-black text-[#7A3E4A] uppercase tracking-wider">❤️ Clientes Inativos (90 Dias Sem Comprar)</span>
+                            <label className="flex items-center gap-1.5 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={config.inactive_90d_active}
+                                    onChange={e => setConfig({ ...config, inactive_90d_active: e.target.checked })}
+                                    className="w-3.5 h-3.5 accent-[#7A3E4A] cursor-pointer"
+                                />
+                                <span className="text-[11px] font-bold text-gray-600">Ativo</span>
+                            </label>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                            <div>
+                                <label className={labelCls}>Cupom de Retorno</label>
+                                <input
+                                    type="text"
+                                    value={config.inactive_90d_coupon}
+                                    onChange={e => setConfig({ ...config, inactive_90d_coupon: e.target.value.toUpperCase() })}
+                                    className={`${inputCls} uppercase font-bold`}
+                                />
+                            </div>
+                            <div>
+                                <label className={labelCls}>Desconto (%)</label>
+                                <input
+                                    type="number"
+                                    value={config.inactive_90d_discount_percent}
+                                    onChange={e => setConfig({ ...config, inactive_90d_discount_percent: parseFloat(e.target.value) || 0 })}
+                                    className={inputCls}
+                                />
+                            </div>
+                        </div>
+                        <div>
+                            <label className={labelCls}>Mensagem (Use &#123;nome&#125;, &#123;cupom&#125; e &#123;link_loja&#125;)</label>
+                            <textarea
+                                rows="2"
+                                value={config.inactive_90d_message}
+                                onChange={e => setConfig({ ...config, inactive_90d_message: e.target.value })}
+                                className={inputCls}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Aniversariantes */}
+                    <div className="p-4 bg-[#FAF9F5] rounded-xl border border-[#EEEEEE] space-y-4">
+                        <div className="flex items-center justify-between">
+                            <span className="text-xs font-black text-[#7A3E4A] uppercase tracking-wider">🎉 Mensagem de Aniversário</span>
+                            <label className="flex items-center gap-1.5 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={config.birthday_active}
+                                    onChange={e => setConfig({ ...config, birthday_active: e.target.checked })}
+                                    className="w-3.5 h-3.5 accent-[#7A3E4A] cursor-pointer"
+                                />
+                                <span className="text-[11px] font-bold text-gray-600">Ativo</span>
+                            </label>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                            <div>
+                                <label className={labelCls}>Cupom de Aniversário</label>
+                                <input
+                                    type="text"
+                                    value={config.birthday_coupon}
+                                    onChange={e => setConfig({ ...config, birthday_coupon: e.target.value.toUpperCase() })}
+                                    className={`${inputCls} uppercase font-bold`}
+                                />
+                            </div>
+                            <div>
+                                <label className={labelCls}>Desconto (%)</label>
+                                <input
+                                    type="number"
+                                    value={config.birthday_discount_percent}
+                                    onChange={e => setConfig({ ...config, birthday_discount_percent: parseFloat(e.target.value) || 0 })}
+                                    className={inputCls}
+                                />
+                            </div>
+                        </div>
+                        <div>
+                            <label className={labelCls}>Mensagem (Use &#123;nome&#125;, &#123;cupom&#125; e &#123;link_loja&#125;)</label>
+                            <textarea
+                                rows="2"
+                                value={config.birthday_message}
+                                onChange={e => setConfig({ ...config, birthday_message: e.target.value })}
+                                className={inputCls}
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ABA 4: LANÇAMENTOS & PÓS-VENDA */}
+            {subTab === 'posvenda' && (
+                <div className="bg-white p-6 rounded-2xl border border-[#EEEEEE] space-y-6">
+                    <div>
+                        <h3 className="text-sm font-bold text-gray-900">Pós-Venda & Lançamento de Coleção</h3>
+                        <p className="text-xs text-gray-400">Envie pesquisas de satisfação e lance transmissões de novas coleções.</p>
+                    </div>
+
+                    {/* Transmissão de Lançamento */}
+                    <div className="p-4 bg-[#FAF9F5] rounded-xl border border-[#EEEEEE] space-y-4">
+                        <span className="text-xs font-black text-[#7A3E4A] uppercase tracking-wider">📢 Transmissão de Nova Coleção</span>
+                        <div>
+                            <label className={labelCls}>Modelo de Mensagem de Lançamento</label>
+                            <textarea
+                                rows="2"
+                                value={config.new_collection_message}
+                                onChange={e => setConfig({ ...config, new_collection_message: e.target.value })}
+                                className={inputCls}
+                            />
+                        </div>
+                        <form onSubmit={handleBroadcastNewCollection} className="flex gap-2">
+                            <input
+                                type="text"
+                                placeholder="Nome da Coleção (Ex: Primavera/Verão)"
+                                value={collectionInput}
+                                onChange={e => setCollectionInput(e.target.value)}
+                                className={inputCls}
+                            />
+                            <button
+                                type="submit"
+                                disabled={running}
+                                className="px-5 py-2.5 bg-[#7A3E4A] hover:bg-[#603039] text-white text-xs font-bold rounded-xl transition-all cursor-pointer whitespace-nowrap shrink-0 disabled:opacity-50"
+                            >
+                                Disparar para Opt-in
+                            </button>
+                        </form>
+                    </div>
+
+                    {/* Pós-Venda */}
+                    <div className="p-4 bg-[#FAF9F5] rounded-xl border border-[#EEEEEE] space-y-4">
+                        <div className="flex items-center justify-between">
+                            <span className="text-xs font-black text-[#7A3E4A] uppercase tracking-wider">🎁 Mensagem de Pós-Venda (Avaliação & Foto)</span>
+                            <label className="flex items-center gap-1.5 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={config.post_sale_active}
+                                    onChange={e => setConfig({ ...config, post_sale_active: e.target.checked })}
+                                    className="w-3.5 h-3.5 accent-[#7A3E4A] cursor-pointer"
+                                />
+                                <span className="text-[11px] font-bold text-gray-600">Ativo</span>
+                            </label>
+                        </div>
+                        <div>
+                            <label className={labelCls}>Dias Após Entrega</label>
+                            <input
+                                type="number"
+                                value={config.post_sale_days}
+                                onChange={e => setConfig({ ...config, post_sale_days: parseInt(e.target.value) || 1 })}
+                                className={inputCls}
+                            />
+                        </div>
+                        <div>
+                            <label className={labelCls}>Mensagem (Use &#123;nome&#125;)</label>
+                            <textarea
+                                rows="2"
+                                value={config.post_sale_message}
+                                onChange={e => setConfig({ ...config, post_sale_message: e.target.value })}
+                                className={inputCls}
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ABA 5: HISTÓRICO DE LOGS */}
+            {subTab === 'logs' && (
+                <div className="bg-white p-6 rounded-2xl border border-[#EEEEEE] space-y-4">
+                    <h3 className="text-sm font-bold text-gray-900">Histórico de Disparos de Automação</h3>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="border-b border-[#EEEEEE] text-[10px] uppercase tracking-wider text-gray-400 font-bold">
+                                    <th className="pb-3">Canal / Evento</th>
+                                    <th className="pb-3">Destinatário</th>
+                                    <th className="pb-3">Conteúdo da Mensagem</th>
+                                    <th className="pb-3">Status</th>
+                                    <th className="pb-3">Data</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-[#EEEEEE] text-xs">
+                                {logs.length === 0 ? (
+                                    <tr>
+                                        <td colSpan="5" className="py-6 text-center text-gray-400 italic">Nenhum disparo registrado ainda.</td>
+                                    </tr>
+                                ) : (
+                                    logs.map(log => (
+                                        <tr key={log.id} className="hover:bg-[#FAF9F5] transition-colors">
+                                            <td className="py-3">
+                                                <span className="font-bold text-gray-800 uppercase text-[10px] tracking-wider block">
+                                                    {log.channel === 'whatsapp' ? '📱 WhatsApp' : '📧 E-mail'}
+                                                </span>
+                                                <span className="text-[10px] text-[#7A3E4A] font-semibold">{log.event_type}</span>
+                                            </td>
+                                            <td className="py-3 font-medium text-gray-700">
+                                                <div>{log.recipient_name || log.recipient_email || log.recipient_phone}</div>
+                                                {log.recipient_phone && <div className="text-[10px] text-gray-400">{log.recipient_phone}</div>}
+                                            </td>
+                                            <td className="py-3 text-gray-600 max-w-xs truncate" title={log.message_content}>
+                                                {log.message_content}
+                                            </td>
+                                            <td className="py-3">
+                                                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                                                    log.status === 'sent' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'
+                                                }`}>
+                                                    {log.status === 'sent' ? 'Enviado ✅' : 'Simulado / Log 📝'}
+                                                </span>
+                                            </td>
+                                            <td className="py-3 text-gray-400 text-[10px]">
+                                                {new Date(log.created_at).toLocaleString('pt-BR')}
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
+        </div>
+    )
+}
+

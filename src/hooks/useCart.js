@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { trackAddToCart } from '../components/TrackingManager.jsx'
+import { saveAbandonedCart } from '../services/marketing.js'
 
 const CART_KEY = 'meraki_cart'
 
@@ -39,13 +40,17 @@ export function useCart() {
         }
     }, [])
 
-    function updateCartState(newCart) {
-        localStorage.setItem(CART_KEY, JSON.stringify(newCart))
-        // Dispatch to all listeners in the current tab
-        cartListeners.forEach(listener => listener(newCart))
-        // Dispatch custom event to notify other components that might listen to window
-        window.dispatchEvent(new Event('cart-updated'))
-    }
+function updateCartState(newCart) {
+    localStorage.setItem(CART_KEY, JSON.stringify(newCart))
+    // Dispatch to all listeners in the current tab
+    cartListeners.forEach(listener => listener(newCart))
+    // Dispatch custom event to notify other components that might listen to window
+    window.dispatchEvent(new Event('cart-updated'))
+    
+    // Salvar silenciosamente no Supabase para automação de carrinho abandonado
+    const subtotal = (newCart || []).reduce((acc, item) => acc + (parseFloat(item.price) || 0) * (parseInt(item.quantity) || 1), 0)
+    saveAbandonedCart({ items: newCart, subtotal }).catch(() => {})
+}
 
     function getMaxStockForItem(product, size, color) {
         if (!product) return Infinity
