@@ -2247,6 +2247,31 @@ export function SettingsSection({ saving, setSaving, updateStoreConfig }) {
             }
         }
     })
+    const [maintenanceMode, setMaintenanceMode] = useState(() => {
+        try {
+            const stored = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
+            return stored.maintenance_mode || stored.maintenanceMode || false
+        } catch { return false }
+    })
+    const [maintenanceTitle, setMaintenanceTitle] = useState(() => {
+        try {
+            const stored = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
+            return stored.maintenance_title || stored.maintenanceTitle || 'Estamos Preparando uma Nova Coleção Exclusiva ✨'
+        } catch { return 'Estamos Preparando uma Nova Coleção Exclusiva ✨' }
+    })
+    const [maintenanceMessage, setMaintenanceMessage] = useState(() => {
+        try {
+            const stored = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
+            return stored.maintenance_message || stored.maintenanceMessage || 'Em breve nosso site estará online com lançamentos apaixonantes e peças de tirar o fôlego. Deixe seu WhatsApp para receber o aviso em primeira mão!'
+        } catch { return 'Em breve nosso site estará online com lançamentos apaixonantes e peças de tirar o fôlego. Deixe seu WhatsApp para receber o aviso em primeira mão!' }
+    })
+    const [maintenanceEta, setMaintenanceEta] = useState(() => {
+        try {
+            const stored = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
+            return stored.maintenance_eta || stored.maintenanceEta || 'Em breve'
+        } catch { return 'Em breve' }
+    })
+
     const [message, setMessage] = useState('')
 
     // Password states
@@ -2279,6 +2304,10 @@ export function SettingsSection({ saving, setSaving, updateStoreConfig }) {
                     if (data.meta_pixel_id) setMetaPixelId(data.meta_pixel_id)
                     if (data.ga_tracking_id) setGaTrackingId(data.ga_tracking_id)
                     if (data.infinitepay_handle) setInfinitepayHandle(data.infinitepay_handle)
+                    if (data.maintenance_mode !== undefined) setMaintenanceMode(data.maintenance_mode)
+                    if (data.maintenance_title) setMaintenanceTitle(data.maintenance_title)
+                    if (data.maintenance_message) setMaintenanceMessage(data.maintenance_message)
+                    if (data.maintenance_eta) setMaintenanceEta(data.maintenance_eta)
                     const dbKey = data.pix_key || data.pixkey
                     if (dbKey && String(dbKey).trim() && !dbKey.includes('merakifemme') && !dbKey.includes('merakimodafeminina')) {
                         setPixKey(String(dbKey).trim())
@@ -2341,7 +2370,15 @@ export function SettingsSection({ saving, setSaving, updateStoreConfig }) {
                 pix_key: pixKey,
                 pixkey: pixKey,
                 reward_bar: rewardBar,
-                rewardBar
+                rewardBar,
+                maintenance_mode: maintenanceMode,
+                maintenanceMode: maintenanceMode,
+                maintenance_title: maintenanceTitle,
+                maintenanceTitle: maintenanceTitle,
+                maintenance_message: maintenanceMessage,
+                maintenanceMessage: maintenanceMessage,
+                maintenance_eta: maintenanceEta,
+                maintenanceEta: maintenanceEta
             }
             localStorage.setItem('meraki_store_config', JSON.stringify(updatedConfig))
             localStorage.setItem('meraki_reward_bar', JSON.stringify(rewardBar))
@@ -2376,6 +2413,73 @@ export function SettingsSection({ saving, setSaving, updateStoreConfig }) {
                         ✓ {message}
                     </div>
                 )}
+
+                {/* 0. MODO DE MANUTENÇÃO / NOVA COLEÇÃO */}
+                <div className="bg-white p-6 rounded-2xl border border-[#EEEEEE] space-y-4">
+                    <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+                        <div>
+                            <h4 className="text-xs font-black text-[#7A3E4A] uppercase tracking-wider flex items-center gap-2">
+                                <Icon path="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" className="w-4 h-4 text-[#7A3E4A]" />
+                                Modo Manutenção / Lançamento de Nova Coleção
+                            </h4>
+                            <p className="text-[10px] text-gray-400 mt-1">
+                                Ative este modo para exibir uma tela de espera luxuosa para as clientes enquanto você cadastra os novos produtos. O painel administrativo (/admin) continuará 100% livre.
+                            </p>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer shrink-0 ml-4">
+                            <input
+                                type="checkbox"
+                                checked={maintenanceMode}
+                                onChange={e => setMaintenanceMode(e.target.checked)}
+                                className="sr-only peer"
+                            />
+                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#7A3E4A]"></div>
+                        </label>
+                    </div>
+
+                    {maintenanceMode && (
+                        <div className="space-y-4 pt-2">
+                            <div className="p-3 bg-[#FAF9F5] rounded-xl border border-[#7A3E4A]/20 flex items-center gap-2 text-xs text-[#7A3E4A] font-bold">
+                                <Icon path="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" className="w-4 h-4 shrink-0" />
+                                <span>O site público está em modo de manutenção! Apenas administradores logados no /admin conseguem ver e editar a loja.</span>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label className={labelCls}>Título da Tela de Espera</label>
+                                    <input
+                                        type="text"
+                                        value={maintenanceTitle}
+                                        onChange={(e) => setMaintenanceTitle(e.target.value)}
+                                        className={inputCls}
+                                        placeholder="Ex: Estamos Preparando uma Nova Coleção Exclusiva ✨"
+                                    />
+                                </div>
+                                <div>
+                                    <label className={labelCls}>Previsão / Horário de Retorno</label>
+                                    <input
+                                        type="text"
+                                        value={maintenanceEta}
+                                        onChange={(e) => setMaintenanceEta(e.target.value)}
+                                        className={inputCls}
+                                        placeholder="Ex: Hoje às 19:00h"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className={labelCls}>Mensagem Exibida para as Clientes</label>
+                                <textarea
+                                    rows="3"
+                                    value={maintenanceMessage}
+                                    onChange={(e) => setMaintenanceMessage(e.target.value)}
+                                    className={`${inputCls} resize-none`}
+                                    placeholder="Escreva a mensagem..."
+                                />
+                            </div>
+                        </div>
+                    )}
+                </div>
 
                 {/* 1. Dados Jurídicos & SAC */}
                 <div className="bg-white p-6 rounded-2xl border border-[#EEEEEE] space-y-4">
