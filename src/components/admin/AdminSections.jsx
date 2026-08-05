@@ -3557,42 +3557,51 @@ export function FinancialSection({
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
-                    {/* Period Selector */}
-                    <select
-                        value={period}
-                        onChange={(e) => setPeriod(e.target.value)}
-                        className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-medium text-gray-700 outline-none cursor-pointer hover:bg-gray-100"
-                    >
-                        <option value="todos">Todo o Período</option>
-                        <option value="mes">Este Mês</option>
-                        <option value="30dias">Últimos 30 dias</option>
-                        <option value="personalizado">📅 Selecionar Datas...</option>
-                    </select>
+                    {/* Custom Period Selector */}
+                    <div className="relative">
+                        <select
+                            value={period}
+                            onChange={(e) => setPeriod(e.target.value)}
+                            className="appearance-none pl-3 pr-8 py-2 bg-white border border-gray-300 rounded-lg text-xs font-semibold text-gray-800 outline-none focus:ring-2 focus:ring-[#7A3E4A]/20 focus:border-[#7A3E4A] hover:border-gray-400 transition-all cursor-pointer shadow-2xs"
+                        >
+                            <option value="todos">Todo o Período</option>
+                            <option value="mes">Este Mês</option>
+                            <option value="30dias">Últimos 30 dias</option>
+                            <option value="personalizado">Período Personalizado...</option>
+                        </select>
+                        <Icon path="M19 9l-7 7-7-7" className="w-3.5 h-3.5 text-gray-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    </div>
 
-                    {/* Custom Date Inputs */}
+                    {/* Executive Date Range Inputs */}
                     {period === 'personalizado' && (
-                        <div className="flex items-center gap-1.5 bg-gray-50 p-1 border border-gray-200 rounded-lg">
-                            <span className="text-[11px] font-medium text-gray-500 pl-1">De:</span>
-                            <input
-                                type="date"
-                                value={startDate}
-                                onChange={(e) => setStartDate(e.target.value)}
-                                className="px-2 py-1 bg-white border border-gray-300 rounded text-xs font-medium outline-none focus:border-[#7A3E4A]"
-                            />
-                            <span className="text-[11px] font-medium text-gray-500">Até:</span>
-                            <input
-                                type="date"
-                                value={endDate}
-                                onChange={(e) => setEndDate(e.target.value)}
-                                className="px-2 py-1 bg-white border border-gray-300 rounded text-xs font-medium outline-none focus:border-[#7A3E4A]"
-                            />
+                        <div className="flex items-center gap-2 bg-white p-1.5 border border-gray-300 rounded-lg shadow-2xs animate-fadeIn">
+                            <div className="flex items-center gap-1.5">
+                                <Icon path="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" className="w-3.5 h-3.5 text-[#7A3E4A] ml-1" />
+                                <span className="text-[11px] font-bold text-gray-600">De:</span>
+                                <input
+                                    type="date"
+                                    value={startDate}
+                                    onChange={(e) => setStartDate(e.target.value)}
+                                    className="px-2.5 py-1 bg-gray-50 border border-gray-200 rounded-md text-xs font-semibold text-gray-800 outline-none focus:bg-white focus:border-[#7A3E4A] focus:ring-1 focus:ring-[#7A3E4A] transition-all cursor-pointer"
+                                />
+                            </div>
+                            <span className="text-gray-300 font-bold">•</span>
+                            <div className="flex items-center gap-1.5">
+                                <span className="text-[11px] font-bold text-gray-600">Até:</span>
+                                <input
+                                    type="date"
+                                    value={endDate}
+                                    onChange={(e) => setEndDate(e.target.value)}
+                                    className="px-2.5 py-1 bg-gray-50 border border-gray-200 rounded-md text-xs font-semibold text-gray-800 outline-none focus:bg-white focus:border-[#7A3E4A] focus:ring-1 focus:ring-[#7A3E4A] transition-all cursor-pointer"
+                                />
+                            </div>
                             {(startDate || endDate) && (
                                 <button
                                     onClick={() => { setStartDate(''); setEndDate(''); }}
-                                    className="text-[10px] text-gray-400 hover:text-gray-600 font-bold px-1.5"
-                                    title="Limpar Intervalo"
+                                    className="p-1 hover:bg-gray-100 text-gray-400 hover:text-gray-600 rounded transition-colors cursor-pointer"
+                                    title="Limpar Datas"
                                 >
-                                    ✕
+                                    <Icon path="M6 18L18 6M6 6l12 12" className="w-3.5 h-3.5" />
                                 </button>
                             )}
                         </div>
@@ -3600,30 +3609,36 @@ export function FinancialSection({
 
                     {/* Filter for overview tab */}
                     {activeTab === 'overview' && (
-                        <select
-                            value={filter}
-                            onChange={(e) => setFilter(e.target.value)}
-                            className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-medium text-gray-700 outline-none cursor-pointer hover:bg-gray-100"
-                        >
-                            <option value="todos">Todos os tipos</option>
-                            <option value="receita">Apenas Receitas</option>
-                            <option value="despesa">Apenas Despesas</option>
-                            <option value="pendente">Apenas Pendentes</option>
-                        </select>
+                        <div className="relative">
+                            <select
+                                value={filter}
+                                onChange={(e) => setFilter(e.target.value)}
+                                className="appearance-none pl-3 pr-8 py-2 bg-white border border-gray-300 rounded-lg text-xs font-semibold text-gray-800 outline-none focus:ring-2 focus:ring-[#7A3E4A]/20 focus:border-[#7A3E4A] hover:border-gray-400 transition-all cursor-pointer shadow-2xs"
+                            >
+                                <option value="todos">Todos os tipos</option>
+                                <option value="receita">Apenas Receitas</option>
+                                <option value="despesa">Apenas Despesas</option>
+                                <option value="pendente">Apenas Pendentes</option>
+                            </select>
+                            <Icon path="M19 9l-7 7-7-7" className="w-3.5 h-3.5 text-gray-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        </div>
                     )}
 
                     {/* Limiter dropdown */}
-                    <select
-                        value={itemsPerPage}
-                        onChange={(e) => setItemsPerPage(e.target.value === 'all' ? 'all' : Number(e.target.value))}
-                        className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-medium text-gray-700 outline-none cursor-pointer hover:bg-gray-100"
-                    >
-                        <option value={10}>10 por pág</option>
-                        <option value={15}>15 por pág</option>
-                        <option value={30}>30 por pág</option>
-                        <option value={50}>50 por pág</option>
-                        <option value="all">Exibir Todos</option>
-                    </select>
+                    <div className="relative">
+                        <select
+                            value={itemsPerPage}
+                            onChange={(e) => setItemsPerPage(e.target.value === 'all' ? 'all' : Number(e.target.value))}
+                            className="appearance-none pl-3 pr-8 py-2 bg-white border border-gray-300 rounded-lg text-xs font-semibold text-gray-800 outline-none focus:ring-2 focus:ring-[#7A3E4A]/20 focus:border-[#7A3E4A] hover:border-gray-400 transition-all cursor-pointer shadow-2xs"
+                        >
+                            <option value={10}>10 por pág</option>
+                            <option value={15}>15 por pág</option>
+                            <option value={30}>30 por pág</option>
+                            <option value={50}>50 por pág</option>
+                            <option value="all">Exibir Todos</option>
+                        </select>
+                        <Icon path="M19 9l-7 7-7-7" className="w-3.5 h-3.5 text-gray-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    </div>
                 </div>
             </div>
 
