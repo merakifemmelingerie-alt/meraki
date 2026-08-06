@@ -413,11 +413,19 @@ export async function initSupabaseSync() {
                 localStorage.setItem('meraki_promo_combo', JSON.stringify(dbConfig.promoCombo))
             }
             if (dbConfig.editorial) localStorage.setItem('meraki_editorial', JSON.stringify(dbConfig.editorial))
-            localStorage.setItem('meraki_shipping_message', dbConfig.shippingMessage || 'Frete grátis para a região Centro-Oeste nas compras acima de R$ 299,90.')
-            localStorage.setItem('meraki_promo_message', dbConfig.promoMessage || '10% OFF na primeira compra com o cupom: BEMVINDA10 (Ganhe R$ 10 OFF)')
-            if (dbConfig.availableSizes && Array.isArray(dbConfig.availableSizes)) {
-                localStorage.setItem('meraki_available_sizes', JSON.stringify(dbConfig.availableSizes))
-            }
+            if (dbConfig.shippingMessage) localStorage.setItem('meraki_shipping_message', dbConfig.shippingMessage)
+            if (dbConfig.promoMessage) localStorage.setItem('meraki_promo_message', dbConfig.promoMessage)
+            if (dbConfig.availableSizes && Array.isArray(dbConfig.availableSizes)) localStorage.setItem('meraki_available_sizes', JSON.stringify(dbConfig.availableSizes))
+            if (dbConfig.availableColors && Array.isArray(dbConfig.availableColors)) localStorage.setItem('meraki_available_colors', JSON.stringify(dbConfig.availableColors))
+            if (dbConfig.availableEmojis && Array.isArray(dbConfig.availableEmojis)) localStorage.setItem('meraki_available_emojis', JSON.stringify(dbConfig.availableEmojis))
+            if (dbConfig.availableBadges && Array.isArray(dbConfig.availableBadges)) localStorage.setItem('meraki_available_badges', JSON.stringify(dbConfig.availableBadges))
+            if (dbConfig.rewardBar) localStorage.setItem('meraki_reward_bar', JSON.stringify(dbConfig.rewardBar))
+            if (dbConfig.categoryStyles) localStorage.setItem('meraki_category_styles', JSON.stringify(dbConfig.categoryStyles))
+            if (dbConfig.pagesContent) localStorage.setItem('meraki_pages_content', JSON.stringify(dbConfig.pagesContent))
+            if (dbConfig.customPagesList) localStorage.setItem('meraki_custom_pages_list', JSON.stringify(dbConfig.customPagesList))
+            if (dbConfig.deletedPages) localStorage.setItem('meraki_deleted_pages', JSON.stringify(dbConfig.deletedPages))
+            if (dbConfig.categoriesData) localStorage.setItem('meraki_categories_data', JSON.stringify(dbConfig.categoriesData))
+            window.dispatchEvent(new Event('storeConfigUpdated'))
         } else {
             const existingLocalMsgs = localStorage.getItem('meraki_topbar_messages')
             let initialMsgs = [
@@ -568,18 +576,51 @@ localStorage.setItem = function(key, value) {
         } else if (
             key === 'meraki_topbar_messages' ||
             key === 'meraki_topbar_style' ||
+            key === 'meraki_sections' ||
+            key === 'meraki_homepage_categories' ||
             key === 'meraki_promo_combo' ||
-            key === 'meraki_editorial'
+            key === 'meraki_editorial' ||
+            key === 'meraki_shipping_message' ||
+            key === 'meraki_promo_message' ||
+            key === 'meraki_available_sizes' ||
+            key === 'meraki_available_colors' ||
+            key === 'meraki_available_emojis' ||
+            key === 'meraki_available_badges' ||
+            key === 'meraki_reward_bar' ||
+            key === 'meraki_category_styles' ||
+            key === 'meraki_pages_content' ||
+            key === 'meraki_custom_pages_list' ||
+            key === 'meraki_deleted_pages' ||
+            key === 'meraki_categories_data'
         ) {
             // Helper to sync subcomponents configs directly inside store_config record
             const currentConfig = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
-            const mapping = {
-                'meraki_topbar_messages': 'topbarMessages',
-                'meraki_topbar_style': 'topbarStyle',
-                'meraki_promo_combo': 'promoCombo',
-                'meraki_editorial': 'editorial'
+            
+            if (key === 'meraki_topbar_messages') currentConfig.topbarMessages = parsed
+            else if (key === 'meraki_topbar_style') currentConfig.topbarStyle = parsed
+            else if (key === 'meraki_sections') {
+                currentConfig.topbarStyle = currentConfig.topbarStyle || {}
+                currentConfig.topbarStyle.availableSections = parsed
             }
-            currentConfig[mapping[key]] = parsed
+            else if (key === 'meraki_homepage_categories') {
+                currentConfig.topbarStyle = currentConfig.topbarStyle || {}
+                currentConfig.topbarStyle.homepageCategories = parsed
+            }
+            else if (key === 'meraki_promo_combo') currentConfig.promoCombo = parsed
+            else if (key === 'meraki_editorial') currentConfig.editorial = parsed
+            else if (key === 'meraki_shipping_message') currentConfig.shippingMessage = parsed
+            else if (key === 'meraki_promo_message') currentConfig.promoMessage = parsed
+            else if (key === 'meraki_available_sizes') currentConfig.availableSizes = parsed
+            else if (key === 'meraki_available_colors') currentConfig.availableColors = parsed
+            else if (key === 'meraki_available_emojis') currentConfig.availableEmojis = parsed
+            else if (key === 'meraki_available_badges') currentConfig.availableBadges = parsed
+            else if (key === 'meraki_reward_bar') currentConfig.rewardBar = parsed
+            else if (key === 'meraki_category_styles') currentConfig.categoryStyles = parsed
+            else if (key === 'meraki_pages_content') currentConfig.pagesContent = parsed
+            else if (key === 'meraki_custom_pages_list') currentConfig.customPagesList = parsed
+            else if (key === 'meraki_deleted_pages') currentConfig.deletedPages = parsed
+            else if (key === 'meraki_categories_data') currentConfig.categoriesData = parsed
+
             originalSetItem('meraki_store_config', JSON.stringify(currentConfig))
             updateStoreConfig(currentConfig).then(() => {
                 window.dispatchEvent(new Event('storeConfigUpdated'))
