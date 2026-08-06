@@ -280,12 +280,12 @@ export default function Header({ cartCount = 0, wishlistCount = 0, onSearchOpen 
                         <Link 
                             to="/" 
                             onClick={() => { smoothScrollToTop(1200); setMobileMenuOpen(false); }}
-                            className="text-2xl md:text-3xl lg:text-4xl font-bold text-[#1A1A1A] hover:text-[#7A3E4A] transition-all duration-500 inline-flex flex-col items-center justify-center gap-1 animate-logo-breath"
+                            className="text-2xl md:text-3xl lg:text-4xl font-bold text-[#1A1A1A] hover:text-[#7A3E4A] transition-all duration-500 inline-flex items-center gap-2.5 animate-logo-breath"
                         >
                             <img 
                                 src={butterflySrc} 
                                 alt="Borboleta Meraki" 
-                                className={`w-8 h-8 md:w-10 md:h-10 object-contain animate-butterfly-flight transition-opacity duration-200 ${
+                                className={`w-11 h-11 md:w-14 md:h-14 object-contain animate-butterfly-flight transition-opacity duration-200 ${
                                     butterflySrc.startsWith('data:') ? 'opacity-100' : 'opacity-0'
                                 }`}
                             />
@@ -565,18 +565,18 @@ export default function Header({ cartCount = 0, wishlistCount = 0, onSearchOpen 
                                 <Link 
                                     to="/" 
                                     onClick={() => { smoothScrollToTop(1200); setMobileMenuOpen(false); }}
-                                    className="font-bold text-[#1A1A1A] hover:text-[#7A3E4A] transition-all duration-300 inline-flex flex-col items-center justify-center gap-0.5"
+                                    className="font-bold text-[#1A1A1A] hover:text-[#7A3E4A] transition-all duration-300 inline-flex items-center gap-2"
                                 >
                                     <img 
                                         src={butterflySrc} 
                                         alt="Borboleta Meraki" 
-                                        className={`w-6 h-6 object-contain transition-opacity duration-200 ${
+                                        className={`w-7 h-7 object-contain transition-opacity duration-200 ${
                                             butterflySrc.startsWith('data:') ? 'opacity-100' : 'opacity-0'
                                         }`}
                                     />
                                     <div className="flex flex-col items-center leading-none text-center">
-                                        <span className="font-heading tracking-[0.22em] text-[15px] font-black uppercase antialiased">MERAKI</span>
-                                        <span className="text-[7px] uppercase tracking-[0.42em] text-[#7A3E4A] font-extrabold mt-0.5 ml-[0.42em] antialiased">---- FEMME ----</span>
+                                        <span className="font-heading tracking-[0.22em] text-[16px] font-black uppercase antialiased">MERAKI</span>
+                                        <span className="text-[7.5px] uppercase tracking-[0.42em] text-[#7A3E4A] font-extrabold mt-0.5 ml-[0.42em] antialiased">---- FEMME ----</span>
                                     </div>
                                 </Link>
                                 <button 
