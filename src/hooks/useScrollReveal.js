@@ -1,39 +1,52 @@
 import { useEffect, useRef, useState } from 'react'
 
 /**
- * useScrollReveal - Triggers when element enters viewport.
- * Uses Intersection Observer for zero-jank, GPU-accelerated reveal.
+ * useScrollReveal — Reveals element when it scrolls into view.
+ * Uses scroll event + getBoundingClientRect for maximum compatibility.
+ * Triggers once; cleans up listeners after reveal.
  */
-export function useScrollReveal(options = {}) {
+export function useScrollReveal() {
     const ref = useRef(null)
     const [isVisible, setIsVisible] = useState(false)
+    const revealed = useRef(false)
 
     useEffect(() => {
         const el = ref.current
         if (!el) return
 
-        // Skip on reduced motion preference
+        // Respect reduced motion preference
         if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
             setIsVisible(true)
+            revealed.current = true
             return
         }
 
-        const observer = new IntersectionObserver(
-            ([entry]) => {
-                if (entry.isIntersecting) {
-                    setIsVisible(true)
-                    observer.unobserve(entry.target) // Reveal once, then stop observing
-                }
-            },
-            {
-                threshold: options.threshold ?? 0.1,
-                rootMargin: options.rootMargin ?? '0px 0px -60px 0px'
+        const reveal = () => {
+            if (revealed.current || !el) return
+            const rect = el.getBoundingClientRect()
+            const viewH = window.innerHeight || document.documentElement.clientHeight
+            // Trigger when top of element is within the viewport (80px from bottom edge)
+            if (rect.top < viewH - 80 && rect.bottom > 0) {
+                setIsVisible(true)
+                revealed.current = true
+                window.removeEventListener('scroll', reveal)
+                window.removeEventListener('resize', reveal)
             }
-        )
+        }
 
-        observer.observe(el)
-        return () => observer.disconnect()
-    }, [options.threshold, options.rootMargin])
+        // Check immediately (elements already in view on page load)
+        reveal()
+
+        if (!revealed.current) {
+            window.addEventListener('scroll', reveal)
+            window.addEventListener('resize', reveal)
+        }
+
+        return () => {
+            window.removeEventListener('scroll', reveal)
+            window.removeEventListener('resize', reveal)
+        }
+    }, [])
 
     return { ref, isVisible }
 }
