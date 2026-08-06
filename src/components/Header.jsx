@@ -570,13 +570,13 @@ export default function Header({ cartCount = 0, wishlistCount = 0, onSearchOpen 
                                     <img 
                                         src={butterflySrc} 
                                         alt="Borboleta Meraki" 
-                                        className={`w-7 h-7 object-contain transition-opacity duration-200 ${
+                                        className={`w-8 h-8 object-contain transition-opacity duration-200 ${
                                             butterflySrc.startsWith('data:') ? 'opacity-100' : 'opacity-0'
                                         }`}
                                     />
                                     <div className="flex flex-col items-center leading-none text-center">
-                                        <span className="font-heading tracking-[0.22em] text-[16px] font-black uppercase antialiased">MERAKI</span>
-                                        <span className="text-[7.5px] uppercase tracking-[0.42em] text-[#7A3E4A] font-extrabold mt-0.5 ml-[0.42em] antialiased">---- FEMME ----</span>
+                                        <span className="font-heading tracking-[0.25em] text-[17px] font-black uppercase antialiased">MERAKI</span>
+                                        <span className="text-[7.5px] uppercase tracking-[0.45em] text-[#7A3E4A] font-extrabold mt-0.5 ml-[0.45em] antialiased">---- FEMME ----</span>
                                     </div>
                                 </Link>
                                 <button 
