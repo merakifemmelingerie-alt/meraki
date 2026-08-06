@@ -166,6 +166,11 @@ export default function EngagementPage() {
     const votesForCurrentPoll = (selectedPoll && pollVotesMap[selectedPoll.id]) || []
     const totalVotes = votesForCurrentPoll.length
 
+    // Crisp input & custom select styles (matching Admin Panel design system)
+    const inputCls = "w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-xs font-semibold text-gray-800 outline-none focus:border-[#7A3E4A] focus:ring-2 focus:ring-[#7A3E4A]/10 transition-all shadow-xs antialiased placeholder:text-gray-400 font-sans"
+    const selectCls = "w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-xs font-semibold text-gray-800 outline-none focus:border-[#7A3E4A] focus:ring-2 focus:ring-[#7A3E4A]/10 transition-all cursor-pointer shadow-xs appearance-none pr-10 antialiased font-sans"
+    const labelCls = "block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1.5 antialiased font-sans"
+
     return (
         <div className="min-h-screen bg-[#FAF9F5] flex flex-col font-sans">
             <Header
@@ -196,16 +201,16 @@ export default function EngagementPage() {
 
                     {/* Subtitle Line */}
                     <div className="pt-2">
-                        <span className="text-[10px] md:text-[11px] uppercase tracking-[0.3em] text-[#C6A76A] font-extrabold font-heading">
+                        <span className="text-[10px] md:text-[11px] uppercase tracking-[0.3em] text-[#C6A76A] font-extrabold font-heading antialiased">
                             ESPAÇO INTERATIVO DA CLIENTE
                         </span>
                     </div>
 
-                    <h1 className="font-heading text-2xl md:text-4xl font-extrabold tracking-wider uppercase text-[#1A1A1A]">
+                    <h1 className="font-heading text-2xl md:text-4xl font-extrabold tracking-wider uppercase text-[#1A1A1A] antialiased">
                         Central da Cliente Meraki
                     </h1>
 
-                    <p className="text-xs md:text-sm text-gray-600 max-w-2xl mx-auto font-medium leading-relaxed">
+                    <p className="text-xs md:text-sm text-gray-600 max-w-2xl mx-auto font-medium leading-relaxed antialiased">
                         Sua opinião molda nossas próximas coleções. Envie sugestões, participe das enquetes ou solicite produtos exclusivos com atendimento dedicado.
                     </p>
                 </div>
@@ -272,17 +277,17 @@ export default function EngagementPage() {
                     {/* TAB 1: SUGGESTIONS */}
                     {activeTab === 'suggestions' && (
                         <div className="space-y-6">
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-3 pb-2 border-b border-gray-100">
                                 <span className="w-9 h-9 rounded-xl bg-[#7A3E4A]/10 text-[#7A3E4A] flex items-center justify-center shrink-0">
                                     <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                                     </svg>
                                 </span>
                                 <div>
-                                    <h2 className="font-heading text-lg md:text-xl font-bold text-[#1A1A1A] uppercase tracking-wider">
+                                    <h2 className="text-lg md:text-xl font-black text-gray-900 uppercase tracking-wide font-sans antialiased">
                                         Escreva sua Sugestão
                                     </h2>
-                                    <p className="text-xs text-gray-500 font-medium">
+                                    <p className="text-xs text-gray-500 font-medium antialiased">
                                         Conte para nossa equipe qual modelo, cor ou tamanho você adoraria ver em nosso catálogo!
                                     </p>
                                 </div>
@@ -291,59 +296,66 @@ export default function EngagementPage() {
                             <form onSubmit={handleSuggestionSubmit} className="space-y-4">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Seu Nome (Opcional)</label>
+                                        <label className={labelCls}>Seu Nome (Opcional)</label>
                                         <input
                                             type="text"
                                             value={sugName}
                                             onChange={e => setSugName(e.target.value)}
                                             placeholder="Ex: Maria Silva"
-                                            className="w-full px-4 py-3 text-xs border border-gray-200 rounded-xl focus:outline-none focus:border-[#7A3E4A] bg-[#FAF9F5]"
+                                            className={inputCls}
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">WhatsApp para Contato (Opcional)</label>
+                                        <label className={labelCls}>WhatsApp para Contato (Opcional)</label>
                                         <input
                                             type="tel"
                                             value={sugPhone}
                                             onChange={e => setSugPhone(e.target.value)}
                                             placeholder="(11) 99999-9999"
-                                            className="w-full px-4 py-3 text-xs border border-gray-200 rounded-xl focus:outline-none focus:border-[#7A3E4A] bg-[#FAF9F5]"
+                                            className={inputCls}
                                         />
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Categoria da Sugestão</label>
-                                    <select
-                                        value={sugCategory}
-                                        onChange={e => setSugCategory(e.target.value)}
-                                        className="w-full px-4 py-3 text-xs border border-gray-200 rounded-xl focus:outline-none focus:border-[#7A3E4A] bg-[#FAF9F5]"
-                                    >
-                                        <option>Cores Desejadas</option>
-                                        <option>Mais Opções Plus Size</option>
-                                        <option>Novos Modelos de Lingerie</option>
-                                        <option>Camisolas & Noite</option>
-                                        <option>Linha Sexy & Fantasias</option>
-                                        <option>Outros</option>
-                                    </select>
+                                    <label className={labelCls}>Categoria da Sugestão</label>
+                                    <div className="relative">
+                                        <select
+                                            value={sugCategory}
+                                            onChange={e => setSugCategory(e.target.value)}
+                                            className={selectCls}
+                                        >
+                                            <option value="Cores Desejadas">Cores Desejadas</option>
+                                            <option value="Mais Opções Plus Size">Mais Opções Plus Size</option>
+                                            <option value="Novos Modelos de Lingerie">Novos Modelos de Lingerie</option>
+                                            <option value="Camisolas & Noite">Camisolas & Noite</option>
+                                            <option value="Linha Sexy & Fantasias">Linha Sexy & Fantasias</option>
+                                            <option value="Outros">Outros</option>
+                                        </select>
+                                        <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div>
-                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Sua Mensagem / Sugestão *</label>
+                                    <label className={labelCls}>Sua Mensagem / Sugestão *</label>
                                     <textarea
                                         required
                                         rows={5}
                                         value={sugMessage}
                                         onChange={e => setSugMessage(e.target.value)}
                                         placeholder="Ex: 'Gostaria muito que tivesse conjuntos na cor vinho e verde esmeralda no tamanho GG!'"
-                                        className="w-full px-4 py-3 text-xs border border-gray-200 rounded-xl focus:outline-none focus:border-[#7A3E4A] bg-[#FAF9F5]"
+                                        className={inputCls}
                                     />
                                 </div>
 
                                 <button
                                     type="submit"
                                     disabled={submitting}
-                                    className="w-full py-4 bg-[#7A3E4A] text-white font-bold text-xs uppercase tracking-wider rounded-2xl hover:bg-[#5B6E57] transition-all shadow-md cursor-pointer disabled:opacity-50"
+                                    className="w-full py-4 bg-[#7A3E4A] text-white font-bold text-xs uppercase tracking-wider rounded-xl hover:bg-[#5B6E57] transition-all shadow-md cursor-pointer disabled:opacity-50 antialiased"
                                 >
                                     {submitting ? 'Enviando Sugestão...' : 'Enviar Sugestão'}
                                 </button>
@@ -354,17 +366,17 @@ export default function EngagementPage() {
                     {/* TAB 2: POLLS */}
                     {activeTab === 'polls' && (
                         <div className="space-y-6">
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-3 pb-2 border-b border-gray-100">
                                 <span className="w-9 h-9 rounded-xl bg-[#7A3E4A]/10 text-[#7A3E4A] flex items-center justify-center shrink-0">
                                     <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                                     </svg>
                                 </span>
                                 <div>
-                                    <h2 className="font-heading text-lg md:text-xl font-bold text-[#1A1A1A] uppercase tracking-wider">
+                                    <h2 className="text-lg md:text-xl font-black text-gray-900 uppercase tracking-wide font-sans antialiased">
                                         Enquetes da Coleção
                                     </h2>
-                                    <p className="text-xs text-gray-500 font-medium">
+                                    <p className="text-xs text-gray-500 font-medium antialiased">
                                         Vote nas opções e ajude nossa equipe a escolher os próximos lançamentos!
                                     </p>
                                 </div>
@@ -399,7 +411,7 @@ export default function EngagementPage() {
 
                                     {selectedPoll && (
                                         <div className="bg-[#FAF9F5] border border-[#E8E0D8] rounded-2xl p-6 md:p-8 space-y-6">
-                                            <h3 className="font-heading text-base md:text-lg font-bold text-[#1A1A1A]">
+                                            <h3 className="text-base md:text-lg font-extrabold text-[#1A1A1A] antialiased">
                                                 {selectedPoll.question}
                                             </h3>
 
@@ -455,7 +467,7 @@ export default function EngagementPage() {
 
                                                     {selectedPoll.allow_custom_text && (
                                                         <div className="pt-2">
-                                                            <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">
+                                                            <label className={labelCls}>
                                                                 Ou escreva sua sugestão de resposta:
                                                             </label>
                                                             <input
@@ -463,7 +475,7 @@ export default function EngagementPage() {
                                                                 value={customText}
                                                                 onChange={e => setCustomText(e.target.value)}
                                                                 placeholder="Digite sua resposta personalizada..."
-                                                                className="w-full px-4 py-3 text-xs border border-gray-200 rounded-xl focus:outline-none focus:border-[#7A3E4A] bg-white"
+                                                                className={inputCls}
                                                             />
                                                         </div>
                                                     )}
@@ -471,7 +483,7 @@ export default function EngagementPage() {
                                                     <button
                                                         type="submit"
                                                         disabled={submitting || (!selectedOption && !customText.trim())}
-                                                        className="w-full py-3.5 bg-[#7A3E4A] text-white font-bold text-xs uppercase tracking-wider rounded-2xl hover:bg-[#5B6E57] transition-all shadow-md cursor-pointer disabled:opacity-50"
+                                                        className="w-full py-3.5 bg-[#7A3E4A] text-white font-bold text-xs uppercase tracking-wider rounded-xl hover:bg-[#5B6E57] transition-all shadow-md cursor-pointer disabled:opacity-50 antialiased"
                                                     >
                                                         {submitting ? 'Votando...' : 'Confirmar Voto'}
                                                     </button>
@@ -487,17 +499,17 @@ export default function EngagementPage() {
                     {/* TAB 3: PRODUCT REQUEST */}
                     {activeTab === 'request' && (
                         <div className="space-y-6">
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-3 pb-2 border-b border-gray-100">
                                 <span className="w-9 h-9 rounded-xl bg-[#7A3E4A]/10 text-[#7A3E4A] flex items-center justify-center shrink-0">
                                     <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                                     </svg>
                                 </span>
                                 <div>
-                                    <h2 className="font-heading text-lg md:text-xl font-bold text-[#1A1A1A] uppercase tracking-wider">
+                                    <h2 className="text-lg md:text-xl font-black text-gray-900 uppercase tracking-wide font-sans antialiased">
                                         Encomende um Produto Específico
                                     </h2>
-                                    <p className="text-xs text-gray-500 font-medium">
+                                    <p className="text-xs text-gray-500 font-medium antialiased">
                                         Procurando um produto específico ou foto de inspiração? Faça sua solicitação para trazermos até você!
                                     </p>
                                 </div>
@@ -506,90 +518,104 @@ export default function EngagementPage() {
                             <form onSubmit={handleProductRequestSubmit} className="space-y-4">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Seu Nome *</label>
+                                        <label className={labelCls}>Seu Nome *</label>
                                         <input
                                             required
                                             type="text"
                                             value={reqName}
                                             onChange={e => setReqName(e.target.value)}
                                             placeholder="Ex: Ana Paula"
-                                            className="w-full px-4 py-3 text-xs border border-gray-200 rounded-xl focus:outline-none focus:border-[#7A3E4A] bg-[#FAF9F5]"
+                                            className={inputCls}
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Seu WhatsApp *</label>
+                                        <label className={labelCls}>Seu WhatsApp *</label>
                                         <input
                                             required
                                             type="tel"
                                             value={reqPhone}
                                             onChange={e => setReqPhone(e.target.value)}
                                             placeholder="(11) 99999-9999"
-                                            className="w-full px-4 py-3 text-xs border border-gray-200 rounded-xl focus:outline-none focus:border-[#7A3E4A] bg-[#FAF9F5]"
+                                            className={inputCls}
                                         />
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Nome da Peça ou Descrição do Modelo *</label>
+                                    <label className={labelCls}>Nome da Peça ou Descrição do Modelo *</label>
                                     <input
                                         required
                                         type="text"
                                         value={reqProdName}
                                         onChange={e => setReqProdName(e.target.value)}
                                         placeholder="Ex: Corset de Renda Vinho, Body Manga Longa, etc."
-                                        className="w-full px-4 py-3 text-xs border border-gray-200 rounded-xl focus:outline-none focus:border-[#7A3E4A] bg-[#FAF9F5]"
+                                        className={inputCls}
                                     />
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     <div>
-                                        <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Cor Desejada</label>
+                                        <label className={labelCls}>Cor Desejada</label>
                                         <input
                                             type="text"
                                             value={reqColor}
                                             onChange={e => setReqColor(e.target.value)}
                                             placeholder="Ex: Vermelho, Preto"
-                                            className="w-full px-4 py-3 text-xs border border-gray-200 rounded-xl focus:outline-none focus:border-[#7A3E4A] bg-[#FAF9F5]"
+                                            className={inputCls}
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Tamanho</label>
-                                        <select
-                                            value={reqSize}
-                                            onChange={e => setReqSize(e.target.value)}
-                                            className="w-full px-4 py-3 text-xs border border-gray-200 rounded-xl focus:outline-none focus:border-[#7A3E4A] bg-[#FAF9F5]"
-                                        >
-                                            <option>P</option>
-                                            <option>M</option>
-                                            <option>G</option>
-                                            <option>GG</option>
-                                            <option>EG (Plus)</option>
-                                            <option>G1</option>
-                                            <option>G2</option>
-                                        </select>
+                                        <label className={labelCls}>Tamanho</label>
+                                        <div className="relative">
+                                            <select
+                                                value={reqSize}
+                                                onChange={e => setReqSize(e.target.value)}
+                                                className={selectCls}
+                                            >
+                                                <option value="P">P</option>
+                                                <option value="M">M</option>
+                                                <option value="G">G</option>
+                                                <option value="GG">GG</option>
+                                                <option value="EG (Plus)">EG (Plus)</option>
+                                                <option value="G1">G1</option>
+                                                <option value="G2">G2</option>
+                                            </select>
+                                            <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                                                </svg>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div>
-                                        <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Faixa de Preço Desejada</label>
-                                        <select
-                                            value={reqPriceRange}
-                                            onChange={e => setReqPriceRange(e.target.value)}
-                                            className="w-full px-4 py-3 text-xs border border-gray-200 rounded-xl focus:outline-none focus:border-[#7A3E4A] bg-[#FAF9F5]"
-                                        >
-                                            <option>Até R$ 99</option>
-                                            <option>Até R$ 150</option>
-                                            <option>De R$ 150 a R$ 250</option>
-                                            <option>Acima de R$ 250</option>
-                                        </select>
+                                        <label className={labelCls}>Faixa de Preço Desejada</label>
+                                        <div className="relative">
+                                            <select
+                                                value={reqPriceRange}
+                                                onChange={e => setReqPriceRange(e.target.value)}
+                                                className={selectCls}
+                                            >
+                                                <option value="Até R$ 99">Até R$ 99</option>
+                                                <option value="Até R$ 150">Até R$ 150</option>
+                                                <option value="De R$ 150 a R$ 250">De R$ 150 a R$ 250</option>
+                                                <option value="Acima de R$ 250">Acima de R$ 250</option>
+                                            </select>
+                                            <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                                                </svg>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Foto de Referência (Opcional)</label>
+                                    <label className={labelCls}>Foto de Referência (Opcional)</label>
                                     <input
                                         type="file"
                                         accept="image/*"
                                         onChange={handlePhotoChange}
-                                        className="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#7A3E4A]/10 file:text-[#7A3E4A] cursor-pointer"
+                                        className="w-full text-xs text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#7A3E4A]/10 file:text-[#7A3E4A] cursor-pointer"
                                     />
                                     {reqPhotoPreview && (
                                         <div className="mt-3 w-24 h-24 rounded-xl overflow-hidden border border-gray-200">
@@ -599,20 +625,20 @@ export default function EngagementPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Detalhes Adicionais</label>
+                                    <label className={labelCls}>Detalhes Adicionais</label>
                                     <textarea
                                         rows={3}
                                         value={reqDesc}
                                         onChange={e => setReqDesc(e.target.value)}
                                         placeholder="Detalhes sobre tecido, bojo, alça, caimento..."
-                                        className="w-full px-4 py-3 text-xs border border-gray-200 rounded-xl focus:outline-none focus:border-[#7A3E4A] bg-[#FAF9F5]"
+                                        className={inputCls}
                                     />
                                 </div>
 
                                 <button
                                     type="submit"
                                     disabled={submitting}
-                                    className="w-full py-4 bg-[#7A3E4A] text-white font-bold text-xs uppercase tracking-wider rounded-2xl hover:bg-[#5B6E57] transition-all shadow-md cursor-pointer disabled:opacity-50"
+                                    className="w-full py-4 bg-[#7A3E4A] text-white font-bold text-xs uppercase tracking-wider rounded-xl hover:bg-[#5B6E57] transition-all shadow-md cursor-pointer disabled:opacity-50 antialiased"
                                 >
                                     {submitting ? 'Registrando Pedido...' : 'Enviar Solicitação de Peça'}
                                 </button>
