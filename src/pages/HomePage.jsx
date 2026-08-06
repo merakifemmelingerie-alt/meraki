@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react'
+import ScrollReveal from '../components/ScrollReveal.jsx'
 import { getAssetUrl } from '../utils/assets.js'
 import { Link, useNavigate } from 'react-router-dom'
 import Header from '../components/Header.jsx'
@@ -205,15 +206,15 @@ export default function HomePage() {
                             </div>
                         ) : products.length > 0 ? (
                             <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-4 sm:gap-x-8 gap-y-8 sm:gap-y-12">
-                                {products.map((product) => (
-                                    <div key={product.id}>
+                                {products.map((product, idx) => (
+                                    <ScrollReveal key={product.id} variant="fade-up" delay={idx * 80} threshold={0.05}>
                                         <ProductCard
                                             product={product}
                                             onQuickView={setQuickViewProduct}
                                             onToggleWishlist={toggleWishlist}
                                             isWishlisted={isWishlisted(product.id)}
                                         />
-                                    </div>
+                                    </ScrollReveal>
                                 ))}
                             </div>
                         ) : (
@@ -225,10 +226,11 @@ export default function HomePage() {
         )
     }
 
-    const FadeInSection = ({ children }) => (
-        <div>
+    // Scroll-reveal wrapper: fade-up with optional delay
+    const FadeInSection = ({ children, variant = 'fade-up', delay = 0 }) => (
+        <ScrollReveal variant={variant} delay={delay}>
             {children}
-        </div>
+        </ScrollReveal>
     )
 
     return (
@@ -256,13 +258,15 @@ export default function HomePage() {
                             <p className="text-gray-500 max-w-lg italic font-light text-lg">Curadoria exclusiva das melhores peças para você.</p>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                            {categories.filter(cat => cat && cat.name).map((cat) => (
-                                <div
+                            {categories.filter(cat => cat && cat.name).map((cat, idx) => (
+                                <ScrollReveal
                                     key={cat.name}
+                                    variant="fade-up"
+                                    delay={idx * 100}
                                     id={(cat.name || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(' ', '-')}
                                 >
                                     <CategoryCard {...cat} />
-                                </div>
+                                </ScrollReveal>
                             ))}
                         </div>
                     </div>

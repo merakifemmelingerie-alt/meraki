@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import ScrollReveal from '../components/ScrollReveal.jsx'
 import { useParams, Link } from 'react-router-dom'
 import Header from '../components/Header.jsx'
 import Footer from '../components/Footer.jsx'
@@ -798,15 +799,15 @@ export default function CategoryPage() {
                 ) : filteredProducts.length > 0 ? (
                     <div className="space-y-12">
                         <div className={`grid gap-x-3 sm:gap-x-8 gap-y-6 sm:gap-y-12 ${mobileCols === 1 ? 'grid-cols-1' : 'grid-cols-2'} ${viewCols === 3 ? 'lg:grid-cols-3' : 'lg:grid-cols-4'}`}>
-                            {paginatedProducts.map((product) => (
-                                <div key={product.id}>
+                            {paginatedProducts.map((product, idx) => (
+                                <ScrollReveal key={product.id} variant="fade-up" delay={idx * 60} threshold={0.05}>
                                     <ProductCard
                                         product={product}
                                         onQuickView={setQuickViewProduct}
                                         onToggleWishlist={toggleWishlist}
                                         isWishlisted={isWishlisted(product.id)}
                                     />
-                                </div>
+                                </ScrollReveal>
                             ))}
                         </div>
 
