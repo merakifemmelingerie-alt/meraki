@@ -926,7 +926,7 @@ export function CategoriesSection({
 
     const [defaultCategoryImage, setDefaultCategoryImage] = useState(() => {
         const stored = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
-        return stored.default_category_image || categories?.[0]?.image || '/assets/categories/cat-sexy.jpg'
+        return stored.default_category_image || categories?.[0]?.image || '/assets/categories/cat-sexy.webp'
     })
 
     // Subcategory style filters state
@@ -939,30 +939,30 @@ export function CategoriesSection({
         } catch {}
         return {
             'linha-sexy': [
-                { id: 'bodys', name: 'Bodys', image: '/assets/categories/cat-sexy.jpg' },
-                { id: 'corsets', name: 'Corsets', image: '/assets/categories/cat-noite.jpg' },
-                { id: 'conjuntos-sexy', name: 'Conjuntos Sexy', image: '/assets/categories/cat-conjuntos.jpg' },
-                { id: 'acessorios', name: 'Acessórios', image: '/assets/categories/cat-plus.jpg' }
+                { id: 'bodys', name: 'Bodys', image: '/assets/categories/cat-sexy.webp' },
+                { id: 'corsets', name: 'Corsets', image: '/assets/categories/cat-noite.webp' },
+                { id: 'conjuntos-sexy', name: 'Conjuntos Sexy', image: '/assets/categories/cat-conjuntos.webp' },
+                { id: 'acessorios', name: 'Acessórios', image: '/assets/categories/cat-plus.webp' }
             ],
             'conjuntos': [
-                { id: 'cobertura-total', name: 'Cobertura Total', image: '/assets/categories/cat-conjuntos.jpg' },
-                { id: 'meia-taca', name: 'Meia Taça', image: '/assets/categories/cat-noite.jpg' },
-                { id: 'triangulo', name: 'Triângulo', image: '/assets/categories/cat-sexy.jpg' },
-                { id: 'sem-alca', name: 'Sem Alça', image: '/assets/categories/cat-plus.jpg' },
-                { id: 'top', name: 'Top', image: '/assets/categories/cat-conjuntos.jpg' },
-                { id: 'balconet', name: 'Balconet', image: '/assets/categories/cat-noite.jpg' }
+                { id: 'cobertura-total', name: 'Cobertura Total', image: '/assets/categories/cat-conjuntos.webp' },
+                { id: 'meia-taca', name: 'Meia Taça', image: '/assets/categories/cat-noite.webp' },
+                { id: 'triangulo', name: 'Triângulo', image: '/assets/categories/cat-sexy.webp' },
+                { id: 'sem-alca', name: 'Sem Alça', image: '/assets/categories/cat-plus.webp' },
+                { id: 'top', name: 'Top', image: '/assets/categories/cat-conjuntos.webp' },
+                { id: 'balconet', name: 'Balconet', image: '/assets/categories/cat-noite.webp' }
             ],
             'camisolas-babydolls': [
-                { id: 'robes', name: 'Robes', image: '/assets/categories/cat-noite.jpg' },
-                { id: 'pijamas', name: 'Pijamas', image: '/assets/categories/cat-conjuntos.jpg' },
-                { id: 'camisolas', name: 'Camisolas', image: '/assets/categories/cat-sexy.jpg' },
-                { id: 'baby-dolls', name: 'Baby Dolls', image: '/assets/categories/cat-plus.jpg' }
+                { id: 'robes', name: 'Robes', image: '/assets/categories/cat-noite.webp' },
+                { id: 'pijamas', name: 'Pijamas', image: '/assets/categories/cat-conjuntos.webp' },
+                { id: 'camisolas', name: 'Camisolas', image: '/assets/categories/cat-sexy.webp' },
+                { id: 'baby-dolls', name: 'Baby Dolls', image: '/assets/categories/cat-plus.webp' }
             ],
             'plus-size': [
-                { id: 'sustentacao', name: 'Sustentação', image: '/assets/categories/cat-plus.jpg' },
-                { id: 'modeladores', name: 'Modeladores', image: '/assets/categories/cat-conjuntos.jpg' },
-                { id: 'camisolas-plus', name: 'Camisolas Plus', image: '/assets/categories/cat-noite.jpg' },
-                { id: 'rendas', name: 'Rendas', image: '/assets/categories/cat-sexy.jpg' }
+                { id: 'sustentacao', name: 'Sustentação', image: '/assets/categories/cat-plus.webp' },
+                { id: 'modeladores', name: 'Modeladores', image: '/assets/categories/cat-conjuntos.webp' },
+                { id: 'camisolas-plus', name: 'Camisolas Plus', image: '/assets/categories/cat-noite.webp' },
+                { id: 'rendas', name: 'Rendas', image: '/assets/categories/cat-sexy.webp' }
             ]
         }
     })

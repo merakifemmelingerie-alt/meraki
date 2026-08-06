@@ -13,20 +13,20 @@ const defaultTopBarMessages = [
 const slugifyCategory = (name) => (name || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s-]/g, '').trim().replace(/[\s-]+/g, '-')
 
 const categoryImages = {
-    'conjuntos': '/assets/categories/cat-conjuntos.jpg',
-    'calcinhas': '/assets/categories/cat-sexy.jpg',
-    'tanga': '/assets/categories/cat-sexy.jpg',
-    'body': '/assets/categories/cat-sexy.jpg',
-    'camisola': '/assets/categories/cat-noite.jpg',
-    'baby-doll': '/assets/categories/cat-noite.jpg',
-    'camisolas-babydolls': '/assets/categories/cat-noite.jpg',
-    'plus-size': '/assets/categories/cat-plus.jpg',
-    'personalizados': '/assets/categories/cat-conjuntos.jpg',
-    'fantasias': '/assets/categories/cat-sexy.jpg',
-    'sex-shop': '/assets/categories/cat-sexy.jpg',
-    'acessorios': '/assets/categories/cat-acessorios.jpg',
-    'linha-sexy': '/assets/categories/cat-sexy.jpg',
-    'moda-praia': '/assets/categories/cat-conjuntos.jpg'
+    'conjuntos': '/assets/categories/cat-conjuntos.webp',
+    'calcinhas': '/assets/categories/cat-sexy.webp',
+    'tanga': '/assets/categories/cat-sexy.webp',
+    'body': '/assets/categories/cat-sexy.webp',
+    'camisola': '/assets/categories/cat-noite.webp',
+    'baby-doll': '/assets/categories/cat-noite.webp',
+    'camisolas-babydolls': '/assets/categories/cat-noite.webp',
+    'plus-size': '/assets/categories/cat-plus.webp',
+    'personalizados': '/assets/categories/cat-conjuntos.webp',
+    'fantasias': '/assets/categories/cat-sexy.webp',
+    'sex-shop': '/assets/categories/cat-sexy.webp',
+    'acessorios': '/assets/categories/cat-conjuntos.webp',
+    'linha-sexy': '/assets/categories/cat-sexy.webp',
+    'moda-praia': '/assets/categories/cat-conjuntos.webp'
 }
 
 export default function Header({ cartCount = 0, wishlistCount = 0, onSearchOpen }) {
@@ -51,9 +51,9 @@ export default function Header({ cartCount = 0, wishlistCount = 0, onSearchOpen 
     const [defaultCategoryImage, setDefaultCategoryImage] = useState(() => {
         try {
             const stored = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
-            return stored?.default_category_image || '/assets/categories/cat-sexy.jpg'
+            return stored?.default_category_image || '/assets/categories/cat-sexy.webp'
         } catch {
-            return '/assets/categories/cat-sexy.jpg'
+            return '/assets/categories/cat-sexy.webp'
         }
     })
 
@@ -442,7 +442,7 @@ export default function Header({ cartCount = 0, wishlistCount = 0, onSearchOpen 
                                             {/* Imagem de Fundo - usa a da categoria ou uma imagem padrão premium para não ficar em branco */}
                                             <div className="absolute inset-0 z-0 animate-[fadeIn_200ms_ease-out]">
                                                 <img 
-                                                    src={hoveredCategory && hoveredCategory.image ? hoveredCategory.image : defaultCategoryImage} 
+                                                    src={getAssetUrl(hoveredCategory && hoveredCategory.image ? hoveredCategory.image : defaultCategoryImage)} 
                                                     alt={hoveredCategory ? hoveredCategory.name : 'Default'} 
                                                     className="w-full h-full object-cover brightness-[0.65]" 
                                                 />
