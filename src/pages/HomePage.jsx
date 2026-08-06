@@ -33,10 +33,10 @@ export default function HomePage() {
             console.error(e)
         }
         return [
-            { name: 'Home', description: 'Voltar para a página inicial', image: '/assets/categories/cat-conjuntos.jpg', link: '/' },
-            { name: 'Categorias', description: 'Navegar pelas nossas coleções', image: '/assets/categories/cat-noite.jpg', link: '/category/conjuntos' },
-            { name: 'Política de Troca', description: 'Regras e prazos para trocas de produtos', image: '/assets/categories/cat-sexy.jpg', link: '/returns' },
-            { name: 'Ofertas', description: 'Confira nossos produtos com descontos', image: '/assets/categories/cat-plus.jpg', link: '/category/ofertas' },
+            { name: 'Home', description: 'Voltar para a página inicial', image: '/assets/categories/cat-conjuntos.webp', link: '/' },
+            { name: 'Categorias', description: 'Navegar pelas nossas coleções', image: '/assets/categories/cat-noite.webp', link: '/category/conjuntos' },
+            { name: 'Política de Troca', description: 'Regras e prazos para trocas de produtos', image: '/assets/categories/cat-sexy.webp', link: '/returns' },
+            { name: 'Ofertas', description: 'Confira nossos produtos com descontos', image: '/assets/categories/cat-plus.webp', link: '/category/ofertas' },
         ]
     })
 
@@ -46,7 +46,7 @@ export default function HomePage() {
             try {
                 const parsed = JSON.parse(stored)
                 if (parsed?.image && parsed.image.includes('photo-1616422285623')) {
-                    parsed.image = '/assets/categories/cat-conjuntos.jpg'
+                    parsed.image = '/assets/categories/cat-conjuntos.webp'
                 }
                 return parsed
             } catch (e) { console.error(e) }
@@ -54,7 +54,7 @@ export default function HomePage() {
         return {
             title: 'Combo Sutiã',
             subtitle: 'Do P ao EG. Diversos modelos para você escolher.',
-            image: '/assets/categories/cat-conjuntos.jpg',
+            image: '/assets/categories/cat-conjuntos.webp',
             price2Items: 139,
             price3Items: 169,
             link: '/category/promo-combo',
@@ -74,7 +74,7 @@ export default function HomePage() {
             description: 'Cada costura, cada detalhe em renda foi pensado para elevar sua confiança e celebrar sua beleza única em todos os momentos.',
             buttonText: 'Ver Manifesto',
             buttonLink: '/story',
-            image: '/assets/banners/banner-2.jpg'
+            image: '/assets/banners/banner-2.webp'
         }
     })
 

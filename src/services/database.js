@@ -1,4 +1,5 @@
 import { supabase } from './supabase.js'
+import { convertToWebP } from '../utils/assets.js'
 
 export function generateUUID() {
     if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -403,17 +404,17 @@ export async function initSupabaseSync() {
                     localStorage.setItem('meraki_sections', JSON.stringify(dbConfig.topbarStyle.availableSections))
                 }
                 const rawHomeCats = dbConfig.topbarStyle.homepageCategories || [
-                    { name: 'Home', description: 'Voltar para a página inicial', image: '/assets/categories/cat-conjuntos.jpg', link: '/' },
-                    { name: 'Categorias', description: 'Navegar pelas nossas coleções', image: '/assets/categories/cat-noite.jpg', link: '/category/conjuntos' },
-                    { name: 'Política de Troca', description: 'Regras e prazos para trocas de produtos', image: '/assets/categories/cat-sexy.jpg', link: '/returns' },
-                    { name: 'Ofertas', description: 'Confira nossos produtos com descontos', image: '/assets/categories/cat-plus.jpg', link: '/category/ofertas' }
+                    { name: 'Home', description: 'Voltar para a página inicial', image: '/assets/categories/cat-conjuntos.webp', link: '/' },
+                    { name: 'Categorias', description: 'Navegar pelas nossas coleções', image: '/assets/categories/cat-noite.webp', link: '/category/conjuntos' },
+                    { name: 'Política de Troca', description: 'Regras e prazos para trocas de produtos', image: '/assets/categories/cat-sexy.webp', link: '/returns' },
+                    { name: 'Ofertas', description: 'Confira nossos produtos com descontos', image: '/assets/categories/cat-plus.webp', link: '/category/ofertas' }
                 ]
                 const homeCats = Array.isArray(rawHomeCats) ? rawHomeCats.filter(c => c && c.name) : rawHomeCats
                 localStorage.setItem('meraki_homepage_categories', JSON.stringify(homeCats))
             }
             if (dbConfig.promoCombo) {
                 if (dbConfig.promoCombo.image && dbConfig.promoCombo.image.includes('photo-1616422285623')) {
-                    dbConfig.promoCombo.image = '/assets/categories/cat-conjuntos.jpg'
+                    dbConfig.promoCombo.image = '/assets/categories/cat-conjuntos.webp'
                 }
                 localStorage.setItem('meraki_promo_combo', JSON.stringify(dbConfig.promoCombo))
             }
@@ -454,7 +455,7 @@ export async function initSupabaseSync() {
                 promoCombo: {
                     title: 'Combo Sutiã',
                     subtitle: 'Do P ao EG. Diversos modelos para você escolher.',
-                    image: '/assets/categories/cat-conjuntos.jpg',
+                    image: '/assets/categories/cat-conjuntos.webp',
                     price2Items: 139,
                     price3Items: 169,
                     link: '/category/promo-combo',
@@ -467,7 +468,7 @@ export async function initSupabaseSync() {
                     description: 'Cada costura, cada detalhe em renda foi pensado para elevar sua confiança e celebrar sua beleza única em todos os momentos.',
                     buttonText: 'Ver Manifesto',
                     buttonLink: '/story',
-                    image: '/assets/banners/banner-2.jpg'
+                    image: '/assets/banners/banner-2.webp'
                 },
                 shippingMessage: 'Frete grátis para a região Centro-Oeste nas compras acima de R$ 299,90.',
                 rewardBar: {
@@ -489,10 +490,10 @@ export async function initSupabaseSync() {
             localStorage.setItem('meraki_shipping_message', defaultConfig.shippingMessage)
             localStorage.setItem('meraki_reward_bar', JSON.stringify(defaultConfig.rewardBar))
             const defaultHomeCats = [
-                { name: 'Home', description: 'Voltar para a página inicial', image: '/assets/categories/cat-conjuntos.jpg', link: '/' },
-                { name: 'Categorias', description: 'Navegar pelas nossas coleções', image: '/assets/categories/cat-noite.jpg', link: '/category/conjuntos' },
-                { name: 'Política de Troca', description: 'Regras e prazos para trocas de produtos', image: '/assets/categories/cat-sexy.jpg', link: '/returns' },
-                { name: 'Ofertas', description: 'Confira nossos produtos com descontos', image: '/assets/categories/cat-plus.jpg', link: '/category/ofertas' }
+                { name: 'Home', description: 'Voltar para a página inicial', image: '/assets/categories/cat-conjuntos.webp', link: '/' },
+                { name: 'Categorias', description: 'Navegar pelas nossas coleções', image: '/assets/categories/cat-noite.webp', link: '/category/conjuntos' },
+                { name: 'Política de Troca', description: 'Regras e prazos para trocas de produtos', image: '/assets/categories/cat-sexy.webp', link: '/returns' },
+                { name: 'Ofertas', description: 'Confira nossos produtos com descontos', image: '/assets/categories/cat-plus.webp', link: '/category/ofertas' }
             ]
             localStorage.setItem('meraki_homepage_categories', JSON.stringify(defaultHomeCats))
         }
@@ -933,13 +934,20 @@ export async function searchProducts(query) {
     }
 }
 
-// Storage/image uploading
+// Storage/image uploading with automatic WebP conversion
 export async function uploadImage(file) {
     try {
-        // Try uploading to Supabase Storage Bucket 'product-images'
-        const fileExt = file.name.split('.').pop()
-        const fileName = `products/${Math.random()}_${Date.now()}.${fileExt}`
-        const { data, error } = await supabase.storage.from('product-images').upload(fileName, file)
+        // Automatically convert any image (JPG, PNG, JPEG) to WebP format in high quality (90%)
+        const webpFile = await convertToWebP(file, 0.90)
+        
+        const isWebP = webpFile.type === 'image/webp'
+        const fileExt = isWebP ? 'webp' : (webpFile.name?.split('.').pop() || 'webp')
+        const fileName = `products/${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`
+        
+        const { data, error } = await supabase.storage.from('product-images').upload(fileName, webpFile, {
+            contentType: webpFile.type || 'image/webp',
+            cacheControl: '3600'
+        })
         
         if (error) {
             console.error('Supabase upload error:', error.message)
@@ -948,7 +956,7 @@ export async function uploadImage(file) {
                 const reader = new FileReader()
                 reader.onloadend = () => resolve({ url: reader.result, error: null })
                 reader.onerror = (e) => resolve({ url: null, error: e })
-                reader.readAsDataURL(file)
+                reader.readAsDataURL(webpFile)
             })
         }
 

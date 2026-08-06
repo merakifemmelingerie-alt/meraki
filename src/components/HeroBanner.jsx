@@ -4,9 +4,9 @@ import { getAssetUrl } from '../utils/assets.js'
 import MediaDisplay from './MediaDisplay.jsx'
 
 const DEFAULT_SLIDES = [
-    { image: getAssetUrl('/assets/banners/banner-1.jpg'), alt: 'Nova Coleção Meraki - Transforme-se', link: '/shop' },
-    { image: getAssetUrl('/assets/banners/banner-2.jpg'), alt: 'Estilo e Elegância - Meraki Store', link: '/shop' },
-    { image: getAssetUrl('/assets/banners/banner-3.jpg'), alt: 'Sua melhor versão com Meraki', link: '/shop' },
+    { image: getAssetUrl('/assets/banners/banner-1.webp'), alt: 'Nova Coleção Meraki - Transforme-se', link: '/shop' },
+    { image: getAssetUrl('/assets/banners/banner-2.webp'), alt: 'Estilo e Elegância - Meraki Store', link: '/shop' },
+    { image: getAssetUrl('/assets/banners/banner-3.webp'), alt: 'Sua melhor versão com Meraki', link: '/shop' },
 ]
 
 // ─── Transition definitions ─────────────────────────────────────────────────

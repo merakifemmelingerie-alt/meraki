@@ -3,7 +3,7 @@ export function applyTransparentButterflyFavicon() {
 
     const img = new Image()
     img.crossOrigin = 'anonymous'
-    img.src = '/assets/borboleta-v2.png'
+    img.src = '/assets/borboleta-v2.webp'
 
     img.onload = () => {
         try {

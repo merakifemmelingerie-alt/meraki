@@ -229,7 +229,7 @@ export default function AdminPage() {
             try {
                 const parsed = JSON.parse(stored)
                 if (parsed?.image && parsed.image.includes('photo-1616422285623')) {
-                    parsed.image = '/assets/categories/cat-conjuntos.jpg'
+                    parsed.image = '/assets/categories/cat-conjuntos.webp'
                 }
                 return parsed
             } catch (e) { console.error(e) }
@@ -237,7 +237,7 @@ export default function AdminPage() {
         return {
             title: 'Combo Sutiã',
             subtitle: 'Do P ao EG. Diversos modelos para você escolher.',
-            image: '/assets/categories/cat-conjuntos.jpg',
+            image: '/assets/categories/cat-conjuntos.webp',
             price2Items: 139,
             price3Items: 169,
             link: '/category/promo-combo',
@@ -257,7 +257,7 @@ export default function AdminPage() {
             description: 'Cada costura, cada detalhe em renda foi pensado para elevar sua confiança e celebrar sua beleza única em todos os momentos.',
             buttonText: 'Ver Manifesto',
             buttonLink: '/story',
-            image: '/assets/banners/banner-2.jpg'
+            image: '/assets/banners/banner-2.webp'
         }
     })
 

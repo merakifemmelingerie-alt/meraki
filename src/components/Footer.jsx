@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 
 export default function Footer() {
-    const [butterflySrc, setButterflySrc] = useState('/assets/borboleta-v2.png')
+    const [butterflySrc, setButterflySrc] = useState('/assets/borboleta-v2.webp')
     const [config, setConfig] = useState({
         sac_phone: '(11) 2388-0403',
         address: 'Avenida Alfredo Nasser, Qd. 14, Lt. 05 - Centro, Bonfinópolis - GO, CEP: 75195-000',
@@ -72,7 +72,7 @@ export default function Footer() {
 
     useEffect(() => {
         const img = new Image()
-        img.src = '/assets/borboleta-v2.png'
+        img.src = '/assets/borboleta-v2.webp'
         img.onload = () => {
             const canvas = document.createElement('canvas')
             canvas.width = img.width

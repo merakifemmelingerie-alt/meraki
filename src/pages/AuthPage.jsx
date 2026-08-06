@@ -73,11 +73,11 @@ export default function AuthPage() {
     const [addrState, setAddrState] = useState('')
     
     const [showButterflyBg] = useState(true) // Defina como false para desativar as borboletas e o fundo fosco, retornando ao visual anterior.
-    const [processedButterflySrc, setProcessedButterflySrc] = useState('/assets/borboleta-v2.png')
+    const [processedButterflySrc, setProcessedButterflySrc] = useState('/assets/borboleta-v2.webp')
 
     useEffect(() => {
         const img = new Image()
-        img.src = '/assets/borboleta-v2.png'
+        img.src = '/assets/borboleta-v2.webp'
         img.onload = () => {
             const canvas = document.createElement('canvas')
             canvas.width = img.width

@@ -159,7 +159,7 @@ export default function PromoModal({ onNotification }) {
                 {/* Image Section - Hidden on mobile, beautiful display on md+ */}
                 <div className="hidden md:block md:w-1/2 relative min-h-[480px]">
                     <img
-                        src={getAssetUrl('/assets/banners/promo-banner.jpg')}
+                        src={getAssetUrl('/assets/banners/promo-banner.webp')}
                         alt="Promo Lingerie"
                         className="absolute inset-0 w-full h-full object-cover"
                     />
