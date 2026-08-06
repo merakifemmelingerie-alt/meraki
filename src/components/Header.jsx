@@ -561,8 +561,24 @@ export default function Header({ cartCount = 0, wishlistCount = 0, onSearchOpen 
                     <div className="fixed top-0 left-0 bottom-0 w-4/5 max-w-sm bg-white shadow-2xl flex flex-col justify-between p-6 z-[9999] animate-slide-right">
                         <div>
                             {/* Drawer Header */}
-                            <div className="flex items-center justify-between pb-6 border-b border-gray-100 mb-6">
-                                <span className="font-heading text-2xl font-bold tracking-[0.15em] text-[#1A1A1A]">MENU</span>
+                            <div className="flex items-center justify-between pb-4 border-b border-gray-100 mb-6">
+                                <Link 
+                                    to="/" 
+                                    onClick={() => { smoothScrollToTop(1200); setMobileMenuOpen(false); }}
+                                    className="font-bold text-[#1A1A1A] hover:text-[#7A3E4A] transition-all duration-300 inline-flex flex-col items-center justify-center gap-0.5"
+                                >
+                                    <img 
+                                        src={butterflySrc} 
+                                        alt="Borboleta Meraki" 
+                                        className={`w-6 h-6 object-contain transition-opacity duration-200 ${
+                                            butterflySrc.startsWith('data:') ? 'opacity-100' : 'opacity-0'
+                                        }`}
+                                    />
+                                    <div className="flex flex-col items-center leading-none text-center">
+                                        <span className="font-heading tracking-[0.22em] text-[15px] font-black uppercase antialiased">MERAKI</span>
+                                        <span className="text-[7px] uppercase tracking-[0.42em] text-[#7A3E4A] font-extrabold mt-0.5 ml-[0.42em] antialiased">---- FEMME ----</span>
+                                    </div>
+                                </Link>
                                 <button 
                                     onClick={() => setMobileMenuOpen(false)}
                                     className="p-2 text-gray-500 hover:text-gray-900 transition-colors cursor-pointer"
