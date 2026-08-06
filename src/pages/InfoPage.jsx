@@ -260,7 +260,7 @@ export default function InfoPage({ tab: propTab }) {
                                 <span className="w-8 h-8 rounded-full bg-[#7A3E4A]/10 text-[#7A3E4A] flex items-center justify-center font-bold">WA</span>
                                 <div>
                                     <p className="font-bold text-gray-800">WhatsApp VIP</p>
-                                    <a href="https://wa.me/551123880403" className="text-[#7A3E4A] hover:underline text-xs">(11) 2388-0403</a>
+                                    <a href={`https://wa.me/551123880403?text=${encodeURIComponent('Olá! Cheguei através do site da Meraki Femme e gostaria de tirar algumas dúvidas. Pode me ajudar?')}`} target="_blank" rel="noreferrer" className="text-[#7A3E4A] hover:underline text-xs">(11) 2388-0403</a>
                                 </div>
                             </div>
                             <div className="flex items-center gap-3 text-sm text-gray-650">

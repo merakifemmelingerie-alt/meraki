@@ -21,9 +21,11 @@ export default function WhatsAppButton() {
         return () => window.removeEventListener('storeConfigUpdated', loadConfig)
     }, [])
 
+    const defaultMsg = encodeURIComponent('Olá! Cheguei através do site da Meraki Femme e gostaria de tirar algumas dúvidas. Pode me ajudar?')
+
     return (
         <a
-            href={`https://wa.me/${whatsapp}`}
+            href={`https://wa.me/${whatsapp}?text=${defaultMsg}`}
             target="_blank"
             rel="noopener noreferrer"
             className="fixed bottom-6 left-6 z-50 w-14 h-14 bg-[#25d366] text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center hover:-translate-y-1"
