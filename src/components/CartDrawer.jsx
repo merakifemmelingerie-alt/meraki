@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useCart } from '../hooks/useCart.js'
 import { useAuth } from '../hooks/useAuth.js'
@@ -33,7 +33,7 @@ const readRewardConfig = () => {
             }
         }
     } catch (e) {
-        console.error(e)
+        console.error('Erro lendo meraki_reward_bar:', e)
     }
 
     return {
@@ -52,6 +52,10 @@ export default function CartDrawer() {
     const { user } = useAuth()
     const navigate = useNavigate()
 
+    // Refs for auto-scrolling to shipping card
+    const scrollContainerRef = useRef(null)
+    const shippingRef = useRef(null)
+
     // Shipping Calculator State
     const [cepInput, setCepInput] = useState('')
     const [calculatingCep, setCalculatingCep] = useState(false)
@@ -62,6 +66,18 @@ export default function CartDrawer() {
     const [rewardBarConfig, setRewardBarConfig] = useState(readRewardConfig)
     const [stockWarning, setStockWarning] = useState('')
     const [isShippingExpanded, setIsShippingExpanded] = useState(false)
+
+    // Auto-scroll to shipping card when opening drawer so shipping options are 100% visible
+    useEffect(() => {
+        if (isOpen) {
+            const timer = setTimeout(() => {
+                if (shippingRef.current) {
+                    shippingRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' })
+                }
+            }, 300)
+            return () => clearTimeout(timer)
+        }
+    }, [isOpen])
 
     useEffect(() => {
         const handleToggle = (e) => {
@@ -304,7 +320,7 @@ export default function CartDrawer() {
                 )}
 
                 {/* Scrollable Body: Items List + Shipping Options */}
-                <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 space-y-4">
+                <div ref={scrollContainerRef} className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 space-y-4 pb-8">
                     {cart.length > 0 ? (
                         <>
                             {/* Products List */}
@@ -385,7 +401,7 @@ export default function CartDrawer() {
                             </div>
 
                             {/* Freight Calculation Box (Always Visible in Scrollable Body) */}
-                            <div className="bg-[#FAF9F5] p-4 rounded-2xl border border-gray-200/80 space-y-3 mt-2">
+                            <div ref={shippingRef} className="bg-[#FAF9F5] p-4 rounded-2xl border border-gray-200/80 space-y-3 mt-2">
                                 <div className="flex items-center justify-between">
                                     <span className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
                                         <svg className="w-4 h-4 text-[#7A3E4A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
