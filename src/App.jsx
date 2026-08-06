@@ -117,19 +117,42 @@ function AppContent() {
 
     // Fetch from Supabase on mount so ALL users see the live maintenance_mode state
     useEffect(() => {
-        supabase
-            .from('store_config')
-            .select('*')
-            .eq('id', 'default')
-            .maybeSingle()
-            .then(({ data }) => {
+        const fetchLiveConfig = async () => {
+            try {
+                const { data, error } = await supabase
+                    .from('store_config')
+                    .select('*')
+                    .eq('id', 'default')
+                    .maybeSingle()
+
+                if (error && (error.status === 401 || error.code === 'PGRST301' || error.message?.includes('JWT') || error.message?.includes('jwt'))) {
+                    console.warn('⚠️ Token expirado no App.jsx (401). Limpando sessão e buscando via REST anônimo...')
+                    localStorage.removeItem('meraki_supabase_auth_token')
+                    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://ndcrlkehwgcqfligrxim.supabase.co'
+                    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5kY3Jsa2Vod2djcWZsaWdyeGltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3NzEzNTgsImV4cCI6MjEwMTM0NzM1OH0.ah2LUpV_WP8ZOUDe7PhgSZnScz1p00b12H4oj_MsovA'
+                    const res = await fetch(`${supabaseUrl}/rest/v1/store_config?select=*&id=eq.default`, {
+                        headers: { 'apikey': supabaseAnonKey }
+                    })
+                    const list = await res.json()
+                    const fallbackData = Array.isArray(list) ? list[0] : list
+                    if (fallbackData) {
+                        const merged = { ...storeConfig, ...fallbackData }
+                        localStorage.setItem('meraki_store_config', JSON.stringify(merged))
+                        setStoreConfig(merged)
+                    }
+                    return
+                }
+
                 if (data) {
                     const merged = { ...storeConfig, ...data }
                     localStorage.setItem('meraki_store_config', JSON.stringify(merged))
                     setStoreConfig(merged)
                 }
-            })
-            .catch(() => {}) // silently fall back to localStorage on network error
+            } catch (e) {
+                console.error('Erro ao carregar store_config ao iniciar:', e)
+            }
+        }
+        fetchLiveConfig()
     }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => {

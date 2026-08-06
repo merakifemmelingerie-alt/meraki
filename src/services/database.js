@@ -206,6 +206,22 @@ export function mapDbToFrontend(table, item) {
         if (item.availablesizes !== undefined) mapped.availableSizes = item.availablesizes
         if (item.installment_text !== undefined) mapped.installmentText = item.installment_text
         if (item.banner_transition !== undefined) mapped.bannerTransition = item.banner_transition
+        if (item.maintenance_mode !== undefined) {
+            mapped.maintenance_mode = item.maintenance_mode
+            mapped.maintenanceMode = item.maintenance_mode
+        }
+        if (item.maintenance_title !== undefined) {
+            mapped.maintenance_title = item.maintenance_title
+            mapped.maintenanceTitle = item.maintenance_title
+        }
+        if (item.maintenance_message !== undefined) {
+            mapped.maintenance_message = item.maintenance_message
+            mapped.maintenanceMessage = item.maintenance_message
+        }
+        if (item.maintenance_eta !== undefined) {
+            mapped.maintenance_eta = item.maintenance_eta
+            mapped.maintenanceEta = item.maintenance_eta
+        }
     }
     return mapped
 }
@@ -335,7 +351,23 @@ export async function initSupabaseSync() {
         }
 
         // 7. Sync Store Config
-        const { data: dbConfigRaw } = await supabase.from('store_config').select('*').eq('id', 'default').maybeSingle()
+        let dbConfigRaw = null
+        try {
+            const { data, error: configErr } = await supabase.from('store_config').select('*').eq('id', 'default').maybeSingle()
+            if (configErr && (configErr.status === 401 || configErr.code === 'PGRST301' || configErr.message?.includes('JWT') || configErr.message?.includes('jwt'))) {
+                console.warn('⚠️ Token expirado em initSupabaseSync (401). Limpando sessão e buscando via REST anônimo...')
+                localStorage.removeItem('meraki_supabase_auth_token')
+                const res = await fetch(`${supabaseUrl}/rest/v1/store_config?select=*&id=eq.default`, {
+                    headers: { 'apikey': supabaseAnonKey }
+                })
+                const list = await res.json()
+                dbConfigRaw = Array.isArray(list) ? list[0] : list
+            } else {
+                dbConfigRaw = data
+            }
+        } catch (e) {
+            console.error('Erro ao buscar store_config no sync:', e)
+        }
         const dbConfig = dbConfigRaw ? mapDbToFrontend('store_config', dbConfigRaw) : null
         
         if (dbConfig) {

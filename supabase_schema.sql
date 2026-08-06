@@ -233,6 +233,10 @@ ALTER TABLE public.store_config ADD COLUMN IF NOT EXISTS deleted_pages JSONB DEF
 ALTER TABLE public.store_config ADD COLUMN IF NOT EXISTS categories_data JSONB DEFAULT '[]'::jsonb;
 ALTER TABLE public.store_config ADD COLUMN IF NOT EXISTS promo_message TEXT DEFAULT '10% OFF na primeira compra com o cupom: BEMVINDA10 (Ganhe R$ 10 OFF)';
 ALTER TABLE public.store_config ADD COLUMN IF NOT EXISTS available_sizes JSONB DEFAULT '["U", "Único", "P", "M", "G", "GG", "EGG", "XG", "34", "36", "38", "40", "42", "44", "46", "48", "50"]'::jsonb;
+ALTER TABLE public.store_config ADD COLUMN IF NOT EXISTS maintenance_mode BOOLEAN DEFAULT FALSE;
+ALTER TABLE public.store_config ADD COLUMN IF NOT EXISTS maintenance_title TEXT DEFAULT 'Estamos Preparando uma Nova Coleção Exclusiva ✨';
+ALTER TABLE public.store_config ADD COLUMN IF NOT EXISTS maintenance_message TEXT DEFAULT 'Em breve nosso site estará online com lançamentos apaixonantes e peças de tirar o fôlego.';
+ALTER TABLE public.store_config ADD COLUMN IF NOT EXISTS maintenance_eta TEXT DEFAULT 'Em breve';
 ALTER TABLE public.store_config ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW();
 
 -- ====================================================================
