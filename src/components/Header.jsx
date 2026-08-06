@@ -149,9 +149,13 @@ export default function Header({ cartCount = 0, wishlistCount = 0, onSearchOpen 
         }
         window.addEventListener('topbarMessagesUpdated', updateMessages)
         window.addEventListener('topbarStyleUpdated', updateStyle)
+        window.addEventListener('storeConfigUpdated', updateStyle)
+        window.addEventListener('storage', updateStyle)
         return () => {
             window.removeEventListener('topbarMessagesUpdated', updateMessages)
             window.removeEventListener('topbarStyleUpdated', updateStyle)
+            window.removeEventListener('storeConfigUpdated', updateStyle)
+            window.removeEventListener('storage', updateStyle)
         }
     }, [])
 

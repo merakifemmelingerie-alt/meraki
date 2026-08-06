@@ -398,6 +398,7 @@ export async function initSupabaseSync() {
             }
             if (dbConfig.topbarStyle) {
                 localStorage.setItem('meraki_topbar_style', JSON.stringify(dbConfig.topbarStyle))
+                window.dispatchEvent(new Event('topbarStyleUpdated'))
                 if (dbConfig.topbarStyle.availableSections) {
                     localStorage.setItem('meraki_sections', JSON.stringify(dbConfig.topbarStyle.availableSections))
                 }
@@ -449,7 +450,7 @@ export async function initSupabaseSync() {
                 cnpj: '57.484.768/0064-89',
                 infinitepay_handle: 'merakimodafeminina2026',
                 topbarMessages: initialMsgs,
-                topbarStyle: { bgColor: '#C6A76A', textColor: '#FFFFFF' },
+                topbarStyle: { bgColor: '#5B6E57', textColor: '#FFFFFF' },
                 promoCombo: {
                     title: 'Combo Sutiã',
                     subtitle: 'Do P ao EG. Diversos modelos para você escolher.',
