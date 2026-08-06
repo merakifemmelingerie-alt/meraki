@@ -309,3 +309,20 @@
 .animate-pixie-dust {
     animation: pixie-dust-decay 1.5s ease-out infinite;
 }
+
+/* Mobile Header Topbar Marquee Keyframes */
+@keyframes topbarMarqueeMobile {
+    0% {
+        transform: translateX(100%);
+    }
+    100% {
+        transform: translateX(-100%);
+    }
+}
+
+.animate-topbar-marquee {
+    display: inline-block;
+    white-space: nowrap;
+    animation: topbarMarqueeMobile 7.5s linear infinite;
+    will-change: transform;
+}

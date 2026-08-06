@@ -172,7 +172,7 @@ export default function Header({ cartCount = 0, wishlistCount = 0, onSearchOpen 
         if (messages.length === 0) return
         const interval = setInterval(() => {
             setCurrentMessageIndex((prev) => (prev + 1) % messages.length)
-        }, 4000)
+        }, 7500)
         return () => clearInterval(interval)
     }, [messages])
 
@@ -234,10 +234,23 @@ export default function Header({ cartCount = 0, wishlistCount = 0, onSearchOpen 
                 }`}
                 style={{ background: topbarStyle.bgColor, color: topbarStyle.textColor }}
             >
-                <div className="relative h-4 flex items-center justify-center overflow-hidden">
+                {/* Mobile: Marquee horizontal pass + automatic change */}
+                <div className="md:hidden relative h-4 flex items-center overflow-hidden w-full">
                     {messages.length > 0 && (
                         <span
-                            key={currentMessageIndex}
+                            key={`mobile-${currentMessageIndex}`}
+                            className="inline-block whitespace-nowrap animate-topbar-marquee text-[11px] font-bold"
+                        >
+                            {messages[currentMessageIndex]}
+                        </span>
+                    )}
+                </div>
+
+                {/* Desktop: Standard centered transition */}
+                <div className="hidden md:flex relative h-4 items-center justify-center overflow-hidden">
+                    {messages.length > 0 && (
+                        <span
+                            key={`desktop-${currentMessageIndex}`}
                             className="absolute whitespace-nowrap animate-[fadeInUp_400ms_ease-out]"
                         >
                             {messages[currentMessageIndex]}
