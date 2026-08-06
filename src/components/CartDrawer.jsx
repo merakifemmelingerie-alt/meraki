@@ -384,136 +384,117 @@ export default function CartDrawer() {
                                 ))}
                             </div>
 
-                            {/* Freight Calculation Box (Collapsible Accordion) */}
-                            <div className="bg-[#FAF9F5] rounded-2xl border border-gray-200/80 overflow-hidden transition-all duration-300 mt-2">
-                                {/* Accordion Header Toggle */}
-                                <button
-                                    type="button"
-                                    onClick={() => setIsShippingExpanded(!isShippingExpanded)}
-                                    className="w-full p-3 flex items-center justify-between text-xs font-bold text-gray-800 hover:bg-[#F3EFE6] transition-colors cursor-pointer"
-                                >
-                                    <span className="flex items-center gap-2">
+                            {/* Freight Calculation Box (Always Visible in Scrollable Body) */}
+                            <div className="bg-[#FAF9F5] p-4 rounded-2xl border border-gray-200/80 space-y-3 mt-2">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
                                         <svg className="w-4 h-4 text-[#7A3E4A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
                                         </svg>
                                         Opções de Frete / Entrega
                                     </span>
-                                    <div className="flex items-center gap-2">
-                                        {shippingOption ? (
-                                            <span className="text-[10px] text-emerald-800 font-bold bg-emerald-100 px-2 py-0.5 rounded-full">
-                                                {shippingOption.isPickup ? 'Retirada (GRÁTIS)' : `CEP ${shippingOption.cep}`}
-                                            </span>
-                                        ) : (
-                                            <span className="text-[10px] text-[#7A3E4A] font-bold bg-[#7A3E4A]/10 px-2 py-0.5 rounded-full">
-                                                Calcular / Alterar
-                                            </span>
-                                        )}
-                                        <svg className={`w-4 h-4 text-gray-500 transition-transform duration-300 ${isShippingExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                        </svg>
-                                    </div>
+                                    {shippingOption && (
+                                        <span className="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-full">
+                                            {shippingOption.isPickup ? 'Retirada na Loja' : `CEP ${shippingOption.cep}`}
+                                        </span>
+                                    )}
+                                </div>
+
+                                {/* Store Pickup Quick Option Button */}
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const pickupOpt = {
+                                            title: 'Retirada no Local (Bonfinópolis/GO)',
+                                            price: 0,
+                                            deadline: 'Pronto em até 1 dia útil',
+                                            isPickup: true,
+                                            cep: '75195-000'
+                                        }
+                                        setShippingOption(pickupOpt)
+                                        setShippingError('')
+                                        localStorage.setItem('meraki_cart_shipping', JSON.stringify(pickupOpt))
+                                    }}
+                                    className={`w-full py-2 px-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-between cursor-pointer ${
+                                        shippingOption?.isPickup
+                                            ? 'border-emerald-500 bg-emerald-50 text-emerald-800 ring-2 ring-emerald-500/10'
+                                            : 'border-gray-200 text-gray-600 hover:border-gray-300 bg-white'
+                                    }`}
+                                >
+                                    <span className="flex items-center gap-1.5">
+                                        <span>🏪</span> Retirar no Local
+                                    </span>
+                                    <span className="text-[10px] font-black text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full">
+                                        GRÁTIS
+                                    </span>
                                 </button>
 
-                                {/* Accordion Content */}
-                                {isShippingExpanded && (
-                                    <div className="p-4 pt-1 border-t border-gray-200/60 space-y-3 animate-[fadeIn_150ms_ease-out]">
-                                        {/* Store Pickup Quick Option Button */}
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                const pickupOpt = {
-                                                    title: 'Retirada no Local (Bonfinópolis/GO)',
-                                                    price: 0,
-                                                    deadline: 'Pronto em até 1 dia útil',
-                                                    isPickup: true,
-                                                    cep: '75195-000'
-                                                }
-                                                setShippingOption(pickupOpt)
-                                                setShippingError('')
-                                                localStorage.setItem('meraki_cart_shipping', JSON.stringify(pickupOpt))
-                                            }}
-                                            className={`w-full py-2 px-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-between cursor-pointer ${
-                                                shippingOption?.isPickup
-                                                    ? 'border-emerald-500 bg-emerald-50 text-emerald-800 ring-2 ring-emerald-500/10'
-                                                    : 'border-gray-200 text-gray-600 hover:border-gray-300 bg-white'
-                                            }`}
-                                        >
-                                            <span className="flex items-center gap-1.5">
-                                                <span>🏪</span> Retirar no Local (Bonfinópolis/GO)
-                                            </span>
-                                            <span className="text-[10px] font-black text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full">
-                                                GRÁTIS
-                                            </span>
-                                        </button>
-
-                                        {/* Saved Address Pills for Logged-In Customer */}
-                                        {savedAddresses.length > 0 && (
-                                            <div className="space-y-1.5 pt-1">
-                                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Endereços Salvos:</p>
-                                                <div className="flex flex-wrap gap-1.5">
-                                                    {savedAddresses.map(addr => (
-                                                        <button
-                                                            key={addr.id}
-                                                            onClick={() => {
-                                                                setSelectedAddressId(addr.id)
-                                                                setCepInput(addr.cep)
-                                                                handleCalculateShipping(addr.cep, addr.label)
-                                                            }}
-                                                            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
-                                                                selectedAddressId === addr.id
-                                                                    ? 'bg-[#7A3E4A] text-white shadow-xs'
-                                                                    : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
-                                                            }`}
-                                                        >
-                                                            <span>{addr.label}</span>
-                                                            <span className="text-[10px] opacity-75 font-mono">({addr.cep})</span>
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* Manual CEP Input Field */}
-                                        <div className="flex items-center gap-2">
-                                            <input
-                                                type="text"
-                                                maxLength="9"
-                                                placeholder="Digitar CEP (ex: 75195-000)"
-                                                value={cepInput}
-                                                onChange={(e) => setCepInput(e.target.value)}
-                                                className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-xs outline-none focus:border-[#7A3E4A] bg-white"
-                                            />
-                                            <button
-                                                onClick={() => {
-                                                    setSelectedAddressId(null)
-                                                    handleCalculateShipping(cepInput)
-                                                }}
-                                                disabled={calculatingCep}
-                                                className="px-4 py-2 bg-[#7A3E4A] hover:bg-[#63303a] text-white text-xs font-bold rounded-xl transition-colors cursor-pointer disabled:opacity-50 shrink-0"
-                                            >
-                                                {calculatingCep ? '...' : 'Calcular'}
-                                            </button>
+                                {/* Saved Address Pills for Logged-In Customer */}
+                                {savedAddresses.length > 0 && (
+                                    <div className="space-y-1.5 pt-1">
+                                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Endereços Salvos:</p>
+                                        <div className="flex flex-wrap gap-1.5">
+                                            {savedAddresses.map(addr => (
+                                                <button
+                                                    key={addr.id}
+                                                    onClick={() => {
+                                                        setSelectedAddressId(addr.id)
+                                                        setCepInput(addr.cep)
+                                                        handleCalculateShipping(addr.cep, addr.label)
+                                                    }}
+                                                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                                                        selectedAddressId === addr.id
+                                                            ? 'bg-[#7A3E4A] text-white shadow-xs'
+                                                            : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+                                                    }`}
+                                                >
+                                                    <span>{addr.label}</span>
+                                                    <span className="text-[10px] opacity-75 font-mono">({addr.cep})</span>
+                                                </button>
+                                            ))}
                                         </div>
+                                    </div>
+                                )}
 
-                                        {shippingError && (
-                                            <div className="p-3 bg-[#FAF4F5] border border-[#7A3E4A]/25 rounded-xl flex items-start gap-2 text-xs text-[#7A3E4A] font-semibold leading-relaxed">
-                                                <span className="text-sm leading-none shrink-0">💖</span>
-                                                <span>{shippingError}</span>
-                                            </div>
-                                        )}
+                                {/* Manual CEP Input Field */}
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="text"
+                                        maxLength="9"
+                                        placeholder="Digitar CEP (ex: 75195-000)"
+                                        value={cepInput}
+                                        onChange={(e) => setCepInput(e.target.value)}
+                                        className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-xs outline-none focus:border-[#7A3E4A] bg-white"
+                                    />
+                                    <button
+                                        onClick={() => {
+                                            setSelectedAddressId(null)
+                                            handleCalculateShipping(cepInput)
+                                        }}
+                                        disabled={calculatingCep}
+                                        className="px-4 py-2 bg-[#7A3E4A] hover:bg-[#63303a] text-white text-xs font-bold rounded-xl transition-colors cursor-pointer disabled:opacity-50 shrink-0"
+                                    >
+                                        {calculatingCep ? '...' : 'Calcular'}
+                                    </button>
+                                </div>
 
-                                        {/* Calculated Shipping Result Banner */}
-                                        {shippingOption && (
-                                            <div className="p-2.5 bg-emerald-50/80 rounded-xl border border-emerald-200 flex items-center justify-between text-xs">
-                                                <div>
-                                                    <p className="font-bold text-gray-900 leading-tight">{shippingOption.title}</p>
-                                                    <p className="text-[10px] text-gray-500">{shippingOption.deadline}</p>
-                                                </div>
-                                                <span className="font-black text-[#7A3E4A] text-xs">
-                                                    {shippingOption.price === 0 ? 'GRÁTIS' : formatCurrency(shippingOption.price)}
-                                                </span>
-                                            </div>
-                                        )}
+                                {shippingError && (
+                                    <div className="p-3 bg-[#FAF4F5] border border-[#7A3E4A]/25 rounded-xl flex items-start gap-2 text-xs text-[#7A3E4A] font-semibold leading-relaxed">
+                                        <span className="text-sm leading-none shrink-0">💖</span>
+                                        <span>{shippingError}</span>
+                                    </div>
+                                )}
+
+                                {/* Calculated Shipping Result Banner */}
+                                {shippingOption && (
+                                    <div className="p-2.5 bg-emerald-50/80 rounded-xl border border-emerald-200 flex items-center justify-between text-xs">
+                                        <div>
+                                            <p className="font-bold text-gray-900 leading-tight">{shippingOption.title}</p>
+                                            <p className="text-[10px] text-gray-500">{shippingOption.deadline}</p>
+                                        </div>
+                                        <span className="font-black text-[#7A3E4A] text-xs">
+                                            {shippingOption.price === 0 ? 'GRÁTIS' : formatCurrency(shippingOption.price)}
+                                        </span>
                                     </div>
                                 )}
                             </div>
