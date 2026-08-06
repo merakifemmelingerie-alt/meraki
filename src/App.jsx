@@ -1,14 +1,6 @@
 import { HashRouter, Routes, Route, useLocation } from 'react-router-dom'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, lazy, Suspense } from 'react'
 import HomePage from './pages/HomePage.jsx'
-import AuthPage from './pages/AuthPage.jsx'
-import AdminPage from './pages/AdminPage.jsx'
-import CategoryPage from './pages/CategoryPage.jsx'
-import CheckoutPage from './pages/CheckoutPage.jsx'
-import OrderSuccessPage from './pages/OrderSuccessPage.jsx'
-import ProductPage from './pages/ProductPage.jsx'
-import InfoPage from './pages/InfoPage.jsx'
-import ProfilePage from './pages/ProfilePage.jsx'
 import CartDrawer from './components/CartDrawer.jsx'
 import SearchOverlay from './components/SearchOverlay.jsx'
 import TrackingManager from './components/TrackingManager.jsx'
@@ -19,7 +11,17 @@ import { getAssetUrl } from './utils/assets.js'
 
 import MaintenanceScreen from './components/MaintenanceScreen.jsx'
 import EngagementWidget from './components/EngagementWidget.jsx'
-import EngagementPage from './pages/EngagementPage.jsx'
+
+// Dynamic lazy imports for peak performance and split bundle sizes
+const AuthPage = lazy(() => import('./pages/AuthPage.jsx'))
+const AdminPage = lazy(() => import('./pages/AdminPage.jsx'))
+const CategoryPage = lazy(() => import('./pages/CategoryPage.jsx'))
+const CheckoutPage = lazy(() => import('./pages/CheckoutPage.jsx'))
+const OrderSuccessPage = lazy(() => import('./pages/OrderSuccessPage.jsx'))
+const ProductPage = lazy(() => import('./pages/ProductPage.jsx'))
+const InfoPage = lazy(() => import('./pages/InfoPage.jsx'))
+const ProfilePage = lazy(() => import('./pages/ProfilePage.jsx'))
+const EngagementPage = lazy(() => import('./pages/EngagementPage.jsx'))
 
 
 function ScrollToTopReset() {
@@ -30,55 +32,27 @@ function ScrollToTopReset() {
     return null
 }
 
+function PageFallback() {
+    return (
+        <div className="min-h-[50vh] flex flex-col items-center justify-center p-8 bg-[#FAF9F5]/50">
+            <div className="w-8 h-8 border-2 border-[#7A3E4A] border-t-transparent rounded-full animate-spin mb-3" />
+            <span className="text-[10px] uppercase tracking-[0.3em] font-bold text-[#7A3E4A]/70">Carregando...</span>
+        </div>
+    )
+}
+
 function SplashLoader({ loading }) {
-    const [butterflySrc, setButterflySrc] = useState(getAssetUrl('/assets/borboleta-v2.webp'))
-
-    useEffect(() => {
-        if (!loading) return
-        const img = new Image()
-        img.src = getAssetUrl('/assets/borboleta-v2.webp')
-        img.onload = () => {
-            const canvas = document.createElement('canvas')
-            canvas.width = img.width
-            canvas.height = img.height
-            const ctx = canvas.getContext('2d')
-            if (ctx) {
-                ctx.drawImage(img, 0, 0)
-                try {
-                    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height)
-                    const data = imgData.data
-                    for (let i = 0; i < data.length; i += 4) {
-                        const r = data[i]
-                        const g = data[i+1]
-                        const b = data[i+2]
-                        if (r > 185 && g > 185 && b > 185) {
-                            data[i+3] = 0 // make light background transparent
-                        }
-                    }
-                    ctx.putImageData(imgData, 0, 0)
-                    setButterflySrc(canvas.toDataURL())
-                } catch (e) {
-                    console.error("Erro ao remover fundo da borboleta:", e)
-                    setButterflySrc(getAssetUrl('/assets/borboleta-v2.webp'))
-                }
-            }
-        }
-        img.onerror = () => {
-            setButterflySrc(getAssetUrl('/assets/borboleta-v2.webp'))
-        }
-    }, [loading])
-
     if (!loading) return null
 
     return (
         <div className="fixed inset-0 flex flex-col items-center justify-center z-[99999]" style={{ background: 'linear-gradient(135deg, #FAF9F5 0%, #F5EEE9 100%)' }}>
             <div className="flex flex-col items-center gap-6">
                 <div className="relative flex flex-col items-center">
-                    {/* Animated Butterfly */}
+                    {/* Animated Butterfly - Optimized for main-thread CPU */}
                     <img 
-                        src={butterflySrc} 
+                        src={getAssetUrl('/assets/borboleta-v2.webp')} 
                         alt="Borboleta Meraki" 
-                        className="w-16 h-16 md:w-20 md:h-20 object-contain animate-bounce mb-2 transition-opacity duration-200 opacity-100"
+                        className="w-16 h-16 md:w-20 md:h-20 object-contain animate-bounce mb-2 opacity-100 mix-blend-multiply"
                         style={{ animationDuration: '2s' }}
                     />
                     {/* Logo Text */}
@@ -199,50 +173,51 @@ function AppContent() {
         return <MaintenanceScreen config={storeConfig} />
     }
 
-
     return (
         <>
             <CartDrawer />
             <SearchOverlay />
-            <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/auth" element={<AuthPage />} />
-                <Route path="/login" element={<AuthPage />} />
-                <Route path="/account" element={<AuthPage />} />
-                <Route path="/orders" element={<AuthPage />} />
-                <Route path="/admin" element={<AdminPage />} />
-                <Route path="/category/:slug" element={<CategoryPage />} />
-                <Route path="/product/:id" element={<ProductPage />} />
-                <Route path="/checkout" element={<CheckoutPage />} />
-                <Route path="/profile" element={<ProfilePage />} />
-                <Route path="/order-success/:orderId" element={<OrderSuccessPage />} />
-                
-                {/* Institutional & Atendimento Routes */}
-                <Route path="/story" element={<InfoPage tab="story" />} />
-                <Route path="/revenda" element={<InfoPage tab="revenda" />} />
-                <Route path="/connect" element={<InfoPage tab="connect" />} />
-                <Route path="/security" element={<InfoPage tab="security" />} />
-                <Route path="/payment" element={<InfoPage tab="payment" />} />
-                <Route path="/delivery" element={<InfoPage tab="delivery" />} />
-                <Route path="/returns" element={<InfoPage tab="returns" />} />
-                <Route path="/withdrawal" element={<InfoPage tab="withdrawal" />} />
-                <Route path="/privacy" element={<InfoPage tab="privacy" />} />
-                <Route path="/promotional-rules" element={<InfoPage tab="promotional-rules" />} />
-                <Route path="/stores" element={<InfoPage tab="stores" />} />
-                <Route path="/wishlist" element={<InfoPage tab="wishlist" />} />
-                <Route path="/info/:tab" element={<InfoPage />} />
+            <Suspense fallback={<PageFallback />}>
+                <Routes>
+                    <Route path="/" element={<HomePage />} />
+                    <Route path="/auth" element={<AuthPage />} />
+                    <Route path="/login" element={<AuthPage />} />
+                    <Route path="/account" element={<AuthPage />} />
+                    <Route path="/orders" element={<AuthPage />} />
+                    <Route path="/admin" element={<AdminPage />} />
+                    <Route path="/category/:slug" element={<CategoryPage />} />
+                    <Route path="/product/:id" element={<ProductPage />} />
+                    <Route path="/checkout" element={<CheckoutPage />} />
+                    <Route path="/profile" element={<ProfilePage />} />
+                    <Route path="/order-success/:orderId" element={<OrderSuccessPage />} />
+                    
+                    {/* Institutional & Atendimento Routes */}
+                    <Route path="/story" element={<InfoPage tab="story" />} />
+                    <Route path="/revenda" element={<InfoPage tab="revenda" />} />
+                    <Route path="/connect" element={<InfoPage tab="connect" />} />
+                    <Route path="/security" element={<InfoPage tab="security" />} />
+                    <Route path="/payment" element={<InfoPage tab="payment" />} />
+                    <Route path="/delivery" element={<InfoPage tab="delivery" />} />
+                    <Route path="/returns" element={<InfoPage tab="returns" />} />
+                    <Route path="/withdrawal" element={<InfoPage tab="withdrawal" />} />
+                    <Route path="/privacy" element={<InfoPage tab="privacy" />} />
+                    <Route path="/promotional-rules" element={<InfoPage tab="promotional-rules" />} />
+                    <Route path="/stores" element={<InfoPage tab="stores" />} />
+                    <Route path="/wishlist" element={<InfoPage tab="wishlist" />} />
+                    <Route path="/info/:tab" element={<InfoPage />} />
 
-                {/* Central da Cliente & Interação (Sugestões, Enquetes & Pedido de Produtos) */}
-                <Route path="/interaja" element={<EngagementPage />} />
-                <Route path="/sugestoes" element={<EngagementPage />} />
-                <Route path="/enquetes" element={<EngagementPage />} />
-                <Route path="/pedir-produto" element={<EngagementPage />} />
+                    {/* Central da Cliente & Interação (Sugestões, Enquetes & Pedido de Produtos) */}
+                    <Route path="/interaja" element={<EngagementPage />} />
+                    <Route path="/sugestoes" element={<EngagementPage />} />
+                    <Route path="/enquetes" element={<EngagementPage />} />
+                    <Route path="/pedir-produto" element={<EngagementPage />} />
 
-                {/* Fallback wildcard route */}
-                <Route path="*" element={<HomePage />} />
-            </Routes>
+                    {/* Fallback wildcard route */}
+                    <Route path="*" element={<HomePage />} />
+                </Routes>
+            </Suspense>
 
-            {/* Floating Engagement Widget (Sugestões, Enquetes & Pedido de Produtos) */}
+            {/* Floating Engagement Widget */}
             <EngagementWidget />
         </>
     )

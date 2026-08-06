@@ -98,6 +98,8 @@ export default function ProductCard({ product, onQuickView, onToggleWishlist, is
                 <img
                     src={imageSrc}
                     alt={product.name}
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover transition-transform duration-1000 cubic-bezier(0.19, 1, 0.22, 1) group-hover:scale-105"
                     onError={(e) => {
                         e.target.onError = null; // prevent infinite loop
