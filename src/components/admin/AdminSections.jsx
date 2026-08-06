@@ -5560,15 +5560,15 @@ export function SuggestionsSection() {
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[#EEEEEE] shadow-xs">
                 <div>
-                    <h2 className="text-base font-black text-gray-900 uppercase tracking-wider">💬 Mural de Sugestões das Clientes</h2>
+                    <h2 className="text-base font-black text-gray-900 uppercase tracking-wider">Mural de Sugestões das Clientes</h2>
                     <p className="text-xs text-gray-500 font-medium">Veja o que suas clientes estão sugerindo para as próximas coleções</p>
                 </div>
                 <div className="flex items-center gap-2">
                     <button
                         onClick={loadSuggestions}
-                        className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition-colors"
+                        className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition-colors cursor-pointer"
                     >
-                        🔄 Atualizar
+                        Atualizar
                     </button>
                     <select
                         value={filterStatus}
@@ -5609,7 +5609,7 @@ export function SuggestionsSection() {
 
                             <div className="pt-2 border-t border-gray-100 space-y-3">
                                 <div className="text-[11px] text-gray-600 font-semibold flex items-center justify-between">
-                                    <span>👤 {item.customer_name || 'Anônima'}</span>
+                                    <span>{item.customer_name || 'Anônima'}</span>
                                     {item.customer_phone && (
                                         <a
                                             href={`https://wa.me/55${item.customer_phone.replace(/\D/g, '')}?text=${encodeURIComponent(`Olá ${item.customer_name || ''}! Vi sua sugestão sobre "${item.message.substring(0, 30)}..." na Meraki Femme! Muito obrigada pelo carinho!`)}`}
@@ -5617,7 +5617,7 @@ export function SuggestionsSection() {
                                             rel="noopener noreferrer"
                                             className="text-emerald-600 font-bold hover:underline"
                                         >
-                                            📲 {item.customer_phone}
+                                            {item.customer_phone}
                                         </a>
                                     )}
                                 </div>
@@ -5628,13 +5628,13 @@ export function SuggestionsSection() {
                                         onChange={e => handleStatusChange(item.id, e.target.value)}
                                         className="text-[10px] font-bold px-2 py-1 bg-gray-50 border border-gray-200 rounded-lg"
                                     >
-                                        <option value="pendente">🟡 Pendente</option>
-                                        <option value="lido">🟢 Lido / Atendido</option>
-                                        <option value="arquivado">⚪ Arquivado</option>
+                                        <option value="pendente">Pendente</option>
+                                        <option value="lido">Lido / Atendido</option>
+                                        <option value="arquivado">Arquivado</option>
                                     </select>
                                     <button
                                         onClick={() => handleDelete(item.id)}
-                                        className="text-[10px] font-bold text-red-500 hover:text-red-700 px-2 py-1"
+                                        className="text-[10px] font-bold text-red-500 hover:text-red-700 px-2 py-1 cursor-pointer"
                                     >
                                         Excluir
                                     </button>
@@ -5728,7 +5728,7 @@ export function PollsSection() {
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[#EEEEEE] shadow-xs">
                 <div>
-                    <h2 className="text-base font-black text-gray-900 uppercase tracking-wider">📊 Enquetes Rápidas & Pesquisas</h2>
+                    <h2 className="text-base font-black text-gray-900 uppercase tracking-wider">Enquetes Rápidas & Pesquisas</h2>
                     <p className="text-xs text-gray-500 font-medium">Crie perguntas objetivas e veja a porcentagem dos votos das clientes em tempo real</p>
                 </div>
                 <button
@@ -5759,7 +5759,7 @@ export function PollsSection() {
                                     <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase shrink-0 ${
                                         poll.active ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-gray-100 text-gray-600'
                                     }`}>
-                                        {poll.active ? '🟢 Ativa' : '⚪ Pausada'}
+                                        {poll.active ? 'Ativa' : 'Pausada'}
                                     </span>
                                 </div>
 
@@ -5787,7 +5787,7 @@ export function PollsSection() {
                                 {customVotes.length > 0 && (
                                     <div className="pt-3 border-t border-gray-100">
                                         <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">
-                                            ✍️ Respostas Personalizadas das Clientes ({customVotes.length}):
+                                            Respostas Personalizadas das Clientes ({customVotes.length}):
                                         </p>
                                         <div className="max-h-28 overflow-y-auto space-y-1 text-xs text-gray-600 bg-[#FAF9F5] p-2.5 rounded-xl">
                                             {customVotes.map((cv, i) => (
@@ -5804,13 +5804,13 @@ export function PollsSection() {
                                     <div className="flex gap-2">
                                         <button
                                             onClick={() => handleToggleActive(poll.id, poll.active)}
-                                            className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-lg text-[10px]"
+                                            className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-lg text-[10px] cursor-pointer"
                                         >
                                             {poll.active ? 'Pausar' : 'Ativar'}
                                         </button>
                                         <button
                                             onClick={() => handleDelete(poll.id)}
-                                            className="px-3 py-1 bg-red-50 hover:bg-red-100 text-red-600 font-bold rounded-lg text-[10px]"
+                                            className="px-3 py-1 bg-red-50 hover:bg-red-100 text-red-600 font-bold rounded-lg text-[10px] cursor-pointer"
                                         >
                                             Excluir
                                         </button>
@@ -5827,7 +5827,7 @@ export function PollsSection() {
                     <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
                         <div className="flex justify-between items-center pb-2 border-b border-gray-100">
                             <h3 className="font-heading font-bold text-sm text-gray-900 uppercase">Criar Nova Enquete</h3>
-                            <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600">✕</button>
+                            <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600 cursor-pointer">✕</button>
                         </div>
 
                         <form onSubmit={handleCreatePollSubmit} className="space-y-3">
@@ -5889,13 +5889,13 @@ export function PollsSection() {
                                 <button
                                     type="button"
                                     onClick={() => setShowModal(false)}
-                                    className="flex-1 py-2.5 bg-gray-100 text-gray-700 font-bold text-xs rounded-xl"
+                                    className="flex-1 py-2.5 bg-gray-100 text-gray-700 font-bold text-xs rounded-xl cursor-pointer"
                                 >
                                     Cancelar
                                 </button>
                                 <button
                                     type="submit"
-                                    className="flex-1 py-2.5 bg-[#7A3E4A] text-white font-bold text-xs rounded-xl hover:bg-[#5B6E57]"
+                                    className="flex-1 py-2.5 bg-[#7A3E4A] text-white font-bold text-xs rounded-xl hover:bg-[#5B6E57] cursor-pointer"
                                 >
                                     Publicar Enquete
                                 </button>
@@ -5930,7 +5930,7 @@ export function WishlistAnalyticsSection() {
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[#EEEEEE] shadow-xs">
                 <div>
-                    <h2 className="text-base font-black text-gray-900 uppercase tracking-wider">❤️ Lista de Desejos Inteligente</h2>
+                    <h2 className="text-base font-black text-gray-900 uppercase tracking-wider">Lista de Desejos Inteligente</h2>
                     <p className="text-xs text-gray-500 font-medium">Relatório inteligente dos produtos, cores e tamanhos mais desejados pelas clientes</p>
                 </div>
                 <div className="px-4 py-2 bg-[#7A3E4A]/10 text-[#7A3E4A] rounded-xl text-xs font-bold">
@@ -5945,7 +5945,7 @@ export function WishlistAnalyticsSection() {
                     
                     <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-gray-200 shadow-xs space-y-4">
                         <h3 className="font-heading text-sm font-bold text-gray-900 uppercase tracking-wider flex items-center justify-between">
-                            <span>🏆 Os 20 Produtos Mais Favoritados</span>
+                            <span>Os 20 Produtos Mais Favoritados</span>
                             <span className="text-[10px] text-gray-400 font-normal">Demanda Direta</span>
                         </h3>
 
@@ -5962,7 +5962,7 @@ export function WishlistAnalyticsSection() {
                                             <span className="truncate max-w-md">{prod.name}</span>
                                         </div>
                                         <span className="px-3 py-1 bg-[#7A3E4A]/10 text-[#7A3E4A] font-black rounded-lg text-xs shrink-0">
-                                            ❤️ {prod.count} {prod.count === 1 ? 'cliente' : 'clientes'}
+                                            {prod.count} {prod.count === 1 ? 'cliente' : 'clientes'}
                                         </span>
                                     </div>
                                 ))}
@@ -5973,7 +5973,7 @@ export function WishlistAnalyticsSection() {
                     <div className="space-y-6">
                         
                         <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-xs space-y-4">
-                            <h3 className="font-heading text-sm font-bold text-gray-900 uppercase tracking-wider">🎨 Cores Mais Procuradas</h3>
+                            <h3 className="font-heading text-sm font-bold text-gray-900 uppercase tracking-wider">Cores Mais Procuradas</h3>
                             {analytics.topColors.length === 0 ? (
                                 <div className="text-xs text-gray-400 py-4 text-center">Sem dados de cores.</div>
                             ) : (
@@ -5998,7 +5998,7 @@ export function WishlistAnalyticsSection() {
                         </div>
 
                         <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-xs space-y-4">
-                            <h3 className="font-heading text-sm font-bold text-gray-900 uppercase tracking-wider">📏 Tamanhos Mais Desejados</h3>
+                            <h3 className="font-heading text-sm font-bold text-gray-900 uppercase tracking-wider">Tamanhos Mais Desejados</h3>
                             {analytics.topSizes.length === 0 ? (
                                 <div className="text-xs text-gray-400 py-4 text-center">Sem dados de tamanhos.</div>
                             ) : (
@@ -6062,15 +6062,15 @@ export function ProductRequestsSection() {
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[#EEEEEE] shadow-xs">
                 <div>
-                    <h2 className="text-base font-black text-gray-900 uppercase tracking-wider">🛍️ Produtos Solicitados pelas Clientes</h2>
+                    <h2 className="text-base font-black text-gray-900 uppercase tracking-wider">Produtos Solicitados pelas Clientes</h2>
                     <p className="text-xs text-gray-500 font-medium">Veja quais peças as clientes encomendaram ou gostariam que chegassem na loja</p>
                 </div>
                 <div className="flex items-center gap-2">
                     <button
                         onClick={loadRequestsData}
-                        className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition-colors"
+                        className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition-colors cursor-pointer"
                     >
-                        🔄 Atualizar
+                        Atualizar
                     </button>
                     <select
                         value={filterStatus}
@@ -6128,7 +6128,7 @@ export function ProductRequestsSection() {
 
                             <div className="pt-3 border-t border-gray-100 space-y-3">
                                 <div>
-                                    <p className="text-xs font-bold text-gray-800">👤 {req.customer_name}</p>
+                                    <p className="text-xs font-bold text-gray-800">{req.customer_name}</p>
                                     <p className="text-[11px] text-gray-500 font-medium">{req.customer_phone}</p>
                                 </div>
 
@@ -6379,7 +6379,7 @@ export function PlanningSection({ orders = [], products = [] }) {
             {/* Header & Sub-navigation */}
             <div className="bg-white p-6 rounded-2xl border border-[#EEEEEE] shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h2 className="text-base font-black text-gray-900 uppercase tracking-wider">📅 Planejamento Comercial & Coleções</h2>
+                    <h2 className="text-base font-black text-gray-900 uppercase tracking-wider">Planejamento Comercial & Coleções</h2>
                     <p className="text-xs text-gray-500 font-medium">Cronograma de pedidos aos fornecedores, checklist de lançamentos e acompanhamento financeiro</p>
                 </div>
 
@@ -6409,7 +6409,7 @@ export function PlanningSection({ orders = [], products = [] }) {
                             : 'border-transparent text-gray-500 hover:text-gray-800'
                     }`}
                 >
-                    👗 Coleções ({collections.length})
+                    Coleções ({collections.length})
                 </button>
                 <button
                     onClick={() => setSubTab('calendar')}
@@ -6419,7 +6419,7 @@ export function PlanningSection({ orders = [], products = [] }) {
                             : 'border-transparent text-gray-500 hover:text-gray-800'
                     }`}
                 >
-                    📅 Calendário Comercial ({commercialEvents.length})
+                    Calendário Comercial ({commercialEvents.length})
                 </button>
             </div>
 
@@ -6464,7 +6464,7 @@ export function PlanningSection({ orders = [], products = [] }) {
                                                     </span>
                                                 </div>
                                                 {col.commercial_event && (
-                                                    <p className="text-xs text-gray-500 font-semibold">📍 Evento Relacionado: {col.commercial_event}</p>
+                                                    <p className="text-xs text-gray-500 font-semibold">Evento Relacionado: {col.commercial_event}</p>
                                                 )}
                                             </div>
 
@@ -6485,19 +6485,19 @@ export function PlanningSection({ orders = [], products = [] }) {
                                         {/* Deadlines Bar */}
                                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-5 bg-white border-b border-gray-100 text-xs">
                                             <div className="p-3 bg-amber-50 rounded-xl border border-amber-200">
-                                                <span className="block text-[10px] font-bold text-amber-800 uppercase">📦 Pedido Fornecedor Até</span>
+                                                <span className="block text-[10px] font-bold text-amber-800 uppercase">Pedido Fornecedor Até</span>
                                                 <span className="font-extrabold text-amber-900">
                                                     {col.supplier_deadline ? new Date(col.supplier_deadline).toLocaleDateString('pt-BR') : 'Não definido'}
                                                 </span>
                                             </div>
                                             <div className="p-3 bg-blue-50 rounded-xl border border-blue-200">
-                                                <span className="block text-[10px] font-bold text-blue-800 uppercase">📸 Sessão de Fotos Até</span>
+                                                <span className="block text-[10px] font-bold text-blue-800 uppercase">Sessão de Fotos Até</span>
                                                 <span className="font-extrabold text-blue-900">
                                                     {col.photoshoot_deadline ? new Date(col.photoshoot_deadline).toLocaleDateString('pt-BR') : 'Não definido'}
                                                 </span>
                                             </div>
                                             <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200">
-                                                <span className="block text-[10px] font-bold text-emerald-800 uppercase">🚀 Data de Lançamento</span>
+                                                <span className="block text-[10px] font-bold text-emerald-800 uppercase">Data de Lançamento</span>
                                                 <span className="font-extrabold text-emerald-900">
                                                     {col.launch_date ? new Date(col.launch_date).toLocaleDateString('pt-BR') : 'Não definido'}
                                                 </span>
@@ -6593,7 +6593,7 @@ export function PlanningSection({ orders = [], products = [] }) {
                                 <div className="pt-3 border-t border-gray-100 space-y-2">
                                     {ev.order_deadline_date && (
                                         <div className="p-2.5 bg-amber-50 text-amber-900 rounded-xl text-xs font-bold flex items-center justify-between">
-                                            <span>📦 Pedido Fornecedor:</span>
+                                            <span>Pedido Fornecedor:</span>
                                             <span className="text-amber-900 font-extrabold">{new Date(ev.order_deadline_date).toLocaleDateString('pt-BR')}</span>
                                         </div>
                                     )}
@@ -6618,7 +6618,7 @@ export function PlanningSection({ orders = [], products = [] }) {
                 <div className="fixed inset-0 z-[9999] bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
                     <div className="bg-white rounded-3xl p-6 md:p-8 max-w-lg w-full space-y-5 shadow-2xl animate-[fadeIn_150ms_ease-out]">
                         <div className="flex items-center justify-between border-b border-gray-100 pb-4">
-                            <h3 className="font-heading text-lg font-bold text-gray-900">✨ Criar Planejamento de Coleção</h3>
+                            <h3 className="font-heading text-lg font-bold text-gray-900">Criar Planejamento de Coleção</h3>
                             <button onClick={() => setIsCollectionModalOpen(false)} className="text-gray-400 hover:text-gray-600 text-lg font-bold cursor-pointer">✕</button>
                         </div>
 
