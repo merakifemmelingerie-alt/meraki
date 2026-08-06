@@ -98,8 +98,8 @@ USING (public.is_admin()) WITH CHECK (public.is_admin());
 CREATE POLICY "Admin write coupons" ON public.coupons FOR ALL
 USING (public.is_admin()) WITH CHECK (public.is_admin());
 
-CREATE POLICY "Admin write store_config" ON public.store_config FOR ALL
-USING (public.is_admin()) WITH CHECK (public.is_admin());
+CREATE POLICY "Allow public write store_config" ON public.store_config FOR ALL
+USING (true) WITH CHECK (true);
 
 -- 7. RECRIAR AS POLÍTICAS DE PEDIDOS E TROCAS (ORDERS & RETURNS)
 CREATE POLICY "Orders insert policy" ON public.orders FOR INSERT WITH CHECK (true);

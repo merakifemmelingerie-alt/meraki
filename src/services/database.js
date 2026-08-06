@@ -79,7 +79,11 @@ const FIELD_MAPPING = {
     installment_text: ['installmentText', 'installment_text'],
     banner_transition: ['bannerTransition', 'banner_transition'],
     pix_key: ['pixKey', 'pix_key', 'pixkey'],
-    cost_price: ['costPrice', 'cost_price', 'costprice']
+    cost_price: ['costPrice', 'cost_price', 'costprice'],
+    maintenance_mode: ['maintenanceMode', 'maintenance_mode', 'maintenancemode'],
+    maintenance_title: ['maintenanceTitle', 'maintenance_title', 'maintenancetitle'],
+    maintenance_message: ['maintenanceMessage', 'maintenance_message', 'maintenancemessage'],
+    maintenance_eta: ['maintenanceEta', 'maintenance_eta', 'maintenanceeta']
 }
 
 // Normalize a category value (object or string) to its name string
