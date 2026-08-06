@@ -3,6 +3,12 @@ import { supabase } from '../../services/supabase.js'
 import { getAssetUrl } from '../../utils/assets.js'
 import MediaDisplay from '../MediaDisplay.jsx'
 import { getMarketingConfig, updateMarketingConfig, getMarketingLogs, getAbandonedCarts, processMarketingAutomations, broadcastNewCollection } from '../../services/marketing.js'
+import { 
+    getSuggestions, updateSuggestionStatus, deleteSuggestion,
+    getPolls, createPoll, togglePollActive, deletePoll, getPollVotes,
+    getWishlistAnalytics,
+    getProductRequests, updateProductRequestStatus, deleteProductRequest
+} from '../../services/database.js'
 
 function Icon({ path, className = 'w-5 h-5' }) {
     return (
@@ -5505,6 +5511,664 @@ export function AutomationsSection() {
                                 )}
                             </tbody>
                         </table>
+                    </div>
+                </div>
+            )}
+        </div>
+    )
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SECTION: MURAL DE SUGESTÕES
+// ══════════════════════════════════════════════════════════════════════════════
+export function SuggestionsSection() {
+    const [suggestions, setSuggestions] = useState([])
+    const [loading, setLoading] = useState(true)
+    const [filterStatus, setFilterStatus] = useState('todos')
+
+    useEffect(() => {
+        loadSuggestions()
+    }, [])
+
+    const loadSuggestions = async () => {
+        setLoading(true)
+        const { data } = await getSuggestions()
+        setSuggestions(data || [])
+        setLoading(false)
+    }
+
+    const handleStatusChange = async (id, status) => {
+        await updateSuggestionStatus(id, status)
+        setSuggestions(prev => prev.map(s => s.id === id ? { ...s, status } : s))
+    }
+
+    const handleDelete = async (id) => {
+        if (!window.confirm('Tem certeza que deseja excluir esta sugestão?')) return
+        await deleteSuggestion(id)
+        setSuggestions(prev => prev.filter(s => s.id !== id))
+    }
+
+    const filtered = suggestions.filter(s => {
+        if (filterStatus === 'todos') return true
+        return s.status === filterStatus
+    })
+
+    return (
+        <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[#EEEEEE] shadow-xs">
+                <div>
+                    <h2 className="text-base font-black text-gray-900 uppercase tracking-wider">💬 Mural de Sugestões das Clientes</h2>
+                    <p className="text-xs text-gray-500 font-medium">Veja o que suas clientes estão sugerindo para as próximas coleções</p>
+                </div>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={loadSuggestions}
+                        className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition-colors"
+                    >
+                        🔄 Atualizar
+                    </button>
+                    <select
+                        value={filterStatus}
+                        onChange={e => setFilterStatus(e.target.value)}
+                        className="px-3 py-2 bg-[#FAF9F5] border border-gray-200 text-xs font-bold rounded-xl outline-none"
+                    >
+                        <option value="todos">Todos os Status ({suggestions.length})</option>
+                        <option value="pendente">Pendentes ({suggestions.filter(s => s.status === 'pendente').length})</option>
+                        <option value="lido">Lidos ({suggestions.filter(s => s.status === 'lido').length})</option>
+                        <option value="arquivado">Arquivados ({suggestions.filter(s => s.status === 'arquivado').length})</option>
+                    </select>
+                </div>
+            </div>
+
+            {loading ? (
+                <div className="p-12 text-center text-xs font-bold text-gray-400">Carregando sugestões...</div>
+            ) : filtered.length === 0 ? (
+                <div className="p-12 text-center text-xs font-semibold text-gray-400 bg-white rounded-2xl border border-gray-200">
+                    Nenhuma sugestão encontrada para este filtro.
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {filtered.map(item => (
+                        <div key={item.id} className="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs flex flex-col justify-between space-y-4">
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                    <span className="px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-[#7A3E4A]/10 text-[#7A3E4A]">
+                                        {item.category || 'Geral'}
+                                    </span>
+                                    <span className="text-[10px] text-gray-400">
+                                        {new Date(item.created_at).toLocaleDateString('pt-BR')}
+                                    </span>
+                                </div>
+                                <p className="text-xs text-gray-800 font-medium leading-relaxed bg-[#FAF9F5] p-3 rounded-xl border border-gray-100">
+                                    "{item.message}"
+                                </p>
+                            </div>
+
+                            <div className="pt-2 border-t border-gray-100 space-y-3">
+                                <div className="text-[11px] text-gray-600 font-semibold flex items-center justify-between">
+                                    <span>👤 {item.customer_name || 'Anônima'}</span>
+                                    {item.customer_phone && (
+                                        <a
+                                            href={`https://wa.me/55${item.customer_phone.replace(/\D/g, '')}?text=${encodeURIComponent(`Olá ${item.customer_name || ''}! Vi sua sugestão sobre "${item.message.substring(0, 30)}..." na Meraki Femme! Muito obrigada pelo carinho!`)}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-emerald-600 font-bold hover:underline"
+                                        >
+                                            📲 {item.customer_phone}
+                                        </a>
+                                    )}
+                                </div>
+
+                                <div className="flex items-center justify-between gap-2 pt-1">
+                                    <select
+                                        value={item.status || 'pendente'}
+                                        onChange={e => handleStatusChange(item.id, e.target.value)}
+                                        className="text-[10px] font-bold px-2 py-1 bg-gray-50 border border-gray-200 rounded-lg"
+                                    >
+                                        <option value="pendente">🟡 Pendente</option>
+                                        <option value="lido">🟢 Lido / Atendido</option>
+                                        <option value="arquivado">⚪ Arquivado</option>
+                                    </select>
+                                    <button
+                                        onClick={() => handleDelete(item.id)}
+                                        className="text-[10px] font-bold text-red-500 hover:text-red-700 px-2 py-1"
+                                    >
+                                        Excluir
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    )
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SECTION: ENQUETES
+// ══════════════════════════════════════════════════════════════════════════════
+export function PollsSection() {
+    const [polls, setPolls] = useState([])
+    const [loading, setLoading] = useState(true)
+    const [pollVotesMap, setPollVotesMap] = useState({})
+    const [showModal, setShowModal] = useState(false)
+
+    const [question, setQuestion] = useState('')
+    const [opt1, setOpt1] = useState('')
+    const [opt2, setOpt2] = useState('')
+    const [opt3, setOpt3] = useState('')
+    const [opt4, setOpt4] = useState('')
+    const [allowCustom, setAllowCustom] = useState(true)
+
+    useEffect(() => {
+        loadPollsData()
+    }, [])
+
+    const loadPollsData = async () => {
+        setLoading(true)
+        const { data } = await getPolls()
+        const list = data || []
+        setPolls(list)
+
+        const votesObj = {}
+        for (const p of list) {
+            const { data: v } = await getPollVotes(p.id)
+            votesObj[p.id] = v || []
+        }
+        setPollVotesMap(votesObj)
+        setLoading(false)
+    }
+
+    const handleCreatePollSubmit = async (e) => {
+        e.preventDefault()
+        if (!question.trim()) return
+
+        const options = []
+        if (opt1.trim()) options.push({ id: 'opt_1', text: opt1.trim() })
+        if (opt2.trim()) options.push({ id: 'opt_2', text: opt2.trim() })
+        if (opt3.trim()) options.push({ id: 'opt_3', text: opt3.trim() })
+        if (opt4.trim()) options.push({ id: 'opt_4', text: opt4.trim() })
+
+        if (options.length < 2) {
+            alert('Por favor preencha pelo menos 2 opções de resposta.')
+            return
+        }
+
+        await createPoll({
+            question: question.trim(),
+            options,
+            allow_custom_text: allowCustom
+        })
+
+        setQuestion('')
+        setOpt1('')
+        setOpt2('')
+        setOpt3('')
+        setOpt4('')
+        setShowModal(false)
+        loadPollsData()
+    }
+
+    const handleToggleActive = async (id, currentActive) => {
+        await togglePollActive(id, !currentActive)
+        setPolls(prev => prev.map(p => p.id === id ? { ...p, active: !currentActive } : p))
+    }
+
+    const handleDelete = async (id) => {
+        if (!window.confirm('Tem certeza que deseja excluir esta enquete e todos os votos dela?')) return
+        await deletePoll(id)
+        setPolls(prev => prev.filter(p => p.id !== id))
+    }
+
+    return (
+        <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[#EEEEEE] shadow-xs">
+                <div>
+                    <h2 className="text-base font-black text-gray-900 uppercase tracking-wider">📊 Enquetes Rápidas & Pesquisas</h2>
+                    <p className="text-xs text-gray-500 font-medium">Crie perguntas objetivas e veja a porcentagem dos votos das clientes em tempo real</p>
+                </div>
+                <button
+                    onClick={() => setShowModal(true)}
+                    className="px-4 py-2.5 bg-[#7A3E4A] hover:bg-[#5B6E57] text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-colors cursor-pointer"
+                >
+                    + Criar Nova Enquete
+                </button>
+            </div>
+
+            {loading ? (
+                <div className="p-12 text-center text-xs font-bold text-gray-400">Carregando enquetes...</div>
+            ) : polls.length === 0 ? (
+                <div className="p-12 text-center text-xs font-semibold text-gray-400 bg-white rounded-2xl border border-gray-200">
+                    Nenhuma enquete cadastrada. Clique no botão acima para criar a primeira!
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {polls.map(poll => {
+                        const votes = pollVotesMap[poll.id] || []
+                        const totalVotes = votes.length
+                        const customVotes = votes.filter(v => v.custom_text)
+
+                        return (
+                            <div key={poll.id} className="bg-white p-6 rounded-2xl border border-gray-200 shadow-xs space-y-4">
+                                <div className="flex items-start justify-between gap-3">
+                                    <h3 className="font-heading text-sm font-bold text-gray-900">{poll.question}</h3>
+                                    <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase shrink-0 ${
+                                        poll.active ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-gray-100 text-gray-600'
+                                    }`}>
+                                        {poll.active ? '🟢 Ativa' : '⚪ Pausada'}
+                                    </span>
+                                </div>
+
+                                <div className="space-y-3 pt-2">
+                                    {Array.isArray(poll.options) && poll.options.map(opt => {
+                                        const count = votes.filter(v => v.option_id === opt.id).length
+                                        const pct = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0
+                                        return (
+                                            <div key={opt.id} className="space-y-1">
+                                                <div className="flex justify-between text-xs font-semibold text-gray-700">
+                                                    <span>{opt.text}</span>
+                                                    <span className="font-bold text-[#7A3E4A]">{pct}% ({count} votos)</span>
+                                                </div>
+                                                <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden">
+                                                    <div 
+                                                        className="h-full bg-gradient-to-r from-[#7A3E4A] to-[#9A5060] rounded-full transition-all duration-500" 
+                                                        style={{ width: `${pct}%` }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+
+                                {customVotes.length > 0 && (
+                                    <div className="pt-3 border-t border-gray-100">
+                                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">
+                                            ✍️ Respostas Personalizadas das Clientes ({customVotes.length}):
+                                        </p>
+                                        <div className="max-h-28 overflow-y-auto space-y-1 text-xs text-gray-600 bg-[#FAF9F5] p-2.5 rounded-xl">
+                                            {customVotes.map((cv, i) => (
+                                                <div key={i} className="border-b border-gray-200/50 pb-1 last:border-0">
+                                                    "{cv.custom_text}"
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="flex items-center justify-between pt-3 border-t border-gray-100 text-xs">
+                                    <span className="text-gray-400 font-semibold">Total: {totalVotes} votos</span>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => handleToggleActive(poll.id, poll.active)}
+                                            className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-lg text-[10px]"
+                                        >
+                                            {poll.active ? 'Pausar' : 'Ativar'}
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(poll.id)}
+                                            className="px-3 py-1 bg-red-50 hover:bg-red-100 text-red-600 font-bold rounded-lg text-[10px]"
+                                        >
+                                            Excluir
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )
+                    })}
+                </div>
+            )}
+
+            {showModal && (
+                <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+                    <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
+                        <div className="flex justify-between items-center pb-2 border-b border-gray-100">
+                            <h3 className="font-heading font-bold text-sm text-gray-900 uppercase">Criar Nova Enquete</h3>
+                            <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600">✕</button>
+                        </div>
+
+                        <form onSubmit={handleCreatePollSubmit} className="space-y-3">
+                            <div>
+                                <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Pergunta da Enquete *</label>
+                                <input
+                                    required
+                                    type="text"
+                                    value={question}
+                                    onChange={e => setQuestion(e.target.value)}
+                                    placeholder="Ex: Qual cor você gostaria de ver na próxima coleção?"
+                                    className="w-full px-3 py-2 text-xs border border-gray-200 rounded-lg outline-none focus:border-[#7A3E4A]"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider">Opções de Resposta</label>
+                                <input
+                                    type="text"
+                                    value={opt1}
+                                    onChange={e => setOpt1(e.target.value)}
+                                    placeholder="Opção 1 (Ex: Vermelho Rubi)"
+                                    className="w-full px-3 py-2 text-xs border border-gray-200 rounded-lg outline-none"
+                                />
+                                <input
+                                    type="text"
+                                    value={opt2}
+                                    onChange={e => setOpt2(e.target.value)}
+                                    placeholder="Opção 2 (Ex: Verde Esmeralda)"
+                                    className="w-full px-3 py-2 text-xs border border-gray-200 rounded-lg outline-none"
+                                />
+                                <input
+                                    type="text"
+                                    value={opt3}
+                                    onChange={e => setOpt3(e.target.value)}
+                                    placeholder="Opção 3 (Ex: Vinho Bordô)"
+                                    className="w-full px-3 py-2 text-xs border border-gray-200 rounded-lg outline-none"
+                                />
+                                <input
+                                    type="text"
+                                    value={opt4}
+                                    onChange={e => setOpt4(e.target.value)}
+                                    placeholder="Opção 4 (Ex: Azul Marinho)"
+                                    className="w-full px-3 py-2 text-xs border border-gray-200 rounded-lg outline-none"
+                                />
+                            </div>
+
+                            <label className="flex items-center gap-2 pt-1 text-xs text-gray-700 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={allowCustom}
+                                    onChange={e => setAllowCustom(e.target.checked)}
+                                    className="accent-[#7A3E4A]"
+                                />
+                                <span>Permitir que a cliente escreva uma opção própria</span>
+                            </label>
+
+                            <div className="flex gap-2 pt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowModal(false)}
+                                    className="flex-1 py-2.5 bg-gray-100 text-gray-700 font-bold text-xs rounded-xl"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="flex-1 py-2.5 bg-[#7A3E4A] text-white font-bold text-xs rounded-xl hover:bg-[#5B6E57]"
+                                >
+                                    Publicar Enquete
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+        </div>
+    )
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SECTION: LISTA DE DESEJOS INTELIGENTE
+// ══════════════════════════════════════════════════════════════════════════════
+export function WishlistAnalyticsSection() {
+    const [analytics, setAnalytics] = useState({ topProducts: [], topColors: [], topSizes: [], totalFavorites: 0 })
+    const [loading, setLoading] = useState(true)
+
+    useEffect(() => {
+        loadData()
+    }, [])
+
+    const loadData = async () => {
+        setLoading(true)
+        const { data } = await getWishlistAnalytics()
+        if (data) setAnalytics(data)
+        setLoading(false)
+    }
+
+    return (
+        <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[#EEEEEE] shadow-xs">
+                <div>
+                    <h2 className="text-base font-black text-gray-900 uppercase tracking-wider">❤️ Lista de Desejos Inteligente</h2>
+                    <p className="text-xs text-gray-500 font-medium">Relatório inteligente dos produtos, cores e tamanhos mais desejados pelas clientes</p>
+                </div>
+                <div className="px-4 py-2 bg-[#7A3E4A]/10 text-[#7A3E4A] rounded-xl text-xs font-bold">
+                    Total de Favoritos Registrados: {analytics.totalFavorites}
+                </div>
+            </div>
+
+            {loading ? (
+                <div className="p-12 text-center text-xs font-bold text-gray-400">Carregando dados da lista de desejos...</div>
+            ) : (
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    
+                    <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-gray-200 shadow-xs space-y-4">
+                        <h3 className="font-heading text-sm font-bold text-gray-900 uppercase tracking-wider flex items-center justify-between">
+                            <span>🏆 Os 20 Produtos Mais Favoritados</span>
+                            <span className="text-[10px] text-gray-400 font-normal">Demanda Direta</span>
+                        </h3>
+
+                        {analytics.topProducts.length === 0 ? (
+                            <div className="text-xs text-gray-400 py-6 text-center">Nenhum favorito registrado ainda.</div>
+                        ) : (
+                            <div className="space-y-2.5">
+                                {analytics.topProducts.map((prod, idx) => (
+                                    <div key={idx} className="flex items-center justify-between p-3 rounded-xl bg-[#FAF9F5] border border-gray-100 text-xs">
+                                        <div className="flex items-center gap-3 font-semibold text-gray-800">
+                                            <span className="w-6 h-6 rounded-full bg-[#7A3E4A] text-white flex items-center justify-center text-[10px] font-black shrink-0">
+                                                #{idx + 1}
+                                            </span>
+                                            <span className="truncate max-w-md">{prod.name}</span>
+                                        </div>
+                                        <span className="px-3 py-1 bg-[#7A3E4A]/10 text-[#7A3E4A] font-black rounded-lg text-xs shrink-0">
+                                            ❤️ {prod.count} {prod.count === 1 ? 'cliente' : 'clientes'}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="space-y-6">
+                        
+                        <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-xs space-y-4">
+                            <h3 className="font-heading text-sm font-bold text-gray-900 uppercase tracking-wider">🎨 Cores Mais Procuradas</h3>
+                            {analytics.topColors.length === 0 ? (
+                                <div className="text-xs text-gray-400 py-4 text-center">Sem dados de cores.</div>
+                            ) : (
+                                <div className="space-y-2.5">
+                                    {analytics.topColors.map((item, idx) => {
+                                        const totalCol = analytics.topColors.reduce((a, b) => a + b.count, 0)
+                                        const pct = totalCol > 0 ? Math.round((item.count / totalCol) * 100) : 0
+                                        return (
+                                            <div key={idx} className="space-y-1 text-xs">
+                                                <div className="flex justify-between font-semibold text-gray-700">
+                                                    <span>{item.color}</span>
+                                                    <span className="font-bold text-[#7A3E4A]">{pct}% ({item.count})</span>
+                                                </div>
+                                                <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                                                    <div className="h-full bg-[#7A3E4A] rounded-full" style={{ width: `${pct}%` }} />
+                                                </div>
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-xs space-y-4">
+                            <h3 className="font-heading text-sm font-bold text-gray-900 uppercase tracking-wider">📏 Tamanhos Mais Desejados</h3>
+                            {analytics.topSizes.length === 0 ? (
+                                <div className="text-xs text-gray-400 py-4 text-center">Sem dados de tamanhos.</div>
+                            ) : (
+                                <div className="grid grid-cols-2 gap-2">
+                                    {analytics.topSizes.map((item, idx) => (
+                                        <div key={idx} className="p-3 bg-[#FAF9F5] rounded-xl border border-gray-100 text-center">
+                                            <span className="block text-lg font-black text-[#7A3E4A]">{item.size}</span>
+                                            <span className="text-[10px] font-bold text-gray-500 uppercase">{item.count} procuraram</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                    </div>
+
+                </div>
+            )}
+        </div>
+    )
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SECTION: PRODUTOS SOLICITADOS (PEDIDO DE PRODUTOS)
+// ══════════════════════════════════════════════════════════════════════════════
+export function ProductRequestsSection() {
+    const [requests, setRequests] = useState([])
+    const [loading, setLoading] = useState(true)
+    const [selectedPhoto, setSelectedPhoto] = useState(null)
+    const [filterStatus, setFilterStatus] = useState('todos')
+
+    useEffect(() => {
+        loadRequestsData()
+    }, [])
+
+    const loadRequestsData = async () => {
+        setLoading(true)
+        const { data } = await getProductRequests()
+        setRequests(data || [])
+        setLoading(false)
+    }
+
+    const handleStatusChange = async (id, status) => {
+        await updateProductRequestStatus(id, status)
+        setRequests(prev => prev.map(r => r.id === id ? { ...r, status } : r))
+        loadRequestsData()
+    }
+
+    const handleDelete = async (id) => {
+        if (!window.confirm('Tem certeza que deseja excluir este pedido de produto?')) return
+        await deleteProductRequest(id)
+        setRequests(prev => prev.filter(r => r.id !== id))
+    }
+
+    const filtered = requests.filter(r => {
+        if (filterStatus === 'todos') return true
+        return r.status === filterStatus
+    })
+
+    return (
+        <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[#EEEEEE] shadow-xs">
+                <div>
+                    <h2 className="text-base font-black text-gray-900 uppercase tracking-wider">🛍️ Produtos Solicitados pelas Clientes</h2>
+                    <p className="text-xs text-gray-500 font-medium">Veja quais peças as clientes encomendaram ou gostariam que chegassem na loja</p>
+                </div>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={loadRequestsData}
+                        className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition-colors"
+                    >
+                        🔄 Atualizar
+                    </button>
+                    <select
+                        value={filterStatus}
+                        onChange={e => setFilterStatus(e.target.value)}
+                        className="px-3 py-2 bg-[#FAF9F5] border border-gray-200 text-xs font-bold rounded-xl outline-none"
+                    >
+                        <option value="todos">Todos ({requests.length})</option>
+                        <option value="pendente">Pendentes ({requests.filter(r => r.status === 'pendente').length})</option>
+                        <option value="em_analise">Em Análise ({requests.filter(r => r.status === 'em_analise').length})</option>
+                        <option value="disponivel">Disponível na Loja ({requests.filter(r => r.status === 'disponivel').length})</option>
+                    </select>
+                </div>
+            </div>
+
+            {loading ? (
+                <div className="p-12 text-center text-xs font-bold text-gray-400">Carregando produtos solicitados...</div>
+            ) : filtered.length === 0 ? (
+                <div className="p-12 text-center text-xs font-semibold text-gray-400 bg-white rounded-2xl border border-gray-200">
+                    Nenhuma solicitação de produto encontrada.
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filtered.map(req => (
+                        <div key={req.id} className="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs flex flex-col justify-between space-y-4">
+                            <div className="space-y-3">
+                                <div className="flex items-start justify-between gap-2">
+                                    <div>
+                                        <h3 className="font-heading text-sm font-bold text-gray-900">{req.product_name}</h3>
+                                        <span className="text-[10px] text-gray-400 font-semibold">
+                                            Solicitado em {new Date(req.created_at).toLocaleDateString('pt-BR')}
+                                        </span>
+                                    </div>
+                                    {req.reference_photo && (
+                                        <button
+                                            onClick={() => setSelectedPhoto(req.reference_photo)}
+                                            className="w-12 h-12 rounded-xl overflow-hidden border border-gray-200 shrink-0 hover:scale-105 transition-transform cursor-pointer"
+                                        >
+                                            <img src={req.reference_photo} alt="Ref" className="w-full h-full object-cover" />
+                                        </button>
+                                    )}
+                                </div>
+
+                                <div className="flex flex-wrap gap-1.5 text-[10px] font-bold">
+                                    {req.color && <span className="px-2 py-0.5 bg-purple-50 text-purple-700 rounded-md">Cor: {req.color}</span>}
+                                    {req.size && <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded-md">Tam: {req.size}</span>}
+                                    {req.price_range && <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-md">{req.price_range}</span>}
+                                </div>
+
+                                {req.description && (
+                                    <p className="text-xs text-gray-600 bg-[#FAF9F5] p-2.5 rounded-xl border border-gray-100 italic">
+                                        "{req.description}"
+                                    </p>
+                                )}
+                            </div>
+
+                            <div className="pt-3 border-t border-gray-100 space-y-3">
+                                <div>
+                                    <p className="text-xs font-bold text-gray-800">👤 {req.customer_name}</p>
+                                    <p className="text-[11px] text-gray-500 font-medium">{req.customer_phone}</p>
+                                </div>
+
+                                {req.customer_phone && (
+                                    <a
+                                        href={`https://wa.me/55${req.customer_phone.replace(/\D/g, '')}?text=${encodeURIComponent(`Olá ${req.customer_name}! A peça que você solicitou (${req.product_name}${req.color ? ' - ' + req.color : ''}${req.size ? ' Tam ' + req.size : ''}) acabou de chegar na Meraki Femme! ✨ Posso separar uma para você?`)}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="w-full py-2 bg-[#25D366] hover:bg-[#1EBE5D] text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 transition-colors"
+                                    >
+                                        💬 Avisar no WhatsApp
+                                    </a>
+                                )}
+
+                                <div className="flex items-center justify-between gap-2 pt-1">
+                                    <select
+                                        value={req.status || 'pendente'}
+                                        onChange={e => handleStatusChange(req.id, e.target.value)}
+                                        className="text-[10px] font-bold px-2 py-1 bg-gray-50 border border-gray-200 rounded-lg flex-1"
+                                    >
+                                        <option value="pendente">🟡 Pendente</option>
+                                        <option value="em_analise">🔵 Em Análise</option>
+                                        <option value="disponivel">🟢 Disponível na Loja</option>
+                                        <option value="atendido">✅ Atendido</option>
+                                    </select>
+                                    <button
+                                        onClick={() => handleDelete(req.id)}
+                                        className="text-[10px] font-bold text-red-500 hover:text-red-700 px-2 py-1"
+                                    >
+                                        Excluir
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {selectedPhoto && (
+                <div className="fixed inset-0 z-[9999] bg-black/80 flex items-center justify-center p-4" onClick={() => setSelectedPhoto(null)}>
+                    <div className="max-w-xl max-h-[85vh] bg-white rounded-2xl p-2 relative">
+                        <img src={selectedPhoto} alt="Foto Referência" className="w-full h-full object-contain rounded-xl" />
+                        <button onClick={() => setSelectedPhoto(null)} className="absolute top-4 right-4 bg-black/60 text-white p-2 rounded-full cursor-pointer">✕</button>
                     </div>
                 </div>
             )}

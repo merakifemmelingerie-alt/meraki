@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getAssetUrl } from '../utils/assets.js'
+import { recordWishlistAction } from '../services/database.js'
 
 export default function ProductCard({ product, onQuickView, onToggleWishlist, isWishlisted }) {
     const navigate = useNavigate()
@@ -125,6 +126,14 @@ export default function ProductCard({ product, onQuickView, onToggleWishlist, is
                         e.stopPropagation();
                         e.preventDefault();
                         onToggleWishlist?.(product.id);
+                        if (!isWishlisted) {
+                            recordWishlistAction({
+                                product_id: product.id,
+                                product_name: product.name,
+                                selected_color: selectedColor || (colors?.[0] || null),
+                                selected_size: Array.isArray(product.sizes) ? product.sizes[0] : null
+                            })
+                        }
                     }}
                     className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center transition-all duration-300 hover:bg-white hover:scale-115 shadow-sm z-10"
                     aria-label="Favoritar"

@@ -18,6 +18,7 @@ import { supabase } from './services/supabase.js'
 import { getAssetUrl } from './utils/assets.js'
 
 import MaintenanceScreen from './components/MaintenanceScreen.jsx'
+import EngagementWidget from './components/EngagementWidget.jsx'
 
 
 function ScrollToTopReset() {
@@ -233,6 +234,9 @@ function AppContent() {
                 {/* Fallback wildcard route */}
                 <Route path="*" element={<HomePage />} />
             </Routes>
+
+            {/* Floating Engagement Widget (Sugestões, Enquetes & Pedido de Produtos) */}
+            <EngagementWidget />
         </>
     )
 }

@@ -1411,3 +1411,247 @@ export async function saveOrderRealCost(costData) {
 
     return { data: costData, error: null }
 }
+
+// ==============================================================================
+// MURAL DE SUGESTÕES, ENQUETES, WISHLIST INTELIGENTE & PEDIDOS DE PRODUTOS
+// ==============================================================================
+
+// 1. Sugestões
+export async function submitSuggestion(suggestionData) {
+    try {
+        const payload = {
+            customer_name: suggestionData.customer_name || 'Anônima',
+            customer_phone: suggestionData.customer_phone || '',
+            message: suggestionData.message,
+            category: suggestionData.category || 'Geral',
+            status: 'pendente',
+            created_at: new Date().toISOString()
+        }
+        const { data, error } = await supabase.from('suggestions').insert([payload]).select().single()
+        if (error) throw error
+        return { data, error: null }
+    } catch (e) {
+        console.error('Erro ao enviar sugestão:', e)
+        return { data: null, error: e }
+    }
+}
+
+export async function getSuggestions() {
+    try {
+        const { data, error } = await supabase.from('suggestions').select('*').order('created_at', { ascending: false })
+        if (error) throw error
+        return { data: data || [], error: null }
+    } catch (e) {
+        return { data: [], error: e }
+    }
+}
+
+export async function updateSuggestionStatus(id, status) {
+    try {
+        const { data, error } = await supabase.from('suggestions').update({ status }).eq('id', id).select()
+        return { data, error }
+    } catch (e) {
+        return { data: null, error: e }
+    }
+}
+
+export async function deleteSuggestion(id) {
+    try {
+        const { error } = await supabase.from('suggestions').delete().eq('id', id)
+        return { error }
+    } catch (e) {
+        return { error: e }
+    }
+}
+
+// 2. Enquetes (Polls)
+export async function getPolls() {
+    try {
+        const { data, error } = await supabase.from('polls').select('*').order('created_at', { ascending: false })
+        if (error) throw error
+        return { data: data || [], error: null }
+    } catch (e) {
+        return { data: [], error: e }
+    }
+}
+
+export async function createPoll(pollData) {
+    try {
+        const payload = {
+            question: pollData.question,
+            options: pollData.options || [],
+            allow_custom_text: pollData.allow_custom_text !== false,
+            active: true,
+            created_at: new Date().toISOString()
+        }
+        const { data, error } = await supabase.from('polls').insert([payload]).select().single()
+        if (error) throw error
+        return { data, error: null }
+    } catch (e) {
+        return { data: null, error: e }
+    }
+}
+
+export async function togglePollActive(id, active) {
+    try {
+        const { data, error } = await supabase.from('polls').update({ active }).eq('id', id).select()
+        return { data, error }
+    } catch (e) {
+        return { data: null, error: e }
+    }
+}
+
+export async function deletePoll(id) {
+    try {
+        const { error } = await supabase.from('polls').delete().eq('id', id)
+        return { error }
+    } catch (e) {
+        return { error: e }
+    }
+}
+
+export async function submitPollVote({ poll_id, option_id, custom_text, user_identifier }) {
+    try {
+        const payload = {
+            poll_id,
+            option_id: option_id || null,
+            custom_text: custom_text || null,
+            user_identifier: user_identifier || localStorage.getItem('meraki_user_anon_id') || Math.random().toString(36).substring(2),
+            created_at: new Date().toISOString()
+        }
+        const { data, error } = await supabase.from('poll_votes').insert([payload]).select().single()
+        if (error) throw error
+        return { data, error: null }
+    } catch (e) {
+        return { data: null, error: e }
+    }
+}
+
+export async function getPollVotes(poll_id) {
+    try {
+        const { data, error } = await supabase.from('poll_votes').select('*').eq('poll_id', poll_id)
+        if (error) throw error
+        return { data: data || [], error: null }
+    } catch (e) {
+        return { data: [], error: e }
+    }
+}
+
+// 3. Lista de Desejos Inteligente Analytics
+export async function recordWishlistAction({ product_id, product_name, selected_color, selected_size }) {
+    try {
+        const payload = {
+            product_id: isValidUUID(product_id) ? product_id : null,
+            product_name: product_name || 'Produto',
+            selected_color: selected_color || null,
+            selected_size: selected_size || null,
+            created_at: new Date().toISOString()
+        }
+        await supabase.from('wishlist_items').insert([payload])
+    } catch (e) {
+        console.warn('Erro ao registrar favorito inteligente:', e)
+    }
+}
+
+export async function getWishlistAnalytics() {
+    try {
+        const { data, error } = await supabase.from('wishlist_items').select('*')
+        if (error) throw error
+        
+        const productCounts = {}
+        const colorCounts = {}
+        const sizeCounts = {}
+
+        (data || []).forEach(item => {
+            if (item.product_name) {
+                productCounts[item.product_name] = (productCounts[item.product_name] || 0) + 1
+            }
+            if (item.selected_color) {
+                colorCounts[item.selected_color] = (colorCounts[item.selected_color] || 0) + 1
+            }
+            if (item.selected_size) {
+                sizeCounts[item.selected_size] = (sizeCounts[item.selected_size] || 0) + 1
+            }
+        })
+
+        const topProducts = Object.entries(productCounts)
+            .map(([name, count]) => ({ name, count }))
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 20)
+
+        const topColors = Object.entries(colorCounts)
+            .map(([color, count]) => ({ color, count }))
+            .sort((a, b) => b.count - a.count)
+
+        const topSizes = Object.entries(sizeCounts)
+            .map(([size, count]) => ({ size, count }))
+            .sort((a, b) => b.count - a.count)
+
+        return { data: { topProducts, topColors, topSizes, totalFavorites: (data || []).length }, error: null }
+    } catch (e) {
+        return { data: { topProducts: [], topColors: [], topSizes: [], totalFavorites: 0 }, error: e }
+    }
+}
+
+// 4. Pedido de Produtos (Produtos Solicitados)
+export async function submitProductRequest(requestData) {
+    try {
+        let referencePhotoUrl = requestData.reference_photo || null
+
+        if (requestData.photo_file) {
+            const uploadRes = await uploadImage(requestData.photo_file)
+            if (uploadRes?.url) {
+                referencePhotoUrl = uploadRes.url
+            }
+        }
+
+        const payload = {
+            customer_name: requestData.customer_name,
+            customer_phone: requestData.customer_phone,
+            customer_email: requestData.customer_email || '',
+            product_name: requestData.product_name,
+            description: requestData.description || '',
+            reference_photo: referencePhotoUrl,
+            color: requestData.color || '',
+            size: requestData.size || '',
+            price_range: requestData.price_range || '',
+            status: 'pendente',
+            created_at: new Date().toISOString()
+        }
+
+        const { data, error } = await supabase.from('product_requests').insert([payload]).select().single()
+        if (error) throw error
+        return { data, error: null }
+    } catch (e) {
+        console.error('Erro ao enviar solicitação de produto:', e)
+        return { data: null, error: e }
+    }
+}
+
+export async function getProductRequests() {
+    try {
+        const { data, error } = await supabase.from('product_requests').select('*').order('created_at', { ascending: false })
+        if (error) throw error
+        return { data: data || [], error: null }
+    } catch (e) {
+        return { data: [], error: e }
+    }
+}
+
+export async function updateProductRequestStatus(id, status) {
+    try {
+        const { data, error } = await supabase.from('product_requests').update({ status }).eq('id', id).select()
+        return { data, error }
+    } catch (e) {
+        return { data: null, error: e }
+    }
+}
+
+export async function deleteProductRequest(id) {
+    try {
+        const { error } = await supabase.from('product_requests').delete().eq('id', id)
+        return { error }
+    } catch (e) {
+        return { error: e }
+    }
+}
