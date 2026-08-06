@@ -7,7 +7,10 @@ import {
     getSuggestions, updateSuggestionStatus, deleteSuggestion,
     getPolls, createPoll, togglePollActive, deletePoll, getPollVotes,
     getWishlistAnalytics,
-    getProductRequests, updateProductRequestStatus, deleteProductRequest
+    getProductRequests, updateProductRequestStatus, deleteProductRequest,
+    getCollectionsPlanning, createCollectionPlanning, updateCollectionPlanning, deleteCollectionPlanning,
+    getCollectionTasks, createCollectionTask, toggleCollectionTask, deleteCollectionTask,
+    getCommercialCalendar, createCommercialEvent, deleteCommercialEvent
 } from '../../services/database.js'
 
 function Icon({ path, className = 'w-5 h-5' }) {
@@ -6175,4 +6178,618 @@ export function ProductRequestsSection() {
         </div>
     )
 }
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SECTION: PLANEJAMENTO COMERCIAL & GESTÃO DE COLEÇÕES
+// ══════════════════════════════════════════════════════════════════════════════
+export function PlanningSection({ orders = [], products = [] }) {
+    const [subTab, setSubTab] = useState('collections') // 'collections' | 'calendar'
+    const [collections, setCollections] = useState([])
+    const [tasksMap, setTasksMap] = useState({})
+    const [commercialEvents, setCommercialEvents] = useState([])
+    const [loading, setLoading] = useState(true)
+
+    // Modal Coleção
+    const [isCollectionModalOpen, setIsCollectionModalOpen] = useState(false)
+    const [colTitle, setColTitle] = useState('')
+    const [colEvent, setColEvent] = useState('Dia dos Namorados')
+    const [colStatus, setColStatus] = useState('em_planejamento')
+    const [colSupplierDeadline, setColSupplierDeadline] = useState('')
+    const [colPhotoshootDeadline, setColPhotoshootDeadline] = useState('')
+    const [colLaunchDate, setColLaunchDate] = useState('')
+    const [colBudget, setColBudget] = useState('')
+    const [colNotes, setColNotes] = useState('')
+
+    // Modal Nova Tarefa
+    const [newTaskModal, setNewTaskModal] = useState({ open: false, collectionId: null })
+    const [taskTitle, setTaskTitle] = useState('')
+    const [taskDueDate, setTaskDueDate] = useState('')
+    const [taskCategory, setTaskCategory] = useState('geral')
+
+    // Modal Novo Evento Comercial
+    const [isEventModalOpen, setIsEventModalOpen] = useState(false)
+    const [evTitle, setEvTitle] = useState('')
+    const [evDate, setEvDate] = useState('')
+    const [evOrderDate, setEvOrderDate] = useState('')
+    const [evDesc, setEvDesc] = useState('')
+
+    useEffect(() => {
+        loadData()
+    }, [])
+
+    const loadData = async () => {
+        setLoading(true)
+        const { data: cols } = await getCollectionsPlanning()
+        const { data: cal } = await getCommercialCalendar()
+        
+        setCollections(cols || [])
+
+        // If calendar empty, load default retail events
+        if (!cal || cal.length === 0) {
+            const defaultEvents = [
+                { title: 'Dia Internacional da Mulher', event_date: '2026-03-08', order_deadline_date: '2026-01-15', description: 'Foco em conjuntos rendados e kits presenteáveis' },
+                { title: 'Dia das Mães', event_date: '2026-05-10', order_deadline_date: '2026-03-20', description: 'Alta demanda para pijamas, camisolas de cetim e Robes' },
+                { title: 'Dia dos Namorados', event_date: '2026-06-12', order_deadline_date: '2026-03-20', description: 'Coleção Sensual / Lingeries em tom vinho e vermelho' },
+                { title: 'Dia do Sexo (Linha Sexy)', event_date: '2026-09-06', order_deadline_date: '2026-07-10', description: 'Foco em lingeries sexy, fantasias e acessórios' },
+                { title: 'Black Friday', event_date: '2026-11-27', order_deadline_date: '2026-09-15', description: 'Estoque reforçado de ofertas e combos' },
+                { title: 'Natal & Fim de Ano', event_date: '2026-12-25', order_deadline_date: '2026-10-15', description: 'Peças brancas, vermelhas e douradas' }
+            ]
+            setCommercialEvents(defaultEvents)
+            for (const ev of defaultEvents) {
+                await createCommercialEvent(ev)
+            }
+        } else {
+            setCommercialEvents(cal)
+        }
+
+        // Load tasks for each collection
+        if (cols && cols.length > 0) {
+            const map = {}
+            for (const col of cols) {
+                const { data: tks } = await getCollectionTasks(col.id)
+                map[col.id] = tks || []
+            }
+            setTasksMap(map)
+        }
+
+        setLoading(false)
+    }
+
+    const handleCreateCollection = async (e) => {
+        e.preventDefault()
+        if (!colTitle.trim()) return
+
+        const { data } = await createCollectionPlanning({
+            title: colTitle.trim(),
+            commercial_event: colEvent,
+            status: colStatus,
+            supplier_deadline: colSupplierDeadline || null,
+            photoshoot_deadline: colPhotoshootDeadline || null,
+            launch_date: colLaunchDate || null,
+            target_budget: Number(colBudget) || 0,
+            notes: colNotes
+        })
+
+        if (data) {
+            setIsCollectionModalOpen(false)
+            setColTitle('')
+            setColBudget('')
+            setColNotes('')
+            loadData()
+        }
+    }
+
+    const handleToggleTask = async (taskId, currentCompleted, colId) => {
+        await toggleCollectionTask(taskId, !currentCompleted)
+        setTasksMap(prev => ({
+            ...prev,
+            [colId]: (prev[colId] || []).map(t => t.id === taskId ? { ...t, completed: !currentCompleted } : t)
+        }))
+    }
+
+    const handleCreateTask = async (e) => {
+        e.preventDefault()
+        if (!taskTitle.trim() || !newTaskModal.collectionId) return
+
+        const { data } = await createCollectionTask({
+            collection_id: newTaskModal.collectionId,
+            title: taskTitle.trim(),
+            due_date: taskDueDate || null,
+            category: taskCategory
+        })
+
+        if (data) {
+            const colId = newTaskModal.collectionId
+            setTasksMap(prev => ({
+                ...prev,
+                [colId]: [...(prev[colId] || []), data]
+            }))
+            setNewTaskModal({ open: false, collectionId: null })
+            setTaskTitle('')
+            setTaskDueDate('')
+        }
+    }
+
+    const handleDeleteTask = async (taskId, colId) => {
+        await deleteCollectionTask(taskId)
+        setTasksMap(prev => ({
+            ...prev,
+            [colId]: (prev[colId] || []).filter(t => t.id !== taskId)
+        }))
+    }
+
+    const handleDeleteCollection = async (id) => {
+        if (!window.confirm('Tem certeza que deseja excluir esta coleção e todas as suas tarefas?')) return
+        await deleteCollectionPlanning(id)
+        setCollections(prev => prev.filter(c => c.id !== id))
+    }
+
+    const handleCreateEvent = async (e) => {
+        e.preventDefault()
+        if (!evTitle.trim() || !evDate) return
+
+        const { data } = await createCommercialEvent({
+            title: evTitle.trim(),
+            event_date: evDate,
+            order_deadline_date: evOrderDate || null,
+            description: evDesc
+        })
+
+        if (data) {
+            setCommercialEvents(prev => [...prev, data].sort((a, b) => new Date(a.event_date) - new Date(b.event_date)))
+            setIsEventModalOpen(false)
+            setEvTitle('')
+            setEvDate('')
+            setEvOrderDate('')
+            setEvDesc('')
+        }
+    }
+
+    const handleDeleteEvent = async (id) => {
+        if (!window.confirm('Excluir esta data comercial?')) return
+        await deleteCommercialEvent(id)
+        setCommercialEvents(prev => prev.filter(e => e.id !== id))
+    }
+
+    // Financial sync calculation: calculate total revenue per collection matching product tags or names
+    const getCollectionFinancials = (collectionName) => {
+        if (!collectionName) return { revenue: 0, ordersCount: 0 }
+        const matchingProds = products.filter(p => p.name?.toLowerCase().includes(collectionName.toLowerCase()) || p.category?.toLowerCase().includes(collectionName.toLowerCase()))
+        const matchingProdIds = new Set(matchingProds.map(p => p.id))
+
+        let revenue = 0
+        let ordersCount = 0
+
+        orders.forEach(ord => {
+            if (['Pago', 'Enviado', 'Entregue'].includes(ord.status) && Array.isArray(ord.items)) {
+                ord.items.forEach(item => {
+                    if (matchingProdIds.has(item.id) || item.name?.toLowerCase().includes(collectionName.toLowerCase())) {
+                        revenue += (Number(item.price) || 0) * (Number(item.quantity) || 1)
+                        ordersCount++
+                    }
+                })
+            }
+        })
+
+        return { revenue, ordersCount }
+    }
+
+    return (
+        <div className="space-y-6">
+            {/* Header & Sub-navigation */}
+            <div className="bg-white p-6 rounded-2xl border border-[#EEEEEE] shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 className="text-base font-black text-gray-900 uppercase tracking-wider">📅 Planejamento Comercial & Coleções</h2>
+                    <p className="text-xs text-gray-500 font-medium">Cronograma de pedidos aos fornecedores, checklist de lançamentos e acompanhamento financeiro</p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => setIsCollectionModalOpen(true)}
+                        className="px-4 py-2.5 bg-gradient-to-r from-[#7A3E4A] to-[#9A5060] text-white text-xs font-bold uppercase tracking-wider rounded-xl hover:shadow-md transition-all flex items-center gap-2 cursor-pointer"
+                    >
+                        <span>+ Nova Coleção</span>
+                    </button>
+                    <button
+                        onClick={() => setIsEventModalOpen(true)}
+                        className="px-4 py-2.5 bg-[#FAF9F5] border border-gray-200 text-[#7A3E4A] text-xs font-bold uppercase tracking-wider rounded-xl hover:bg-gray-100 transition-all flex items-center gap-2 cursor-pointer"
+                    >
+                        <span>+ Data Comercial</span>
+                    </button>
+                </div>
+            </div>
+
+            {/* Sub-Tabs */}
+            <div className="flex gap-2 border-b border-gray-200">
+                <button
+                    onClick={() => setSubTab('collections')}
+                    className={`pb-3 px-4 text-xs font-bold uppercase tracking-wider transition-all border-b-2 ${
+                        subTab === 'collections'
+                            ? 'border-[#7A3E4A] text-[#7A3E4A]'
+                            : 'border-transparent text-gray-500 hover:text-gray-800'
+                    }`}
+                >
+                    👗 Coleções ({collections.length})
+                </button>
+                <button
+                    onClick={() => setSubTab('calendar')}
+                    className={`pb-3 px-4 text-xs font-bold uppercase tracking-wider transition-all border-b-2 ${
+                        subTab === 'calendar'
+                            ? 'border-[#7A3E4A] text-[#7A3E4A]'
+                            : 'border-transparent text-gray-500 hover:text-gray-800'
+                    }`}
+                >
+                    📅 Calendário Comercial ({commercialEvents.length})
+                </button>
+            </div>
+
+            {/* SUBTAB 1: COLLECTIONS */}
+            {subTab === 'collections' && (
+                <div className="space-y-6">
+                    {loading ? (
+                        <div className="p-12 text-center text-xs font-bold text-gray-400">Carregando coleções...</div>
+                    ) : collections.length === 0 ? (
+                        <div className="p-12 text-center text-xs font-semibold text-gray-400 bg-white rounded-2xl border border-gray-200 space-y-3">
+                            <p>Nenhuma coleção em planejamento no momento.</p>
+                            <button
+                                onClick={() => setIsCollectionModalOpen(true)}
+                                className="px-4 py-2 bg-[#7A3E4A] text-white font-bold rounded-xl text-xs cursor-pointer"
+                            >
+                                Criar Primeira Coleção (ex: Dia dos Namorados)
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 gap-6">
+                            {collections.map(col => {
+                                const tasks = tasksMap[col.id] || []
+                                const completedTasks = tasks.filter(t => t.completed).length
+                                const progressPct = tasks.length > 0 ? Math.round((completedTasks / tasks.length) * 100) : 0
+                                const fin = getCollectionFinancials(col.title)
+
+                                return (
+                                    <div key={col.id} className="bg-white rounded-2xl border border-[#EEEEEE] shadow-xs overflow-hidden">
+                                        {/* Card Header */}
+                                        <div className="p-6 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#FAF9F5]">
+                                            <div className="space-y-1">
+                                                <div className="flex items-center gap-3">
+                                                    <h3 className="font-heading text-lg font-bold text-gray-900">{col.title}</h3>
+                                                    <span className={`px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${
+                                                        col.status === 'lancada'
+                                                            ? 'bg-emerald-100 text-emerald-800'
+                                                            : col.status === 'pedido_fornecedor'
+                                                            ? 'bg-amber-100 text-amber-800'
+                                                            : 'bg-purple-100 text-purple-800'
+                                                    }`}>
+                                                        {col.status?.replace('_', ' ') || 'Em Planejamento'}
+                                                    </span>
+                                                </div>
+                                                {col.commercial_event && (
+                                                    <p className="text-xs text-gray-500 font-semibold">📍 Evento Relacionado: {col.commercial_event}</p>
+                                                )}
+                                            </div>
+
+                                            {/* Financial Result Summary */}
+                                            <div className="flex items-center gap-6 bg-white px-4 py-2.5 rounded-xl border border-gray-200">
+                                                <div>
+                                                    <span className="block text-[9px] font-bold text-gray-400 uppercase">Investimento Previsto</span>
+                                                    <span className="text-xs font-black text-gray-800">R$ {Number(col.target_budget || 0).toFixed(2)}</span>
+                                                </div>
+                                                <div className="w-px h-8 bg-gray-200" />
+                                                <div>
+                                                    <span className="block text-[9px] font-bold text-gray-400 uppercase">Vendas Reais (Site)</span>
+                                                    <span className="text-xs font-black text-[#5B6E57]">R$ {fin.revenue.toFixed(2)}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Deadlines Bar */}
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-5 bg-white border-b border-gray-100 text-xs">
+                                            <div className="p-3 bg-amber-50 rounded-xl border border-amber-200">
+                                                <span className="block text-[10px] font-bold text-amber-800 uppercase">📦 Pedido Fornecedor Até</span>
+                                                <span className="font-extrabold text-amber-900">
+                                                    {col.supplier_deadline ? new Date(col.supplier_deadline).toLocaleDateString('pt-BR') : 'Não definido'}
+                                                </span>
+                                            </div>
+                                            <div className="p-3 bg-blue-50 rounded-xl border border-blue-200">
+                                                <span className="block text-[10px] font-bold text-blue-800 uppercase">📸 Sessão de Fotos Até</span>
+                                                <span className="font-extrabold text-blue-900">
+                                                    {col.photoshoot_deadline ? new Date(col.photoshoot_deadline).toLocaleDateString('pt-BR') : 'Não definido'}
+                                                </span>
+                                            </div>
+                                            <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200">
+                                                <span className="block text-[10px] font-bold text-emerald-800 uppercase">🚀 Data de Lançamento</span>
+                                                <span className="font-extrabold text-emerald-900">
+                                                    {col.launch_date ? new Date(col.launch_date).toLocaleDateString('pt-BR') : 'Não definido'}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {/* Progress Bar & Checklist */}
+                                        <div className="p-6 space-y-4">
+                                            <div className="flex items-center justify-between text-xs font-bold">
+                                                <span className="text-gray-700 uppercase tracking-wider">Checklist de Tarefas ({completedTasks}/{tasks.length})</span>
+                                                <span className="text-[#7A3E4A]">{progressPct}% Concluído</span>
+                                            </div>
+                                            <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                                                <div 
+                                                    className="h-full bg-gradient-to-r from-[#7A3E4A] to-[#9A5060] rounded-full transition-all duration-500" 
+                                                    style={{ width: `${progressPct}%` }}
+                                                />
+                                            </div>
+
+                                            {/* Tasks List */}
+                                            <div className="space-y-2 pt-2">
+                                                {tasks.map(t => (
+                                                    <div 
+                                                        key={t.id}
+                                                        className={`flex items-center justify-between p-3 rounded-xl border transition-all ${
+                                                            t.completed ? 'bg-emerald-50/50 border-emerald-200 text-gray-500 line-through' : 'bg-white border-gray-200 text-gray-800'
+                                                        }`}
+                                                    >
+                                                        <label className="flex items-center gap-3 text-xs font-semibold cursor-pointer flex-1">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={t.completed}
+                                                                onChange={() => handleToggleTask(t.id, t.completed, col.id)}
+                                                                className="w-4 h-4 accent-[#7A3E4A] cursor-pointer"
+                                                            />
+                                                            <span>{t.title}</span>
+                                                        </label>
+                                                        <div className="flex items-center gap-3">
+                                                            {t.due_date && (
+                                                                <span className="text-[10px] font-bold text-gray-400">
+                                                                    Prazo: {new Date(t.due_date).toLocaleDateString('pt-BR')}
+                                                                </span>
+                                                            )}
+                                                            <button
+                                                                onClick={() => handleDeleteTask(t.id, col.id)}
+                                                                className="text-red-400 hover:text-red-600 text-xs font-bold px-1 cursor-pointer"
+                                                            >
+                                                                ✕
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+
+                                            {/* Action Bar */}
+                                            <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                                                <button
+                                                    onClick={() => setNewTaskModal({ open: true, collectionId: col.id })}
+                                                    className="text-xs font-bold text-[#7A3E4A] hover:underline flex items-center gap-1 cursor-pointer"
+                                                >
+                                                    + Adicionar Tarefa / Lembrete
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteCollection(col.id)}
+                                                    className="text-xs font-bold text-red-500 hover:text-red-700 cursor-pointer"
+                                                >
+                                                    Excluir Coleção
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )
+                            })}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* SUBTAB 2: COMMERCIAL CALENDAR */}
+            {subTab === 'calendar' && (
+                <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {commercialEvents.map(ev => (
+                            <div key={ev.id || ev.title} className="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs space-y-4 flex flex-col justify-between">
+                                <div className="space-y-2">
+                                    <span className="px-2.5 py-1 bg-[#7A3E4A]/10 text-[#7A3E4A] rounded-md text-[10px] font-black uppercase tracking-wider">
+                                        {ev.event_date ? new Date(ev.event_date).toLocaleDateString('pt-BR', { month: 'long', day: 'numeric' }) : 'Data Importante'}
+                                    </span>
+                                    <h3 className="font-heading text-base font-bold text-gray-900">{ev.title}</h3>
+                                    {ev.description && <p className="text-xs text-gray-500">{ev.description}</p>}
+                                </div>
+
+                                <div className="pt-3 border-t border-gray-100 space-y-2">
+                                    {ev.order_deadline_date && (
+                                        <div className="p-2.5 bg-amber-50 text-amber-900 rounded-xl text-xs font-bold flex items-center justify-between">
+                                            <span>📦 Pedido Fornecedor:</span>
+                                            <span className="text-amber-900 font-extrabold">{new Date(ev.order_deadline_date).toLocaleDateString('pt-BR')}</span>
+                                        </div>
+                                    )}
+
+                                    {ev.id && (
+                                        <button
+                                            onClick={() => handleDeleteEvent(ev.id)}
+                                            className="w-full py-1 text-center text-[10px] font-bold text-red-400 hover:text-red-600 cursor-pointer"
+                                        >
+                                            Excluir Data Comercial
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* MODAL: NOVA COLEÇÃO */}
+            {isCollectionModalOpen && (
+                <div className="fixed inset-0 z-[9999] bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+                    <div className="bg-white rounded-3xl p-6 md:p-8 max-w-lg w-full space-y-5 shadow-2xl animate-[fadeIn_150ms_ease-out]">
+                        <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+                            <h3 className="font-heading text-lg font-bold text-gray-900">✨ Criar Planejamento de Coleção</h3>
+                            <button onClick={() => setIsCollectionModalOpen(false)} className="text-gray-400 hover:text-gray-600 text-lg font-bold cursor-pointer">✕</button>
+                        </div>
+
+                        <form onSubmit={handleCreateCollection} className="space-y-4">
+                            <div>
+                                <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Nome da Coleção *</label>
+                                <input
+                                    required
+                                    type="text"
+                                    value={colTitle}
+                                    onChange={e => setColTitle(e.target.value)}
+                                    placeholder="Ex: Coleção Dia dos Namorados 2026"
+                                    className="w-full px-4 py-3 text-xs border border-gray-200 rounded-xl outline-none focus:border-[#7A3E4A] bg-[#FAF9F5]"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Evento Comercial</label>
+                                    <input
+                                        type="text"
+                                        value={colEvent}
+                                        onChange={e => setColEvent(e.target.value)}
+                                        placeholder="Ex: Dia dos Namorados"
+                                        className="w-full px-4 py-3 text-xs border border-gray-200 rounded-xl outline-none focus:border-[#7A3E4A] bg-[#FAF9F5]"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Orçamento Previsto (R$)</label>
+                                    <input
+                                        type="number"
+                                        value={colBudget}
+                                        onChange={e => setColBudget(e.target.value)}
+                                        placeholder="Ex: 5000"
+                                        className="w-full px-4 py-3 text-xs border border-gray-200 rounded-xl outline-none focus:border-[#7A3E4A] bg-[#FAF9F5]"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <div>
+                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Pedido Fornecedor</label>
+                                    <input
+                                        type="date"
+                                        value={colSupplierDeadline}
+                                        onChange={e => setColSupplierDeadline(e.target.value)}
+                                        className="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl outline-none bg-[#FAF9F5]"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Sessão de Fotos</label>
+                                    <input
+                                        type="date"
+                                        value={colPhotoshootDeadline}
+                                        onChange={e => setColPhotoshootDeadline(e.target.value)}
+                                        className="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl outline-none bg-[#FAF9F5]"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Lançamento Site</label>
+                                    <input
+                                        type="date"
+                                        value={colLaunchDate}
+                                        onChange={e => setColLaunchDate(e.target.value)}
+                                        className="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl outline-none bg-[#FAF9F5]"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex gap-3 pt-4">
+                                <button type="button" onClick={() => setIsCollectionModalOpen(false)} className="flex-1 py-3 bg-gray-100 text-gray-700 text-xs font-bold rounded-xl cursor-pointer">Cancelar</button>
+                                <button type="submit" className="flex-1 py-3 bg-[#7A3E4A] text-white text-xs font-bold rounded-xl shadow-md cursor-pointer">Salvar Coleção</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* MODAL: NOVA TAREFA */}
+            {newTaskModal.open && (
+                <div className="fixed inset-0 z-[9999] bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+                    <div className="bg-white rounded-3xl p-6 max-w-md w-full space-y-4 shadow-2xl">
+                        <h3 className="font-heading text-base font-bold text-gray-900">+ Adicionar Tarefa / Lembrete</h3>
+                        <form onSubmit={handleCreateTask} className="space-y-3">
+                            <input
+                                required
+                                type="text"
+                                value={taskTitle}
+                                onChange={e => setTaskTitle(e.target.value)}
+                                placeholder="Ex: Fazer pedido de etiquetas personalizadas até 10 de abril"
+                                className="w-full px-4 py-3 text-xs border border-gray-200 rounded-xl outline-none bg-[#FAF9F5]"
+                            />
+                            <div className="grid grid-cols-2 gap-3">
+                                <input
+                                    type="date"
+                                    value={taskDueDate}
+                                    onChange={e => setTaskDueDate(e.target.value)}
+                                    className="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl outline-none bg-[#FAF9F5]"
+                                />
+                                <select
+                                    value={taskCategory}
+                                    onChange={e => setTaskCategory(e.target.value)}
+                                    className="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl outline-none bg-[#FAF9F5]"
+                                >
+                                    <option value="geral">Geral</option>
+                                    <option value="fornecedor">Fornecedor</option>
+                                    <option value="fotos">Fotos</option>
+                                    <option value="marketing">Marketing</option>
+                                </select>
+                            </div>
+                            <div className="flex gap-2 pt-2">
+                                <button type="button" onClick={() => setNewTaskModal({ open: false, collectionId: null })} className="flex-1 py-2.5 bg-gray-100 text-gray-700 text-xs font-bold rounded-xl cursor-pointer">Cancelar</button>
+                                <button type="submit" className="flex-1 py-2.5 bg-[#7A3E4A] text-white text-xs font-bold rounded-xl cursor-pointer">Salvar Tarefa</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* MODAL: NOVO EVENTO COMERCIAL */}
+            {isEventModalOpen && (
+                <div className="fixed inset-0 z-[9999] bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+                    <div className="bg-white rounded-3xl p-6 max-w-md w-full space-y-4 shadow-2xl">
+                        <h3 className="font-heading text-base font-bold text-gray-900">+ Adicionar Data Comercial</h3>
+                        <form onSubmit={handleCreateEvent} className="space-y-3">
+                            <input
+                                required
+                                type="text"
+                                value={evTitle}
+                                onChange={e => setEvTitle(e.target.value)}
+                                placeholder="Ex: Dia do Cliente"
+                                className="w-full px-4 py-3 text-xs border border-gray-200 rounded-xl outline-none bg-[#FAF9F5]"
+                            />
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block text-[9px] font-bold text-gray-500 uppercase mb-1">Data do Evento *</label>
+                                    <input
+                                        required
+                                        type="date"
+                                        value={evDate}
+                                        onChange={e => setEvDate(e.target.value)}
+                                        className="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl outline-none bg-[#FAF9F5]"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[9px] font-bold text-gray-500 uppercase mb-1">Pedido Fornecedor</label>
+                                    <input
+                                        type="date"
+                                        value={evOrderDate}
+                                        onChange={e => setEvOrderDate(e.target.value)}
+                                        className="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl outline-none bg-[#FAF9F5]"
+                                    />
+                                </div>
+                            </div>
+                            <textarea
+                                rows={2}
+                                value={evDesc}
+                                onChange={e => setEvDesc(e.target.value)}
+                                placeholder="Descrição / Dica comercial..."
+                                className="w-full px-4 py-3 text-xs border border-gray-200 rounded-xl outline-none bg-[#FAF9F5]"
+                            />
+                            <div className="flex gap-2 pt-2">
+                                <button type="button" onClick={() => setIsEventModalOpen(false)} className="flex-1 py-2.5 bg-gray-100 text-gray-700 text-xs font-bold rounded-xl cursor-pointer">Cancelar</button>
+                                <button type="submit" className="flex-1 py-2.5 bg-[#7A3E4A] text-white text-xs font-bold rounded-xl cursor-pointer">Salvar Evento</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+        </div>
+    )
+}
+
 

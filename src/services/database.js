@@ -1655,3 +1655,149 @@ export async function deleteProductRequest(id) {
         return { error: e }
     }
 }
+
+// 5. Planejamento Comercial & Gestão de Coleções
+export async function getCollectionsPlanning() {
+    try {
+        const { data, error } = await supabase.from('collections_planning').select('*').order('launch_date', { ascending: true })
+        if (error) throw error
+        return { data: data || [], error: null }
+    } catch (e) {
+        console.warn('Erro ao buscar coleções:', e)
+        return { data: [], error: e }
+    }
+}
+
+export async function createCollectionPlanning(collectionData) {
+    try {
+        const payload = {
+            title: collectionData.title,
+            commercial_event: collectionData.commercial_event || null,
+            status: collectionData.status || 'em_planejamento',
+            supplier_deadline: collectionData.supplier_deadline || null,
+            photoshoot_deadline: collectionData.photoshoot_deadline || null,
+            launch_date: collectionData.launch_date || null,
+            target_budget: Number(collectionData.target_budget) || 0,
+            notes: collectionData.notes || '',
+            created_at: new Date().toISOString()
+        }
+        const { data, error } = await supabase.from('collections_planning').insert([payload]).select().single()
+        if (error) throw error
+
+        // Default tasks auto-creation
+        if (data?.id) {
+            const defaultTasks = [
+                { collection_id: data.id, title: `Fazer pedido ao fornecedor${data.supplier_deadline ? ' até ' + data.supplier_deadline : ''}`, category: 'fornecedor', due_date: data.supplier_deadline },
+                { collection_id: data.id, title: `Sessão de fotos e catálogo${data.photoshoot_deadline ? ' até ' + data.photoshoot_deadline : ''}`, category: 'fotos', due_date: data.photoshoot_deadline },
+                { collection_id: data.id, title: `Lançar coleção no site${data.launch_date ? ' em ' + data.launch_date : ''}`, category: 'lancamento', due_date: data.launch_date },
+                { collection_id: data.id, title: 'Criar campanha no Instagram & WhatsApp', category: 'marketing', due_date: data.launch_date }
+            ]
+            await supabase.from('collection_tasks').insert(defaultTasks)
+        }
+
+        return { data, error: null }
+    } catch (e) {
+        return { data: null, error: e }
+    }
+}
+
+export async function updateCollectionPlanning(id, updates) {
+    try {
+        const { data, error } = await supabase.from('collections_planning').update(updates).eq('id', id).select().single()
+        return { data, error }
+    } catch (e) {
+        return { data: null, error: e }
+    }
+}
+
+export async function deleteCollectionPlanning(id) {
+    try {
+        const { error } = await supabase.from('collections_planning').delete().eq('id', id)
+        return { error }
+    } catch (e) {
+        return { error: e }
+    }
+}
+
+// Tasks per Collection
+export async function getCollectionTasks(collection_id) {
+    try {
+        const { data, error } = await supabase.from('collection_tasks').select('*').eq('collection_id', collection_id).order('created_at', { ascending: true })
+        if (error) throw error
+        return { data: data || [], error: null }
+    } catch (e) {
+        return { data: [], error: e }
+    }
+}
+
+export async function createCollectionTask({ collection_id, title, due_date, category }) {
+    try {
+        const payload = {
+            collection_id,
+            title,
+            due_date: due_date || null,
+            category: category || 'geral',
+            completed: false,
+            created_at: new Date().toISOString()
+        }
+        const { data, error } = await supabase.from('collection_tasks').insert([payload]).select().single()
+        return { data, error }
+    } catch (e) {
+        return { data: null, error: e }
+    }
+}
+
+export async function toggleCollectionTask(id, completed) {
+    try {
+        const { data, error } = await supabase.from('collection_tasks').update({ completed }).eq('id', id).select().single()
+        return { data, error }
+    } catch (e) {
+        return { data: null, error: e }
+    }
+}
+
+export async function deleteCollectionTask(id) {
+    try {
+        const { error } = await supabase.from('collection_tasks').delete().eq('id', id)
+        return { error }
+    } catch (e) {
+        return { error: e }
+    }
+}
+
+// Commercial Calendar Events
+export async function getCommercialCalendar() {
+    try {
+        const { data, error } = await supabase.from('commercial_calendar').select('*').order('event_date', { ascending: true })
+        if (error) throw error
+        return { data: data || [], error: null }
+    } catch (e) {
+        return { data: [], error: e }
+    }
+}
+
+export async function createCommercialEvent(eventData) {
+    try {
+        const payload = {
+            title: eventData.title,
+            event_date: eventData.event_date,
+            order_deadline_date: eventData.order_deadline_date || null,
+            description: eventData.description || '',
+            created_at: new Date().toISOString()
+        }
+        const { data, error } = await supabase.from('commercial_calendar').insert([payload]).select().single()
+        return { data, error }
+    } catch (e) {
+        return { data: null, error: e }
+    }
+}
+
+export async function deleteCommercialEvent(id) {
+    try {
+        const { error } = await supabase.from('commercial_calendar').delete().eq('id', id)
+        return { error }
+    } catch (e) {
+        return { error: e }
+    }
+}
+
