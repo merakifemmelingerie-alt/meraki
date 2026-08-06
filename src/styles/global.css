@@ -326,3 +326,78 @@
     animation: topbarMarqueeMobile 7.5s linear infinite;
     will-change: transform;
 }
+
+/* ─── Scroll Reveal ─────────────────────────────────────────────────────────
+   Elements start hidden and animate in when they enter the viewport.
+   Driven by [data-visible="true"] toggled by IntersectionObserver.
+   Using !important to override any Tailwind opacity utilities.
+──────────────────────────────────────────────────────────────────────────── */
+
+/* Base hidden state */
+[data-sr] {
+    opacity: 0 !important;
+    will-change: opacity, transform;
+}
+
+/* Revealed state */
+[data-sr][data-visible="true"] {
+    opacity: 1 !important;
+}
+
+/* Variant: fade-up (default) */
+[data-sr="fade-up"] {
+    transform: translateY(40px);
+}
+[data-sr="fade-up"][data-visible="true"] {
+    transform: translateY(0);
+    transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1) var(--sr-delay, 0ms),
+                transform 0.7s cubic-bezier(0.22, 1, 0.36, 1) var(--sr-delay, 0ms);
+}
+
+/* Variant: fade-in */
+[data-sr="fade-in"] {
+    transform: none;
+}
+[data-sr="fade-in"][data-visible="true"] {
+    transform: none;
+    transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1) var(--sr-delay, 0ms);
+}
+
+/* Variant: fade-left */
+[data-sr="fade-left"] {
+    transform: translateX(-40px);
+}
+[data-sr="fade-left"][data-visible="true"] {
+    transform: translateX(0);
+    transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1) var(--sr-delay, 0ms),
+                transform 0.7s cubic-bezier(0.22, 1, 0.36, 1) var(--sr-delay, 0ms);
+}
+
+/* Variant: fade-right */
+[data-sr="fade-right"] {
+    transform: translateX(40px);
+}
+[data-sr="fade-right"][data-visible="true"] {
+    transform: translateX(0);
+    transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1) var(--sr-delay, 0ms),
+                transform 0.7s cubic-bezier(0.22, 1, 0.36, 1) var(--sr-delay, 0ms);
+}
+
+/* Variant: scale-up */
+[data-sr="scale-up"] {
+    transform: scale(0.94);
+}
+[data-sr="scale-up"][data-visible="true"] {
+    transform: scale(1);
+    transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1) var(--sr-delay, 0ms),
+                transform 0.7s cubic-bezier(0.22, 1, 0.36, 1) var(--sr-delay, 0ms);
+}
+
+/* Accessibility: respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+    [data-sr] {
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none !important;
+    }
+}

@@ -18,6 +18,51 @@ import { useProducts } from '../hooks/useProducts.js'
 import { useCart } from '../hooks/useCart.js'
 import { useWishlist } from '../hooks/useWishlist.js'
 
+// ─── ProductSection defined OUTSIDE the parent component ──────────────────
+// This is critical: defining it inside causes React to remount on every render,
+// which destroys the IntersectionObserver state and breaks scroll animations.
+function ProductSection({ title, subtitle, products, loading, id, onQuickView, onToggleWishlist, isWishlisted }) {
+    return (
+        <ScrollReveal variant="fade-up">
+            <section className="py-24" id={id}>
+                <div className="max-w-7xl mx-auto px-4">
+                    <div className="flex flex-col items-center text-center mb-16 px-4">
+                        <span className="text-[#C6A76A] text-[10px] uppercase font-bold tracking-[0.4em] mb-4 block">
+                            Exclusividade Meraki
+                        </span>
+                        <h2 className="font-heading text-4xl md:text-5xl text-[#1A1A1A] mb-6">
+                            {title}
+                        </h2>
+                        <div className="w-12 h-[1px] bg-[#C6A76A] mb-6"></div>
+                        <p className="text-gray-500 max-w-lg italic font-light text-lg">{subtitle}</p>
+                    </div>
+                    {loading ? (
+                        <div className="flex justify-center py-12">
+                            <div className="w-8 h-8 border-[1px] border-[#C6A76A] border-t-transparent rounded-full animate-spin" />
+                        </div>
+                    ) : products.length > 0 ? (
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-4 sm:gap-x-8 gap-y-8 sm:gap-y-12">
+                            {products.map((product, idx) => (
+                                <ScrollReveal key={product.id} variant="fade-up" delay={idx * 80} threshold={0.05}>
+                                    <ProductCard
+                                        product={product}
+                                        onQuickView={onQuickView}
+                                        onToggleWishlist={onToggleWishlist}
+                                        isWishlisted={isWishlisted(product.id)}
+                                    />
+                                </ScrollReveal>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="text-center text-gray-400 py-8">Nenhum produto disponível no momento.</p>
+                    )}
+                </div>
+            </section>
+        </ScrollReveal>
+    )
+}
+
+
 export default function HomePage() {
     const navigate = useNavigate()
     const [searchOpen, setSearchOpen] = useState(false)
@@ -185,53 +230,6 @@ export default function HomePage() {
         showNotification('Produto adicionado ao carrinho!')
     }, [addToCart, showNotification])
 
-    function ProductSection({ title, subtitle, products, loading, id }) {
-        return (
-            <FadeInSection>
-                <section className="py-24" id={id}>
-                    <div className="max-w-7xl mx-auto px-4">
-                        <div className="flex flex-col items-center text-center mb-16 px-4">
-                            <span className="text-[#C6A76A] text-[10px] uppercase font-bold tracking-[0.4em] mb-4 block">
-                                Exclusividade Meraki
-                            </span>
-                            <h2 className="font-heading text-4xl md:text-5xl text-[#1A1A1A] mb-6">
-                                {title}
-                            </h2>
-                            <div className="w-12 h-[1px] bg-[#C6A76A] mb-6"></div>
-                            <p className="text-gray-500 max-w-lg italic font-light text-lg">{subtitle}</p>
-                        </div>
-                        {loading ? (
-                            <div className="flex justify-center py-12">
-                                <div className="w-8 h-8 border-[1px] border-[#C6A76A] border-t-transparent rounded-full animate-spin" />
-                            </div>
-                        ) : products.length > 0 ? (
-                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-4 sm:gap-x-8 gap-y-8 sm:gap-y-12">
-                                {products.map((product, idx) => (
-                                    <ScrollReveal key={product.id} variant="fade-up" delay={idx * 80} threshold={0.05}>
-                                        <ProductCard
-                                            product={product}
-                                            onQuickView={setQuickViewProduct}
-                                            onToggleWishlist={toggleWishlist}
-                                            isWishlisted={isWishlisted(product.id)}
-                                        />
-                                    </ScrollReveal>
-                                ))}
-                            </div>
-                        ) : (
-                            <p className="text-center text-gray-400 py-8">Nenhum produto disponível no momento.</p>
-                        )}
-                    </div>
-                </section>
-            </FadeInSection>
-        )
-    }
-
-    // Scroll-reveal wrapper: fade-up with optional delay
-    const FadeInSection = ({ children, variant = 'fade-up', delay = 0 }) => (
-        <ScrollReveal variant={variant} delay={delay}>
-            {children}
-        </ScrollReveal>
-    )
 
     return (
         <div className="bg-[#FCFAFA]">
@@ -239,12 +237,11 @@ export default function HomePage() {
 
             <HeroBanner />
 
-            <FadeInSection delay={0.2}>
+            <ScrollReveal variant="fade-up">
                 <BenefitsBar />
-            </FadeInSection>
+            </ScrollReveal>
 
-            {/* Categories */}
-            <FadeInSection>
+            <ScrollReveal variant="fade-up">
                 <section className="py-24 bg-white">
                     <div className="max-w-7xl mx-auto px-4">
                         <div className="flex flex-col items-center text-center mb-16 px-4">
@@ -271,11 +268,11 @@ export default function HomePage() {
                         </div>
                     </div>
                 </section>
-            </FadeInSection>
+            </ScrollReveal>
 
             {/* Combo Section (First Image style) */}
             {promoCombo.visible !== false && (
-                <FadeInSection>
+                <ScrollReveal variant="fade-up">
                     <section className="py-16 px-4 max-w-7xl mx-auto" id="best-sellers">
                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
                             {/* Promo Banner Left Side */}
@@ -363,11 +360,10 @@ export default function HomePage() {
                             </div>
                         </div>
                     </section>
-                </FadeInSection>
+                </ScrollReveal>
             )}
 
-            {/* Split Banner / Editorial Section */}
-            <FadeInSection>
+            <ScrollReveal variant="fade-left">
                 <section className="py-12 px-4 max-w-7xl mx-auto" id="ofertas">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center bg-[#FDF8F6] p-8 md:p-16">
                         <div className="space-y-6">
@@ -387,10 +383,9 @@ export default function HomePage() {
                         </div>
                     </div>
                 </section>
-            </FadeInSection>
+            </ScrollReveal>
 
-            {/* Sale / Outlet Carousel (Second Image style) */}
-            <FadeInSection>
+            <ScrollReveal variant="fade-up">
                 <section className="py-16 bg-white border-t border-gray-50" id="sale-outlet">
                     <div className="max-w-7xl mx-auto px-4">
                         <div className="flex items-center justify-between mb-10">
@@ -435,12 +430,20 @@ export default function HomePage() {
                         )}
                     </div>
                 </section>
-            </FadeInSection>
+            </ScrollReveal>
 
-            <ProductSection id="new-collection" title="Novos Horizontes" subtitle="Descubra o frescor da estação em nossa nova coleção." products={newCollection} loading={loadingNew} />
+            <ProductSection
+                id="new-collection"
+                title="Novos Horizontes"
+                subtitle="Descubra o frescor da estação em nossa nova coleção."
+                products={newCollection}
+                loading={loadingNew}
+                onQuickView={setQuickViewProduct}
+                onToggleWishlist={toggleWishlist}
+                isWishlisted={isWishlisted}
+            />
 
-            {/* Newsletter - Editorial Style */}
-            <FadeInSection>
+            <ScrollReveal variant="fade-up">
                 <section className="py-32 bg-white border-t border-[#EEEEEE]">
                     <div className="max-w-4xl mx-auto px-6 text-center">
                         <span className="text-[#C6A76A] text-[10px] uppercase font-bold tracking-[0.4em] mb-6 block">Concierge & Lifestyle</span>
@@ -462,7 +465,7 @@ export default function HomePage() {
                         </form>
                     </div>
                 </section>
-            </FadeInSection>
+            </ScrollReveal>
 
             <Footer />
             <WhatsAppButton />
