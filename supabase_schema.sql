@@ -237,6 +237,7 @@ ALTER TABLE public.store_config ADD COLUMN IF NOT EXISTS maintenance_mode BOOLEA
 ALTER TABLE public.store_config ADD COLUMN IF NOT EXISTS maintenance_title TEXT DEFAULT 'Estamos Preparando uma Nova Coleção Exclusiva ✨';
 ALTER TABLE public.store_config ADD COLUMN IF NOT EXISTS maintenance_message TEXT DEFAULT 'Em breve nosso site estará online com lançamentos apaixonantes e peças de tirar o fôlego.';
 ALTER TABLE public.store_config ADD COLUMN IF NOT EXISTS maintenance_eta TEXT DEFAULT 'Em breve';
+ALTER TABLE public.store_config ADD COLUMN IF NOT EXISTS pix_key TEXT;
 ALTER TABLE public.store_config ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW();
 
 -- ====================================================================

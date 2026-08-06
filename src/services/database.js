@@ -34,7 +34,7 @@ const TABLE_COLUMNS = {
         'has_kits', 'kit_options', 'color_stock', 'variant_stock', 'color_images'
     ],
     store_config: [
-        'id', 'whatsapp', 'sac_phone', 'address', 'cnpj', 'razao_social', 'origin_cep', 'meta_pixel_id', 'ga_tracking_id', 'infinitepay_handle', 'pix_key',
+        'id', 'whatsapp', 'sac_phone', 'address', 'cnpj', 'razao_social', 'origin_cep', 'meta_pixel_id', 'ga_tracking_id', 'infinitepay_handle',
         'topbarmessages', 'topbarstyle', 'promocombo', 'editorial', 'available_colors', 'available_emojis', 'shipping_message',
         'available_badges', 'installment_text', 'banner_transition', 'reward_bar', 'category_styles', 'pages_content', 'custom_pages_list', 'deleted_pages', 'categories_data', 'promo_message', 'available_sizes',
         'maintenance_mode', 'maintenance_title', 'maintenance_message', 'maintenance_eta'
