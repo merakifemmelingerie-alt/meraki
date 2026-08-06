@@ -570,7 +570,7 @@ export default function Header({ cartCount = 0, wishlistCount = 0, onSearchOpen 
                                     <img 
                                         src={butterflySrc} 
                                         alt="Borboleta Meraki" 
-                                        className={`w-8 h-8 object-contain transition-opacity duration-200 ${
+                                        className={`w-8 h-8 object-contain animate-butterfly-flight transition-opacity duration-200 ${
                                             butterflySrc.startsWith('data:') ? 'opacity-100' : 'opacity-0'
                                         }`}
                                     />
