@@ -1,9 +1,72 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Header from '../components/Header.jsx'
 import BenefitsBar from '../components/BenefitsBar.jsx'
 import Footer from '../components/Footer.jsx'
 import WhatsAppButton from '../components/WhatsAppButton.jsx'
 import { submitSuggestion, getPolls, submitPollVote, getPollVotes, submitProductRequest } from '../services/database.js'
+
+// Custom Luxury Dropdown Select Component (eliminates native OS blue menu)
+function CustomSelect({ value, onChange, options }) {
+    const [isOpen, setIsOpen] = useState(false)
+    const containerRef = useRef(null)
+
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (containerRef.current && !containerRef.current.contains(e.target)) {
+                setIsOpen(false)
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside)
+        return () => document.removeEventListener('mousedown', handleClickOutside)
+    }, [])
+
+    return (
+        <div className="relative" ref={containerRef}>
+            <button
+                type="button"
+                onClick={() => setIsOpen(!isOpen)}
+                className={`w-full px-4 py-3 bg-white border rounded-xl text-xs font-semibold text-gray-800 flex items-center justify-between transition-all cursor-pointer shadow-xs font-sans antialiased ${
+                    isOpen ? 'border-[#7A3E4A] ring-2 ring-[#7A3E4A]/10' : 'border-gray-200 hover:border-gray-300'
+                }`}
+            >
+                <span className="truncate">{value}</span>
+                <svg className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${isOpen ? 'rotate-180 text-[#7A3E4A]' : ''}`} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+
+            {isOpen && (
+                <div className="absolute left-0 right-0 top-full mt-1.5 bg-white border border-[#E8E0D8] rounded-2xl shadow-xl z-50 overflow-hidden p-1.5 space-y-1 animate-[fadeIn_150ms_ease-out]">
+                    {options.map((opt, idx) => {
+                        const isSelected = opt === value
+                        return (
+                            <button
+                                key={idx}
+                                type="button"
+                                onClick={() => {
+                                    onChange(opt)
+                                    setIsOpen(false)
+                                }}
+                                className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-semibold transition-all flex items-center justify-between cursor-pointer ${
+                                    isSelected
+                                        ? 'bg-[#7A3E4A] text-white shadow-xs'
+                                        : 'text-gray-700 hover:bg-[#7A3E4A]/10 hover:text-[#7A3E4A]'
+                                }`}
+                            >
+                                <span className="truncate">{opt}</span>
+                                {isSelected && (
+                                    <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                )}
+                            </button>
+                        )
+                    })}
+                </div>
+            )}
+        </div>
+    )
+}
 
 export default function EngagementPage() {
     const [activeTab, setActiveTab] = useState('suggestions') // 'suggestions' | 'polls' | 'request'
@@ -17,7 +80,7 @@ export default function EngagementPage() {
     // 1. Suggestions Form State
     const [sugName, setSugName] = useState('')
     const [sugPhone, setSugPhone] = useState('')
-    const [sugCategory, setSugCategory] = useState('Novos Modelos')
+    const [sugCategory, setSugCategory] = useState('Cores Desejadas')
     const [sugMessage, setSugMessage] = useState('')
 
     // 2. Polls State
@@ -38,6 +101,18 @@ export default function EngagementPage() {
     const [reqColor, setReqColor] = useState('')
     const [reqSize, setReqSize] = useState('M')
     const [reqPriceRange, setReqPriceRange] = useState('Até R$ 150')
+
+    const categoryOptions = [
+        'Cores Desejadas',
+        'Mais Opções Plus Size',
+        'Novos Modelos de Lingerie',
+        'Camisolas & Noite',
+        'Linha Sexy & Fantasias',
+        'Outros'
+    ]
+
+    const sizeOptions = ['P', 'M', 'G', 'GG', 'EG (Plus)', 'G1', 'G2']
+    const priceOptions = ['Até R$ 99', 'Até R$ 150', 'De R$ 150 a R$ 250', 'Acima de R$ 250']
 
     useEffect(() => {
         try {
@@ -166,9 +241,7 @@ export default function EngagementPage() {
     const votesForCurrentPoll = (selectedPoll && pollVotesMap[selectedPoll.id]) || []
     const totalVotes = votesForCurrentPoll.length
 
-    // Crisp input & custom select styles (matching Admin Panel design system)
     const inputCls = "w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-xs font-semibold text-gray-800 outline-none focus:border-[#7A3E4A] focus:ring-2 focus:ring-[#7A3E4A]/10 transition-all shadow-xs antialiased placeholder:text-gray-400 font-sans"
-    const selectCls = "w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-xs font-semibold text-gray-800 outline-none focus:border-[#7A3E4A] focus:ring-2 focus:ring-[#7A3E4A]/10 transition-all cursor-pointer shadow-xs appearance-none pr-10 antialiased font-sans"
     const labelCls = "block text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1.5 antialiased font-sans"
 
     return (
@@ -319,25 +392,11 @@ export default function EngagementPage() {
 
                                 <div>
                                     <label className={labelCls}>Categoria da Sugestão</label>
-                                    <div className="relative">
-                                        <select
-                                            value={sugCategory}
-                                            onChange={e => setSugCategory(e.target.value)}
-                                            className={selectCls}
-                                        >
-                                            <option value="Cores Desejadas">Cores Desejadas</option>
-                                            <option value="Mais Opções Plus Size">Mais Opções Plus Size</option>
-                                            <option value="Novos Modelos de Lingerie">Novos Modelos de Lingerie</option>
-                                            <option value="Camisolas & Noite">Camisolas & Noite</option>
-                                            <option value="Linha Sexy & Fantasias">Linha Sexy & Fantasias</option>
-                                            <option value="Outros">Outros</option>
-                                        </select>
-                                        <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                                            </svg>
-                                        </div>
-                                    </div>
+                                    <CustomSelect
+                                        value={sugCategory}
+                                        onChange={val => setSugCategory(val)}
+                                        options={categoryOptions}
+                                    />
                                 </div>
 
                                 <div>
@@ -566,46 +625,19 @@ export default function EngagementPage() {
                                     </div>
                                     <div>
                                         <label className={labelCls}>Tamanho</label>
-                                        <div className="relative">
-                                            <select
-                                                value={reqSize}
-                                                onChange={e => setReqSize(e.target.value)}
-                                                className={selectCls}
-                                            >
-                                                <option value="P">P</option>
-                                                <option value="M">M</option>
-                                                <option value="G">G</option>
-                                                <option value="GG">GG</option>
-                                                <option value="EG (Plus)">EG (Plus)</option>
-                                                <option value="G1">G1</option>
-                                                <option value="G2">G2</option>
-                                            </select>
-                                            <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                                                </svg>
-                                            </div>
-                                        </div>
+                                        <CustomSelect
+                                            value={reqSize}
+                                            onChange={val => setReqSize(val)}
+                                            options={sizeOptions}
+                                        />
                                     </div>
                                     <div>
                                         <label className={labelCls}>Faixa de Preço Desejada</label>
-                                        <div className="relative">
-                                            <select
-                                                value={reqPriceRange}
-                                                onChange={e => setReqPriceRange(e.target.value)}
-                                                className={selectCls}
-                                            >
-                                                <option value="Até R$ 99">Até R$ 99</option>
-                                                <option value="Até R$ 150">Até R$ 150</option>
-                                                <option value="De R$ 150 a R$ 250">De R$ 150 a R$ 250</option>
-                                                <option value="Acima de R$ 250">Acima de R$ 250</option>
-                                            </select>
-                                            <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                                                </svg>
-                                            </div>
-                                        </div>
+                                        <CustomSelect
+                                            value={reqPriceRange}
+                                            onChange={val => setReqPriceRange(val)}
+                                            options={priceOptions}
+                                        />
                                     </div>
                                 </div>
 
