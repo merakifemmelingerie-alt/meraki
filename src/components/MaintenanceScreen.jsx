@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { getAssetUrl } from '../utils/assets.js'
 
 /* ──────────────────────────────────────────────────────────────
    Exact same butterfly config as AuthPage.jsx backgroundButterflies
@@ -92,7 +93,7 @@ export default function MaintenanceScreen({ config }) {
     /* ── Same canvas technique as AuthPage / Header / Footer ─── */
     useEffect(() => {
         const img = new Image()
-        img.src = '/assets/borboleta-v2.png'
+        img.src = getAssetUrl('/assets/borboleta-v2.webp')
         img.onload = () => {
             const canvas = document.createElement('canvas')
             canvas.width  = img.width
@@ -108,8 +109,9 @@ export default function MaintenanceScreen({ config }) {
                 }
                 ctx.putImageData(d, 0, 0)
                 setButterflySrc(canvas.toDataURL())
-            } catch { setButterflySrc('/assets/borboleta-v2.png') }
+            } catch { setButterflySrc(getAssetUrl('/assets/borboleta-v2.webp')) }
         }
+        img.onerror = () => { setButterflySrc(getAssetUrl('/assets/borboleta-v2.webp')) }
         const t = setTimeout(() => setVisible(true), 80)
         return () => clearTimeout(t)
     }, [])

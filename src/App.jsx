@@ -15,6 +15,7 @@ import TrackingManager from './components/TrackingManager.jsx'
 import { isInitialSyncComplete } from './services/database.js'
 import { ErrorBoundary } from './components/ErrorBoundary.jsx'
 import { supabase } from './services/supabase.js'
+import { getAssetUrl } from './utils/assets.js'
 
 import MaintenanceScreen from './components/MaintenanceScreen.jsx'
 
@@ -28,12 +29,12 @@ function ScrollToTopReset() {
 }
 
 function SplashLoader({ loading }) {
-    const [butterflySrc, setButterflySrc] = useState('/assets/borboleta-v2.png')
+    const [butterflySrc, setButterflySrc] = useState(getAssetUrl('/assets/borboleta-v2.webp'))
 
     useEffect(() => {
         if (!loading) return
         const img = new Image()
-        img.src = '/assets/borboleta-v2.png'
+        img.src = getAssetUrl('/assets/borboleta-v2.webp')
         img.onload = () => {
             const canvas = document.createElement('canvas')
             canvas.width = img.width
@@ -56,8 +57,12 @@ function SplashLoader({ loading }) {
                     setButterflySrc(canvas.toDataURL())
                 } catch (e) {
                     console.error("Erro ao remover fundo da borboleta:", e)
+                    setButterflySrc(getAssetUrl('/assets/borboleta-v2.webp'))
                 }
             }
+        }
+        img.onerror = () => {
+            setButterflySrc(getAssetUrl('/assets/borboleta-v2.webp'))
         }
     }, [loading])
 
@@ -71,9 +76,7 @@ function SplashLoader({ loading }) {
                     <img 
                         src={butterflySrc} 
                         alt="Borboleta Meraki" 
-                        className={`w-16 h-16 md:w-20 md:h-20 object-contain animate-bounce mb-2 transition-opacity duration-200 ${
-                            butterflySrc.startsWith('data:') ? 'opacity-100' : 'opacity-0'
-                        }`}
+                        className="w-16 h-16 md:w-20 md:h-20 object-contain animate-bounce mb-2 transition-opacity duration-200 opacity-100"
                         style={{ animationDuration: '2s' }}
                     />
                     {/* Logo Text */}
