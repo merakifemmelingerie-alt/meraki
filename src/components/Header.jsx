@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth.js'
 import { smoothScrollToTop } from '../utils/scroll.js'
+import { getAssetUrl } from '../utils/assets.js'
 
 const defaultTopBarMessages = [
     "🚚 TAXA DE ENTREGA PARA BONFINÓPOLIS-GO A PARTIR DE R$ 29,99",
