@@ -472,6 +472,12 @@ export default function Header({ cartCount = 0, wishlistCount = 0, onSearchOpen 
                                 )}
                             </li>
                             <li>
+                                <Link to="/interaja" onClick={() => smoothScrollToTop(1200)} className="relative text-[10px] lg:text-[11px] font-semibold uppercase tracking-[0.2em] text-[#1A1A1A] hover:text-[#7A3E4A] transition-all duration-300 group inline-block">
+                                    Sugestões & Pedidos
+                                    <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-0 h-[1.5px] bg-[#C6A76A] transition-all duration-500 group-hover:w-full"></span>
+                                </Link>
+                            </li>
+                            <li>
                                 <Link to="/returns" onClick={() => smoothScrollToTop(1200)} className="relative text-[10px] lg:text-[11px] font-semibold uppercase tracking-[0.2em] text-[#1A1A1A] hover:text-[#7A3E4A] transition-all duration-300 group inline-block">
                                     Política de Troca
                                     <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-0 h-[1.5px] bg-[#C6A76A] transition-all duration-500 group-hover:w-full"></span>

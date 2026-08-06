@@ -19,6 +19,7 @@ import { getAssetUrl } from './utils/assets.js'
 
 import MaintenanceScreen from './components/MaintenanceScreen.jsx'
 import EngagementWidget from './components/EngagementWidget.jsx'
+import EngagementPage from './pages/EngagementPage.jsx'
 
 
 function ScrollToTopReset() {
@@ -230,6 +231,12 @@ function AppContent() {
                 <Route path="/stores" element={<InfoPage tab="stores" />} />
                 <Route path="/wishlist" element={<InfoPage tab="wishlist" />} />
                 <Route path="/info/:tab" element={<InfoPage />} />
+
+                {/* Central da Cliente & Interação (Sugestões, Enquetes & Pedido de Produtos) */}
+                <Route path="/interaja" element={<EngagementPage />} />
+                <Route path="/sugestoes" element={<EngagementPage />} />
+                <Route path="/enquetes" element={<EngagementPage />} />
+                <Route path="/pedir-produto" element={<EngagementPage />} />
 
                 {/* Fallback wildcard route */}
                 <Route path="*" element={<HomePage />} />

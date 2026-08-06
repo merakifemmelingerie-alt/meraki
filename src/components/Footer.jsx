@@ -131,6 +131,7 @@ export default function Footer() {
 
     const sobreLinks = [
         { id: 'story', href: '#/story', label: 'História' },
+        { id: 'interaja', href: '#/interaja', label: '💬 Sugestões & Pedidos' },
         { id: 'revenda', href: '#/revenda', label: 'Seja um revendedor' },
         { id: 'connect', href: '#/connect', label: 'Conecte-se' },
         ...customSobre
