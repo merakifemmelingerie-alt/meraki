@@ -170,8 +170,25 @@ function AppContent() {
         }
     }, [])
 
+    // Convert direct browser URL visits like /admin or /auth without hash into HashRouter format
+    useEffect(() => {
+        const rawPath = (window.location.pathname || '').toLowerCase()
+        if (rawPath === '/admin' || rawPath === '/admin/') {
+            window.location.replace(window.location.origin + '/#/admin')
+        } else if (rawPath === '/auth' || rawPath === '/auth/' || rawPath === '/login' || rawPath === '/login/') {
+            window.location.replace(window.location.origin + '/#/auth')
+        }
+    }, [])
+
     const isMaintenance = storeConfig?.maintenance_mode || storeConfig?.maintenanceMode
-    const isAdminRoute = location.pathname.startsWith('/admin') || location.pathname.startsWith('/auth') || location.pathname.startsWith('/login')
+    const currentPath = (location.pathname || '').toLowerCase()
+    const windowPath = (window.location.pathname || '').toLowerCase()
+    const windowHash = (window.location.hash || '').toLowerCase()
+
+    const isAdminRoute = 
+        currentPath.startsWith('/admin') || currentPath.startsWith('/auth') || currentPath.startsWith('/login') ||
+        windowPath.startsWith('/admin') || windowPath.startsWith('/auth') || windowPath.startsWith('/login') ||
+        windowHash.includes('/admin') || windowHash.includes('/auth') || windowHash.includes('/login')
 
     if (isMaintenance && !isAdminRoute) {
         return <MaintenanceScreen config={storeConfig} />
