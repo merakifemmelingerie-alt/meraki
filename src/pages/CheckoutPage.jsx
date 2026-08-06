@@ -844,7 +844,7 @@ export default function CheckoutPage() {
                                                     src={item.image ? getAssetUrl(item.image) : getAssetUrl('/assets/placeholder.jpg')} 
                                                     alt={item.name} 
                                                     className="w-full h-full object-cover"
-                                                    onError={(e) => { e.target.src = getAssetUrl('/assets/placeholder.jpg') }}
+                                                    onError={(e) => { e.target.onerror = null; e.target.src = getAssetUrl('/placeholder.jpg') }}
                                                 />
                                             </div>
                                             <div>

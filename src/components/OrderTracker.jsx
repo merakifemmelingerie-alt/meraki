@@ -304,7 +304,7 @@ export default function OrderTracker({ order, onCopyPix, pixCopied }) {
                                             src={item.image ? getAssetUrl(Array.isArray(item.image) ? item.image[0] : item.image) : getAssetUrl('/assets/placeholder.jpg')}
                                             alt={item.name}
                                             className="w-full h-full object-cover"
-                                            onError={(e) => { e.target.src = getAssetUrl('/assets/placeholder.jpg') }}
+                                            onError={(e) => { e.target.onerror = null; e.target.src = getAssetUrl('/placeholder.jpg') }}
                                         />
                                     </div>
 
