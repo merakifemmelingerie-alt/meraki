@@ -160,12 +160,12 @@ export default function Footer() {
                 <div className="flex justify-center mb-10">
                     <a 
                         href="#/" 
-                        className="text-2xl md:text-3xl lg:text-4xl font-bold text-[#1A1A1A] hover:text-[#7A3E4A] transition-colors inline-flex items-center gap-2.5"
+                        className="text-2xl md:text-3xl lg:text-4xl font-bold text-[#1A1A1A] hover:text-[#7A3E4A] transition-colors inline-flex flex-col items-center justify-center gap-1"
                     >
                         <img 
                             src={butterflySrc} 
                             alt="Borboleta Meraki" 
-                            className={`w-11 h-11 md:w-14 md:h-14 object-contain animate-butterfly-flight transition-opacity duration-200 ${
+                            className={`w-9 h-9 md:w-11 md:h-11 object-contain animate-butterfly-flight transition-opacity duration-200 ${
                                 butterflySrc.startsWith('data:') ? 'opacity-100' : 'opacity-0'
                             }`}
                         />
