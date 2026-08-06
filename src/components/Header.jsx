@@ -70,7 +70,7 @@ export default function Header({ cartCount = 0, wishlistCount = 0, onSearchOpen 
     })
 
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-    const [butterflySrc, setButterflySrc] = useState('/assets/borboleta-v2.png')
+    const [butterflySrc, setButterflySrc] = useState(getAssetUrl('/assets/borboleta-v2.webp'))
 
     useEffect(() => {
         const updateDefaultImage = () => {
@@ -182,7 +182,7 @@ export default function Header({ cartCount = 0, wishlistCount = 0, onSearchOpen 
 
     useEffect(() => {
         const img = new Image()
-        img.src = '/assets/borboleta-v2.png'
+        img.src = getAssetUrl('/assets/borboleta-v2.webp')
         img.onload = () => {
             const canvas = document.createElement('canvas')
             canvas.width = img.width
@@ -205,8 +205,12 @@ export default function Header({ cartCount = 0, wishlistCount = 0, onSearchOpen 
                     setButterflySrc(canvas.toDataURL())
                 } catch (e) {
                     console.error("Erro ao remover fundo:", e)
+                    setButterflySrc(getAssetUrl('/assets/borboleta-v2.webp'))
                 }
             }
+        }
+        img.onerror = () => {
+            setButterflySrc(getAssetUrl('/assets/borboleta-v2.webp'))
         }
     }, [])
 
@@ -289,9 +293,7 @@ export default function Header({ cartCount = 0, wishlistCount = 0, onSearchOpen 
                             <img 
                                 src={butterflySrc} 
                                 alt="Borboleta Meraki" 
-                                className={`w-11 h-11 md:w-14 md:h-14 object-contain animate-butterfly-flight transition-opacity duration-200 ${
-                                    butterflySrc.startsWith('data:') ? 'opacity-100' : 'opacity-0'
-                                }`}
+                                className="w-11 h-11 md:w-14 md:h-14 object-contain animate-butterfly-flight transition-opacity duration-200 opacity-100"
                             />
                             <div className="flex flex-col items-center leading-none text-center">
                                 <span className="font-heading tracking-[0.25em] text-[20px] md:text-[25px] lg:text-[28px] font-black uppercase antialiased">MERAKI</span>
@@ -574,9 +576,7 @@ export default function Header({ cartCount = 0, wishlistCount = 0, onSearchOpen 
                                     <img 
                                         src={butterflySrc} 
                                         alt="Borboleta Meraki" 
-                                        className={`w-8 h-8 object-contain animate-butterfly-flight transition-opacity duration-200 ${
-                                            butterflySrc.startsWith('data:') ? 'opacity-100' : 'opacity-0'
-                                        }`}
+                                        className="w-8 h-8 object-contain animate-butterfly-flight transition-opacity duration-200 opacity-100"
                                     />
                                     <div className="flex flex-col items-center leading-none text-center">
                                         <span className="font-heading tracking-[0.25em] text-[17px] font-black uppercase antialiased">MERAKI</span>
