@@ -507,6 +507,8 @@ export default function MaintenanceScreen({ config }) {
                         letterSpacing: '0.05em',
                     }}>
                         © {new Date().getFullYear()} Meraki Femme Lingerie — Todos os direitos reservados
+                        {' • '}
+                        <a href="/admin" style={{ color: '#A09890', textDecoration: 'none', fontWeight: 600 }}>🔒 Painel Admin</a>
                     </p>
                 </footer>
             </div>

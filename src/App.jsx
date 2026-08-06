@@ -171,7 +171,7 @@ function AppContent() {
     }, [])
 
     const isMaintenance = storeConfig?.maintenance_mode || storeConfig?.maintenanceMode
-    const isAdminRoute = location.pathname.startsWith('/admin')
+    const isAdminRoute = location.pathname.startsWith('/admin') || location.pathname.startsWith('/auth') || location.pathname.startsWith('/login')
 
     if (isMaintenance && !isAdminRoute) {
         return <MaintenanceScreen config={storeConfig} />
