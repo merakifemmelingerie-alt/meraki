@@ -538,6 +538,30 @@ export async function initSupabaseSync() {
 // Start sync immediately
 initSupabaseSync()
 
+// Supabase Realtime Listener for store_config table updates across all connected devices
+try {
+    supabase
+        .channel('store_config_realtime')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'store_config' }, (payload) => {
+            if (payload && payload.new) {
+                const mapped = mapDbToFrontend('store_config', payload.new)
+                if (mapped.promoCombo) {
+                    originalSetItem('meraki_promo_combo', JSON.stringify(mapped.promoCombo))
+                    window.dispatchEvent(new Event('promoComboUpdated'))
+                }
+                if (mapped.editorial) {
+                    originalSetItem('meraki_editorial', JSON.stringify(mapped.editorial))
+                    window.dispatchEvent(new Event('editorialUpdated'))
+                }
+                originalSetItem('meraki_store_config', JSON.stringify(mapped))
+                window.dispatchEvent(new Event('storeConfigUpdated'))
+            }
+        })
+        .subscribe()
+} catch (e) {
+    console.warn('Realtime subscription failed:', e)
+}
+
 // Intercept LocalStorage writes to sync them back to Supabase
 const originalSetItem = localStorage.setItem.bind(localStorage)
 

@@ -729,7 +729,16 @@ export function PromoComboSection({
                                 type="checkbox"
                                 name="promoVisible"
                                 checked={promoCombo.visible !== false}
-                                onChange={(e) => setPromoCombo(prev => ({ ...prev, visible: e.target.checked }))}
+                                onChange={async (e) => {
+                                    const isChecked = e.target.checked
+                                    const updated = { ...promoCombo, visible: isChecked }
+                                    setPromoCombo(updated)
+                                    localStorage.setItem('meraki_promo_combo', JSON.stringify(updated))
+                                    if (updateStoreConfig) {
+                                        await updateStoreConfig({ promoCombo: updated })
+                                    }
+                                    window.dispatchEvent(new Event('promoComboUpdated'))
+                                }}
                                 className="w-4 h-4 text-[#7A3E4A] focus:ring-[#7A3E4A] border-gray-300 rounded cursor-pointer"
                             />
                             <span className="text-xs font-bold text-[#7A3E4A] uppercase tracking-wider">Exibir Seção de Combo/Promoção na Home</span>
