@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { signOut } from '../../services/auth.js'
+import { getAssetUrl } from '../../utils/assets.js'
 
 function Icon({ path, className = 'w-5 h-5' }) {
     return (
@@ -39,12 +40,24 @@ export default function AdminSidebar({
     return (
         <div className="flex flex-col h-full bg-white">
             {/* Logo */}
-            <div className="p-6 border-b border-[#EEEEEE]">
-                <Link to="/" className="block">
-                    <div className="flex items-center gap-2 mb-1">
-                        <span className="font-heading text-xl font-black tracking-[0.25em] text-[#7A3E4A]">MERAKI</span>
+            <div className="p-5 border-b border-[#EEEEEE]">
+                <Link to="/" className="flex items-center gap-2.5 group">
+                    <img 
+                        src={getAssetUrl('/assets/borboleta-v2.webp')} 
+                        alt="Borboleta Meraki" 
+                        className="w-10 h-10 object-contain animate-butterfly-flight shrink-0"
+                    />
+                    <div className="flex flex-col leading-none">
+                        <span className="font-heading tracking-[0.22em] text-[18px] font-black uppercase text-[#1A1A1A] group-hover:text-[#7A3E4A] transition-colors antialiased">
+                            MERAKI
+                        </span>
+                        <span className="text-[8px] uppercase tracking-[0.42em] text-[#7A3E4A] font-extrabold mt-1 ml-[0.42em] antialiased">
+                            ---- FEMME ----
+                        </span>
+                        <span className="text-[7.5px] font-bold uppercase tracking-[0.2em] text-[#C6A76A] mt-1.5 antialiased">
+                            Painel Administrativo
+                        </span>
                     </div>
-                    <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-[#C6A76A]">Painel Administrativo</span>
                 </Link>
             </div>
 
