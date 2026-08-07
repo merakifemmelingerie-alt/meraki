@@ -35,8 +35,8 @@ export default function CheckoutPage() {
     const [neighborhood, setNeighborhood] = useState('')
     const [city, setCity] = useState('')
     const [state, setState] = useState('')
-    const [shippingMethod, setShippingMethod] = useState('pac') // pac, sedex, pickup
-    const [availableShipping, setAvailableShipping] = useState([])
+    const [shippingMethod, setShippingMethod] = useState('local_delivery') // local_delivery, pickup
+    const [availableShipping, setAvailableShipping] = useState(() => calculateShippingOptions('GO', 0))
     const [deliveryType, setDeliveryType] = useState(() => {
         try {
             const saved = localStorage.getItem('meraki_cart_shipping')
@@ -177,22 +177,11 @@ export default function CheckoutPage() {
     const subtotal = Math.max(0, rawSubtotal - comboDiscount)
 
     useEffect(() => {
-        if (!state) {
-            setAvailableShipping([])
-            return
-        }
-        const isSP = state.toUpperCase() === 'SP'
-        const pacPrice = subtotal >= 299 ? 0 : 19.90
-        const sedexPrice = subtotal >= 299 ? 19.90 : 39.90
-        
-        setAvailableShipping([
-            { id: 'pac', label: 'PAC (Correios)', price: pacPrice, days: isSP ? '3 a 5 dias úteis' : '6 a 12 dias úteis' },
-            { id: 'sedex', label: 'SEDEX (Expresso)', price: sedexPrice, days: isSP ? '1 a 2 dias úteis' : '3 a 5 dias úteis' }
-        ])
+        setAvailableShipping(calculateShippingOptions(state || 'GO', subtotal))
     }, [state, subtotal])
 
     const selectedShippingOption = availableShipping.find(s => s.id === shippingMethod)
-    const shipping = deliveryType === 'pickup' ? 0 : (selectedShippingOption ? selectedShippingOption.price : (subtotal >= 299 ? 0 : 19.90))
+    const shipping = 0
     
     // Calculate subtotal of non-kit items (Kits already have special factory discount)
     const nonKitSubtotal = cart
@@ -551,18 +540,24 @@ export default function CheckoutPage() {
                                     type="button"
                                     onClick={() => {
                                         setDeliveryType('delivery')
-                                        setShippingMethod('pac')
+                                        setShippingMethod('local_delivery')
                                     }}
-                                    className={`p-4 border rounded-2xl flex items-center gap-3 transition-all text-left cursor-pointer ${
+                                    className={`p-4 border rounded-2xl flex items-center justify-between transition-all text-left cursor-pointer ${
                                         deliveryType === 'delivery'
                                             ? 'border-[#7A3E4A] bg-[#FDF8F6] text-[#7A3E4A] ring-2 ring-[#7A3E4A]/10 font-bold shadow-xs'
                                             : 'border-gray-200 bg-[#FAF9F5] hover:border-gray-300 text-gray-600 font-semibold'
                                     }`}
                                 >
-                                    <span className="text-xl">🚚</span>
-                                    <div>
-                                        <div className="text-xs">Entrega no Endereço</div>
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-xl">🚚</span>
+                                        <div>
+                                            <div className="text-xs">Entrega no Endereço</div>
+                                            <div className="text-[10px] text-gray-400 font-normal">Bonfinópolis - GO</div>
+                                        </div>
                                     </div>
+                                    <span className="text-[10px] font-black text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full uppercase">
+                                        Grátis
+                                    </span>
                                 </button>
 
                                 <button
