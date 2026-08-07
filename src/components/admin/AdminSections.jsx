@@ -3791,13 +3791,21 @@ export function FinancialSection({
         return true
     })
 
-    const totalRealRevenue = filteredOrdersDRE.reduce((sum, o) => sum + o.salePrice, 0)
-    const totalProductCost = filteredOrdersDRE.reduce((sum, o) => sum + o.productCost, 0)
-    const totalPaymentFees = filteredOrdersDRE.reduce((sum, o) => sum + o.paymentFee, 0)
-    const totalPackagingCosts = filteredOrdersDRE.reduce((sum, o) => sum + o.packagingCost, 0)
-    const totalSubsidyCosts = filteredOrdersDRE.reduce((sum, o) => sum + o.subsidyCost, 0)
-    const totalNetProfitReal = filteredOrdersDRE.reduce((sum, o) => sum + o.netProfit, 0)
+    const isOrderPaid = (status) => ['Aprovado', 'Pago', 'Concluído', 'Enviado', 'Entregue', 'paid', 'approved', 'completed'].includes(status)
+    const isOrderPending = (status) => ['PENDENTE', 'pending', 'Aguardando Pagamento', 'aguardando'].includes(status) || (!status || status === '')
+
+    const paidOrdersDRE = filteredOrdersDRE.filter(o => isOrderPaid(o.status))
+    const pendingOrdersDRE = filteredOrdersDRE.filter(o => isOrderPending(o.status))
+
+    const totalRealRevenue = paidOrdersDRE.reduce((sum, o) => sum + o.salePrice, 0)
+    const totalProductCost = paidOrdersDRE.reduce((sum, o) => sum + o.productCost, 0)
+    const totalPaymentFees = paidOrdersDRE.reduce((sum, o) => sum + o.paymentFee, 0)
+    const totalPackagingCosts = paidOrdersDRE.reduce((sum, o) => sum + o.packagingCost, 0)
+    const totalSubsidyCosts = paidOrdersDRE.reduce((sum, o) => sum + o.subsidyCost, 0)
+    const totalNetProfitReal = paidOrdersDRE.reduce((sum, o) => sum + o.netProfit, 0)
     const averageMarginReal = totalRealRevenue > 0 ? ((totalNetProfitReal / totalRealRevenue) * 100).toFixed(1) : 0
+
+    const totalPendingOrdersRevenue = pendingOrdersDRE.reduce((sum, o) => sum + o.salePrice, 0)
 
     const paidOrders = orders.filter(o => ['Pago', 'Enviado', 'Entregue'].includes(o.status))
     const orderRevenues = paidOrders.map(o => ({
@@ -3861,9 +3869,11 @@ export function FinancialSection({
         .filter(i => i.type === 'despesa' && i.status === 'pago')
         .reduce((sum, i) => sum + Number(i.amount), 0)
 
-    const totalPendentes = filteredTransactionsList
+    const totalPendentesTransactions = filteredTransactionsList
         .filter(i => i.status === 'pendente')
         .reduce((sum, i) => sum + (i.type === 'receita' ? Number(i.amount) : -Number(i.amount)), 0)
+
+    const totalPendentes = totalPendentesTransactions + totalPendingOrdersRevenue
 
     const lucroLiquido = totalReceitas - totalDespesas
     const margemLucro = totalReceitas > 0 ? ((lucroLiquido / totalReceitas) * 100).toFixed(1) : 0
@@ -4034,13 +4044,13 @@ export function FinancialSection({
 
                 <div className="p-5">
                     <div className="flex items-center justify-between">
-                        <p className="text-xs font-medium text-gray-500">Contas Pendentes</p>
-                        <Icon path="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" className="w-4 h-4 text-gray-400" />
+                        <p className="text-xs font-medium text-gray-500">Contas & Vendas Pendentes</p>
+                        <Icon path="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" className="w-4 h-4 text-amber-500" />
                     </div>
                     <p className="text-2xl font-bold text-amber-600 mt-1">
                         R$ {Math.abs(totalPendentes).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </p>
-                    <p className="text-[11px] text-gray-400 mt-1">Pendências em aberto</p>
+                    <p className="text-[11px] text-amber-700/80 font-medium mt-1">Aguardando pagamento do cliente</p>
                 </div>
             </div>
 
@@ -4446,6 +4456,7 @@ export function FinancialSection({
                                 <thead className="bg-gray-50 border-b border-gray-200 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
                                     <tr>
                                         <th className="px-4 py-3">Pedido / Cliente</th>
+                                        <th className="px-4 py-3">Status</th>
                                         <th className="px-4 py-3">Pagamento</th>
                                         <th className="px-4 py-3 text-right">Valor Venda</th>
                                         <th className="px-4 py-3 text-right">Custo Prod. (CMV)</th>
@@ -4461,6 +4472,21 @@ export function FinancialSection({
                                             <td className="px-4 py-3">
                                                 <div className="font-semibold text-gray-900">#{order.id.toString().slice(-6)}</div>
                                                 <div className="text-[11px] text-gray-500">{order.customerName || 'Cliente'}</div>
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                {isOrderPaid(order.status) ? (
+                                                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 uppercase tracking-wider">
+                                                        ✓ Pago
+                                                    </span>
+                                                ) : isOrderPending(order.status) ? (
+                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-800 uppercase tracking-wider">
+                                                        ⏳ Aguardando
+                                                    </span>
+                                                ) : (
+                                                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-red-100 text-red-800 uppercase tracking-wider">
+                                                        ✕ Cancelado
+                                                    </span>
+                                                )}
                                             </td>
                                             <td className="px-4 py-3 text-gray-600">
                                                 {order.paymentMethod || 'PIX'}
