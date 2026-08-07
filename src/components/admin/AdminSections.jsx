@@ -728,7 +728,8 @@ export function PromoComboSection({
                             <input
                                 type="checkbox"
                                 name="promoVisible"
-                                defaultChecked={promoCombo.visible !== false}
+                                checked={promoCombo.visible !== false}
+                                onChange={(e) => setPromoCombo(prev => ({ ...prev, visible: e.target.checked }))}
                                 className="w-4 h-4 text-[#7A3E4A] focus:ring-[#7A3E4A] border-gray-300 rounded cursor-pointer"
                             />
                             <span className="text-xs font-bold text-[#7A3E4A] uppercase tracking-wider">Exibir Seção de Combo/Promoção na Home</span>

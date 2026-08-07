@@ -178,7 +178,10 @@ export default function HomePage() {
         window.addEventListener('storage', updateHomepageCats)
         window.addEventListener('promoComboUpdated', updatePromo)
         window.addEventListener('editorialUpdated', updateEditorial)
+        window.addEventListener('storeConfigUpdated', updatePromo)
+        window.addEventListener('storeConfigUpdated', updateEditorial)
         window.addEventListener('storeConfigUpdated', updateInstallment)
+        window.addEventListener('storeConfigUpdated', updateHomepageCats)
         window.addEventListener('homepageCategoriesUpdated', updateHomepageCats)
         return () => {
             window.removeEventListener('storage', updatePromo)
@@ -187,7 +190,10 @@ export default function HomePage() {
             window.removeEventListener('storage', updateHomepageCats)
             window.removeEventListener('promoComboUpdated', updatePromo)
             window.removeEventListener('editorialUpdated', updateEditorial)
+            window.removeEventListener('storeConfigUpdated', updatePromo)
+            window.removeEventListener('storeConfigUpdated', updateEditorial)
             window.removeEventListener('storeConfigUpdated', updateInstallment)
+            window.removeEventListener('storeConfigUpdated', updateHomepageCats)
             window.removeEventListener('homepageCategoriesUpdated', updateHomepageCats)
         }
     }, [])

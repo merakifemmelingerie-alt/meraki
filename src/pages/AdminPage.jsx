@@ -296,8 +296,22 @@ export default function AdminPage() {
             const config = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
             if (config.availableBadges) return config.availableBadges.split(',').map(b => b.trim()).filter(Boolean)
         } catch {}
-        return ['NOVO', 'EXCLUSIVO', 'PROMOÇÃO', 'LIMITADO', 'MAIS VENDIDO', 'DESTAQUE', 'OFERTA', 'LANÇAMENTO']
     })
+
+    useEffect(() => {
+        const updatePromo = () => {
+            const stored = localStorage.getItem('meraki_promo_combo')
+            if (stored) {
+                try { setPromoCombo(JSON.parse(stored)) } catch (e) { console.error(e) }
+            }
+        }
+        window.addEventListener('promoComboUpdated', updatePromo)
+        window.addEventListener('storeConfigUpdated', updatePromo)
+        return () => {
+            window.removeEventListener('promoComboUpdated', updatePromo)
+            window.removeEventListener('storeConfigUpdated', updatePromo)
+        }
+    }, [])
 
     const saveBadgesToConfig = async (list) => {
         const serialized = list.join(',')

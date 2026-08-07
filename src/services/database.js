@@ -417,8 +417,12 @@ export async function initSupabaseSync() {
                     dbConfig.promoCombo.image = '/assets/categories/cat-conjuntos.webp'
                 }
                 localStorage.setItem('meraki_promo_combo', JSON.stringify(dbConfig.promoCombo))
+                window.dispatchEvent(new Event('promoComboUpdated'))
             }
-            if (dbConfig.editorial) localStorage.setItem('meraki_editorial', JSON.stringify(dbConfig.editorial))
+            if (dbConfig.editorial) {
+                localStorage.setItem('meraki_editorial', JSON.stringify(dbConfig.editorial))
+                window.dispatchEvent(new Event('editorialUpdated'))
+            }
             if (dbConfig.shippingMessage) localStorage.setItem('meraki_shipping_message', dbConfig.shippingMessage)
             if (dbConfig.promoMessage) localStorage.setItem('meraki_promo_message', dbConfig.promoMessage)
             if (dbConfig.availableSizes && Array.isArray(dbConfig.availableSizes)) localStorage.setItem('meraki_available_sizes', JSON.stringify(dbConfig.availableSizes))
@@ -630,6 +634,8 @@ localStorage.setItem = function(key, value) {
             originalSetItem('meraki_store_config', JSON.stringify(currentConfig))
             updateStoreConfig(currentConfig).then(() => {
                 window.dispatchEvent(new Event('storeConfigUpdated'))
+                if (key === 'meraki_promo_combo') window.dispatchEvent(new Event('promoComboUpdated'))
+                if (key === 'meraki_editorial') window.dispatchEvent(new Event('editorialUpdated'))
             })
         }
     } catch (e) {
