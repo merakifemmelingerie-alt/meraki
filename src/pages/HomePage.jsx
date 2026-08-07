@@ -277,7 +277,7 @@ export default function HomePage() {
             </ScrollReveal>
 
             {/* Combo Section (First Image style) */}
-            {promoCombo.visible !== false && (
+            {Boolean(promoCombo && promoCombo.visible !== false && promoCombo.visible !== 'false' && promoCombo.visible !== 0 && promoCombo.visible !== '0') && (
                 <ScrollReveal variant="fade-up">
                     <section className="py-16 px-4 max-w-7xl mx-auto" id="best-sellers">
                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">

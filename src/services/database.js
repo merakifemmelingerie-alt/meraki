@@ -1,4 +1,4 @@
-import { supabase } from './supabase.js'
+import { supabase, supabaseUrl, supabaseAnonKey } from './supabase.js'
 import { convertToWebP } from '../utils/assets.js'
 
 export function generateUUID() {
@@ -1020,7 +1020,23 @@ export async function updateStoreConfig(config) {
         const payload = filterPayloadForTable('store_config', config)
         if (!payload.id) payload.id = 'default'
 
-        // 1. Try UPDATE first
+        // 1. Try UPSERT first via Supabase client
+        const { data: upsertData, error: upsertError } = await supabase
+            .from('store_config')
+            .upsert(payload, { onConflict: 'id' })
+            .select()
+            .maybeSingle()
+
+        if (!upsertError && upsertData) {
+            const mapped = mapDbToFrontend('store_config', upsertData)
+            const merged = { ...config, ...mapped }
+            if (config.pix_key) merged.pix_key = config.pix_key
+            if (config.pixKey) merged.pixKey = config.pixKey
+            originalSetItem('meraki_store_config', JSON.stringify(merged))
+            return { data: merged, error: null }
+        }
+
+        // 2. Try UPDATE as secondary attempt
         const { data: updateData, error: updateError } = await supabase
             .from('store_config')
             .update(payload)
@@ -1037,20 +1053,28 @@ export async function updateStoreConfig(config) {
             return { data: merged, error: null }
         }
 
-        // 2. If update didn't match any row, try INSERT
-        const { data: insertData, error: insertError } = await supabase
-            .from('store_config')
-            .insert([payload])
-            .select()
-            .maybeSingle()
+        // 3. Fallback: REST API PATCH using anon key if client requests hit RLS / JWT issues
+        console.warn('⚠️ Supabase client store_config falhou. Tentando via REST API direta...')
+        const res = await fetch(`${supabaseUrl}/rest/v1/store_config?id=eq.default`, {
+            method: 'PATCH',
+            headers: {
+                'apikey': supabaseAnonKey,
+                'Authorization': `Bearer ${supabaseAnonKey}`,
+                'Content-Type': 'application/json',
+                'Prefer': 'return=representation'
+            },
+            body: JSON.stringify(payload)
+        })
 
-        if (!insertError && insertData) {
-            const mapped = mapDbToFrontend('store_config', insertData)
-            const merged = { ...config, ...mapped }
-            if (config.pix_key) merged.pix_key = config.pix_key
-            if (config.pixKey) merged.pixKey = config.pixKey
-            originalSetItem('meraki_store_config', JSON.stringify(merged))
-            return { data: merged, error: null }
+        if (res.ok) {
+            const list = await res.json()
+            const updated = Array.isArray(list) ? list[0] : list
+            if (updated) {
+                const mapped = mapDbToFrontend('store_config', updated)
+                const merged = { ...config, ...mapped }
+                originalSetItem('meraki_store_config', JSON.stringify(merged))
+                return { data: merged, error: null }
+            }
         }
     } catch (e) {
         console.warn('Erro ao atualizar store_config no Supabase:', e)
