@@ -3,9 +3,9 @@ import { useState, useEffect } from 'react'
 export default function Footer() {
     const [butterflySrc, setButterflySrc] = useState('/assets/borboleta-v2.webp')
     const [config, setConfig] = useState({
-        sac_phone: '(11) 2388-0403',
-        address: 'Avenida Alfredo Nasser, Qd. 14, Lt. 05 - Centro, Bonfinópolis - GO, CEP: 75195-000',
-        cnpj: '57.484.768/0064-89',
+        sac_phone: '(62) 9188-9459',
+        address: 'Rua Lateral do Campo Qd20, Lt06 Jardim Santana.',
+        cnpj: '57.328.371/0001-14',
         razao_social: 'Meraki Comércio de Vestuário Ltda'
     })
 
@@ -49,9 +49,9 @@ export default function Footer() {
                     if (stored.custom_pages_list) setCustomPagesList(stored.custom_pages_list)
                     if (stored.pages_content) setCustomPagesContent(stored.pages_content)
                     setConfig({
-                        sac_phone: stored.sac_phone || '(11) 2388-0403',
-                        address: stored.address || 'Avenida Alfredo Nasser, Qd. 14, Lt. 05 - Centro, Bonfinópolis - GO, CEP: 75195-000',
-                        cnpj: stored.cnpj || '57.484.768/0064-89',
+                        sac_phone: stored.sac_phone || '(62) 9188-9459',
+                        address: stored.address || 'Rua Lateral do Campo Qd20, Lt06 Jardim Santana.',
+                        cnpj: stored.cnpj || '57.328.371/0001-14',
                         razao_social: stored.razao_social || 'Meraki Comércio de Vestuário Ltda'
                     })
                 }

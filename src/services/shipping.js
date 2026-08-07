@@ -24,15 +24,38 @@ export async function fetchAddressByCep(cep) {
     }
 }
 
-export const STORE_PICKUP_OPTION = {
-    id: 'pickup',
-    name: 'Retirada na Loja Física',
-    label: 'Retirada na Loja (Grátis)',
-    price: 0,
-    days: 'Pronto em até 1 dia útil',
-    formattedPrice: 'GRÁTIS',
-    address: 'Avenida Alfredo Nasser, Qd. 14, Lt. 05 - Centro, Bonfinópolis - GO, CEP: 75195-000'
+export function getStorePickupOption() {
+    try {
+        const config = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
+        const rawAddr = config.address || 'Rua Lateral do Campo Qd20, Lt06 Jardim Santana.'
+        const rawCep = config.origin_cep || config.originCep || '75195-385'
+        const fullAddr = rawAddr.toLowerCase().includes('cep') 
+            ? `Meraki Moda Feminina — ${rawAddr}` 
+            : `Meraki Moda Feminina — ${rawAddr}${rawCep ? ` - CEP: ${rawCep}` : ''}`
+            
+        return {
+            id: 'pickup',
+            name: 'Retirada na Loja Física',
+            label: 'Retirada na Loja (Grátis)',
+            price: 0,
+            days: 'Pronto em até 1 dia útil',
+            formattedPrice: 'GRÁTIS',
+            address: fullAddr
+        }
+    } catch {
+        return {
+            id: 'pickup',
+            name: 'Retirada na Loja Física',
+            label: 'Retirada na Loja (Grátis)',
+            price: 0,
+            days: 'Pronto em até 1 dia útil',
+            formattedPrice: 'GRÁTIS',
+            address: 'Meraki Moda Feminina — Rua Lateral do Campo Qd20, Lt06 Jardim Santana. - CEP: 75195-385'
+        }
+    }
 }
+
+export const STORE_PICKUP_OPTION = getStorePickupOption()
 
 /**
  * Calculates shipping options based on customer state & subtotal

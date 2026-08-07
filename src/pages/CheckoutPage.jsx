@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useCart } from '../hooks/useCart.js'
 import { useAuth } from '../hooks/useAuth.js'
@@ -47,6 +47,41 @@ export default function CheckoutPage() {
         } catch {}
         return 'delivery'
     })
+
+    const [storeConfig, setStoreConfig] = useState(() => {
+        try {
+            return JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
+        } catch { return {} }
+    })
+
+    useEffect(() => {
+        const updateConfig = () => {
+            try {
+                const config = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
+                setStoreConfig(config)
+            } catch {}
+        }
+        window.addEventListener('storeConfigUpdated', updateConfig)
+        window.addEventListener('storage', updateConfig)
+        return () => {
+            window.removeEventListener('storeConfigUpdated', updateConfig)
+            window.removeEventListener('storage', updateConfig)
+        }
+    }, [])
+
+    const pickupAddressDisplay = useMemo(() => {
+        const rawAddr = storeConfig.address || storeConfig.showroom_address || ''
+        const rawCep = storeConfig.origin_cep || storeConfig.originCep || ''
+        
+        if (rawAddr) {
+            if (rawAddr.toLowerCase().includes('cep')) {
+                return `Meraki Moda Feminina — ${rawAddr}`
+            }
+            return `Meraki Moda Feminina — ${rawAddr}${rawCep ? ` - CEP: ${rawCep}` : ''}`
+        }
+        
+        return 'Meraki Moda Feminina — Rua Lateral do Campo Qd20, Lt06 Jardim Santana. - CEP: 75195-385'
+    }, [storeConfig])
 
     // Address selection states
     const [savedAddresses, setSavedAddresses] = useState([])
@@ -294,11 +329,11 @@ export default function CheckoutPage() {
             customerPhone: phone,
             customerCpf: cpf,
             shippingAddress: deliveryType === 'pickup' ? {
-                cep: '75195-000',
-                street: 'Avenida Alfredo Nasser, Qd. 14, Lt. 05',
+                cep: storeConfig.origin_cep || storeConfig.originCep || '75195-385',
+                street: storeConfig.address || 'Rua Lateral do Campo Qd20, Lt06 Jardim Santana.',
                 number: 'S/N',
                 complement: 'Loja Física Meraki (Retirada na Loja)',
-                neighborhood: 'Centro',
+                neighborhood: 'Jardim Santana',
                 city: 'Bonfinópolis',
                 state: 'GO',
                 isPickup: true
@@ -567,7 +602,7 @@ export default function CheckoutPage() {
                                         </span>
                                     </div>
                                     <p className="text-xs text-emerald-900 font-bold leading-relaxed">
-                                        Meraki Moda Feminina — Avenida Alfredo Nasser, Qd. 14, Lt. 05 - Centro, Bonfinópolis - GO, CEP: 75195-000
+                                        {pickupAddressDisplay}
                                     </p>
                                     <div className="pt-2 border-t border-emerald-200/60 text-[11px] text-emerald-800 space-y-1 font-medium">
                                         <p>⏱️ <strong>Prazo de Retirada:</strong> Pronto em até 1 dia útil após a confirmação do pagamento.</p>
