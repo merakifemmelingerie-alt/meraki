@@ -549,7 +549,11 @@ export default function CheckoutPage() {
                                     }`}
                                 >
                                     <div className="flex items-center gap-3">
-                                        <span className="text-xl">🚚</span>
+                                        <span className="w-8 h-8 rounded-full bg-[#7A3E4A]/10 text-[#7A3E4A] flex items-center justify-center shrink-0">
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8h4l3 3v5h-2m-6 0h-2m4 0h-4m6 0a1 1 0 102 0 1 1 0 00-2 0zm-10 0a1 1 0 102 0 1 1 0 00-2 0z" />
+                                            </svg>
+                                        </span>
                                         <div>
                                             <div className="text-xs">Entrega no Endereço</div>
                                             <div className="text-[10px] text-gray-400 font-normal">Bonfinópolis - GO</div>
@@ -573,7 +577,11 @@ export default function CheckoutPage() {
                                     }`}
                                 >
                                     <div className="flex items-center gap-3">
-                                        <span className="text-xl">🏪</span>
+                                        <span className="w-8 h-8 rounded-full bg-[#7A3E4A]/10 text-[#7A3E4A] flex items-center justify-center shrink-0">
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0h4m-4 0V11m4 10V11m-4 0h4" />
+                                            </svg>
+                                        </span>
                                         <div>
                                             <div className="text-xs">Retirada no Local</div>
                                             <div className="text-[10px] text-gray-400 font-normal">Bonfinópolis - GO</div>
