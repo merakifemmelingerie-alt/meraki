@@ -358,17 +358,17 @@ export async function initSupabaseSync() {
         // 7. Sync Store Config
         let dbConfigRaw = null
         try {
-            const { data, error: configErr } = await supabase.from('store_config').select('*').eq('id', 'default').maybeSingle()
-            if (configErr && (configErr.status === 401 || configErr.code === 'PGRST301' || configErr.message?.includes('JWT') || configErr.message?.includes('jwt'))) {
-                console.warn('⚠️ Token expirado em initSupabaseSync (401). Limpando sessão e buscando via REST anônimo...')
-                localStorage.removeItem('meraki_supabase_auth_token')
-                const res = await fetch(`${supabaseUrl}/rest/v1/store_config?select=*&id=eq.default`, {
+            const { data, error: configErr } = await supabase.from('store_config').select('*').limit(1).maybeSingle()
+            if (!configErr && data) {
+                dbConfigRaw = data
+            } else {
+                const res = await fetch(`${supabaseUrl}/rest/v1/store_config?select=*&limit=1`, {
                     headers: { 'apikey': supabaseAnonKey }
                 })
-                const list = await res.json()
-                dbConfigRaw = Array.isArray(list) ? list[0] : list
-            } else {
-                dbConfigRaw = data
+                if (res.ok) {
+                    const list = await res.json()
+                    dbConfigRaw = Array.isArray(list) ? list[0] : list
+                }
             }
         } catch (e) {
             console.error('Erro ao buscar store_config no sync:', e)
@@ -488,18 +488,32 @@ export async function initSupabaseSync() {
             if (!existingLocalMsgs) {
                 localStorage.setItem('meraki_topbar_messages', JSON.stringify(defaultConfig.topbarMessages))
             }
-            localStorage.setItem('meraki_topbar_style', JSON.stringify(defaultConfig.topbarStyle))
-            localStorage.setItem('meraki_promo_combo', JSON.stringify(defaultConfig.promoCombo))
-            localStorage.setItem('meraki_editorial', JSON.stringify(defaultConfig.editorial))
-            localStorage.setItem('meraki_shipping_message', defaultConfig.shippingMessage)
-            localStorage.setItem('meraki_reward_bar', JSON.stringify(defaultConfig.rewardBar))
+            if (!localStorage.getItem('meraki_topbar_style')) {
+                localStorage.setItem('meraki_topbar_style', JSON.stringify(defaultConfig.topbarStyle))
+            }
+            if (!localStorage.getItem('meraki_promo_combo')) {
+                localStorage.setItem('meraki_promo_combo', JSON.stringify(defaultConfig.promoCombo))
+            }
+            if (!localStorage.getItem('meraki_editorial')) {
+                localStorage.setItem('meraki_editorial', JSON.stringify(defaultConfig.editorial))
+            }
+            if (!localStorage.getItem('meraki_shipping_message')) {
+                localStorage.setItem('meraki_shipping_message', defaultConfig.shippingMessage)
+            }
+            if (!localStorage.getItem('meraki_reward_bar')) {
+                localStorage.setItem('meraki_reward_bar', JSON.stringify(defaultConfig.rewardBar))
+            }
             const defaultHomeCats = [
                 { name: 'Home', description: 'Voltar para a página inicial', image: '/assets/categories/cat-conjuntos.webp', link: '/' },
                 { name: 'Categorias', description: 'Navegar pelas nossas coleções', image: '/assets/categories/cat-noite.webp', link: '/category/conjuntos' },
                 { name: 'Política de Troca', description: 'Regras e prazos para trocas de produtos', image: '/assets/categories/cat-sexy.webp', link: '/returns' },
                 { name: 'Ofertas', description: 'Confira nossos produtos com descontos', image: '/assets/categories/cat-plus.webp', link: '/category/ofertas' }
             ]
-            localStorage.setItem('meraki_homepage_categories', JSON.stringify(defaultHomeCats))
+            if (!localStorage.getItem('meraki_homepage_categories')) {
+                localStorage.setItem('meraki_homepage_categories', JSON.stringify(defaultHomeCats))
+            }
+            // Seed Supabase with defaultConfig so future queries will find the record
+            updateStoreConfig(defaultConfig)
         }
 
         console.log('✅ Sincronização concluída com sucesso.')
