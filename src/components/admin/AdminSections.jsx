@@ -4823,6 +4823,36 @@ export function AutomationsSection() {
     const [feedback, setFeedback] = useState(null)
     const [collectionInput, setCollectionInput] = useState('')
 
+    // Carrinhos Monitorados Pagination & Search
+    const [cartSearch, setCartSearch] = useState('')
+    const [cartStatusFilter, setCartStatusFilter] = useState('todos')
+    const [cartPage, setCartPage] = useState(1)
+    const [cartLimit, setCartLimit] = useState(10)
+
+    useEffect(() => {
+        setCartPage(1)
+    }, [cartSearch, cartStatusFilter, cartLimit])
+
+    const filteredCarts = useMemo(() => {
+        return carts.filter(c => {
+            if (cartStatusFilter !== 'todos' && c.status !== cartStatusFilter) return false
+            if (cartSearch.trim()) {
+                const q = cartSearch.toLowerCase()
+                const name = (c.customer_name || '').toLowerCase()
+                const email = (c.customer_email || '').toLowerCase()
+                const phone = (c.customer_phone || '').toLowerCase()
+                const session = (c.session_id || '').toLowerCase()
+                if (!name.includes(q) && !email.includes(q) && !phone.includes(q) && !session.includes(q)) {
+                    return false
+                }
+            }
+            return true
+        })
+    }, [carts, cartStatusFilter, cartSearch])
+
+    const totalCartPages = Math.ceil(filteredCarts.length / cartLimit) || 1
+    const paginatedCarts = filteredCarts.slice((cartPage - 1) * cartLimit, cartPage * cartLimit)
+
     useEffect(() => {
         loadData()
     }, [])
@@ -5107,57 +5137,178 @@ export function AutomationsSection() {
                         </div>
                     </div>
 
-                    {/* Lista de Carrinhos Monitorados */}
+                    {/* Lista de Carrinhos Monitorados Paginada */}
                     <div className="bg-white p-6 rounded-2xl border border-[#EEEEEE] space-y-4">
-                        <h3 className="text-sm font-bold text-gray-900">Carrinhos Monitorados Recentemente</h3>
-                        <div className="overflow-x-auto">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#EEEEEE] pb-4">
+                            <div>
+                                <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                                    <Icon path={iconPaths.cart} className="w-4 h-4 text-[#7A3E4A]" />
+                                    Carrinhos Monitorados Recentemente
+                                </h3>
+                                <p className="text-xs text-gray-400 font-medium mt-0.5">
+                                    Exibindo clientes e visitantes com itens no carrinho.
+                                </p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+                                    {carts.length} Carrinho(s) em Monitoramento
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Toolbar com Busca, Filtro de Status e Limite */}
+                        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-[#FAF9F5] p-3 rounded-xl border border-[#EEEEEE]">
+                            <div className="relative flex-1 w-full">
+                                <input
+                                    type="text"
+                                    placeholder="Pesquisar por nome da cliente, e-mail, WhatsApp ou ID..."
+                                    value={cartSearch}
+                                    onChange={e => setCartSearch(e.target.value)}
+                                    className="w-full pl-9 pr-8 py-2 bg-white border border-[#EEEEEE] rounded-xl text-xs outline-none focus:border-[#7A3E4A] transition-all font-medium"
+                                />
+                                <span className="absolute left-3 top-2.5 text-gray-400">🔍</span>
+                                {cartSearch && (
+                                    <button onClick={() => setCartSearch('')} className="absolute right-3 top-2 text-xs text-gray-400 hover:text-gray-600">✕</button>
+                                )}
+                            </div>
+
+                            <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+                                <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-[#EEEEEE]">
+                                    {[
+                                        { id: 'todos', label: 'Todos' },
+                                        { id: 'active', label: 'Ativos' },
+                                        { id: 'abandoned', label: 'Abandonados' },
+                                        { id: 'recovered', label: 'Recuperados' }
+                                    ].map(tab => (
+                                        <button
+                                            key={tab.id}
+                                            type="button"
+                                            onClick={() => setCartStatusFilter(tab.id)}
+                                            className={`px-2.5 py-1 text-[11px] font-bold rounded-lg transition-all cursor-pointer ${
+                                                cartStatusFilter === tab.id
+                                                    ? 'bg-[#7A3E4A] text-white shadow-2xs'
+                                                    : 'text-gray-500 hover:text-gray-800'
+                                            }`}
+                                        >
+                                            {tab.label}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                <select
+                                    value={cartLimit}
+                                    onChange={e => setCartLimit(Number(e.target.value))}
+                                    className="px-2.5 py-1.5 bg-white border border-[#EEEEEE] rounded-xl text-xs font-bold text-gray-700 outline-none cursor-pointer"
+                                >
+                                    <option value={5}>5 por pág</option>
+                                    <option value={10}>10 por pág</option>
+                                    <option value={20}>20 por pág</option>
+                                    <option value={50}>50 por pág</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        {/* Tabela de Carrinhos */}
+                        <div className="overflow-x-auto max-h-[550px] overflow-y-auto rounded-xl border border-[#EEEEEE]">
                             <table className="w-full text-left border-collapse">
-                                <thead>
-                                    <tr className="border-b border-[#EEEEEE] text-[10px] uppercase tracking-wider text-gray-400 font-bold">
-                                        <th className="pb-3">Sessão / Cliente</th>
-                                        <th className="pb-3">Itens</th>
-                                        <th className="pb-3">Subtotal</th>
-                                        <th className="pb-3">Estágio Notificado</th>
-                                        <th className="pb-3">Status</th>
-                                        <th className="pb-3">Última Atividade</th>
+                                <thead className="sticky top-0 bg-[#FAF9F5] border-b border-[#EEEEEE] text-[10px] uppercase tracking-wider text-gray-400 font-bold z-10">
+                                    <tr>
+                                        <th className="py-3 px-4">Cliente / Identificação</th>
+                                        <th className="py-3 px-4">Itens No Carrinho</th>
+                                        <th className="py-3 px-4">Valor Subtotal</th>
+                                        <th className="py-3 px-4">Estágio Notificado</th>
+                                        <th className="py-3 px-4">Status</th>
+                                        <th className="py-3 px-4">Última Atividade</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-[#EEEEEE] text-xs">
-                                    {carts.length === 0 ? (
+                                    {paginatedCarts.length === 0 ? (
                                         <tr>
-                                            <td colSpan="6" className="py-6 text-center text-gray-400 italic">Nenhum carrinho registrado ainda.</td>
+                                            <td colSpan="6" className="py-8 text-center text-gray-400 italic">
+                                                Nenhum carrinho localizado para o filtro selecionado.
+                                            </td>
                                         </tr>
                                     ) : (
-                                        carts.map(c => (
-                                            <tr key={c.id} className="hover:bg-[#FAF9F5] transition-colors">
-                                                <td className="py-3 font-semibold text-gray-800">
-                                                    <div>{c.customer_name || c.customer_email || c.customer_phone || c.session_id}</div>
-                                                    {c.customer_phone && <div className="text-[10px] text-gray-400 font-normal">{c.customer_phone}</div>}
-                                                </td>
-                                                <td className="py-3 text-gray-600">{Array.isArray(c.items) ? c.items.length : 0} produto(s)</td>
-                                                <td className="py-3 font-bold text-[#7A3E4A]">R$ {(Number(c.subtotal) || 0).toFixed(2)}</td>
-                                                <td className="py-3">
-                                                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 text-gray-700 border border-gray-200">
-                                                        Estágio {c.stage || 0}/3
-                                                    </span>
-                                                </td>
-                                                <td className="py-3">
-                                                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
-                                                        c.status === 'recovered' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                                                        c.status === 'abandoned' ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-gray-50 text-gray-600 border-gray-200'
-                                                    }`}>
-                                                        {c.status === 'recovered' ? 'Recuperado' : c.status === 'abandoned' ? 'Abandonado' : 'Ativo'}
-                                                    </span>
-                                                </td>
-                                                <td className="py-3 text-gray-400 text-[10px]">
-                                                    {new Date(c.last_activity || c.created_at).toLocaleString('pt-BR')}
-                                                </td>
-                                            </tr>
-                                        ))
+                                        paginatedCarts.map(c => {
+                                            const displayName = c.customer_name || (c.customer_email ? c.customer_email.split('@')[0] : null) || 'Visitante (Não Identificado)'
+                                            const initial = displayName.replace(/[^a-zA-Z]/g, '')[0] || 'V'
+                                            
+                                            return (
+                                                <tr key={c.id} className="hover:bg-[#FAF9F5]/80 transition-colors">
+                                                    <td className="py-3 px-4">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#7A3E4A] to-[#9A5060] text-white flex items-center justify-center text-xs font-black shrink-0 shadow-2xs uppercase">
+                                                                {initial}
+                                                            </div>
+                                                            <div className="min-w-0">
+                                                                <div className="font-bold text-gray-900 truncate text-xs">
+                                                                    {displayName}
+                                                                </div>
+                                                                <div className="text-[10px] text-gray-500 font-medium truncate flex items-center gap-2">
+                                                                    {c.customer_email && <span>📧 {c.customer_email}</span>}
+                                                                    {c.customer_phone && <span>📱 {c.customer_phone}</span>}
+                                                                    {!c.customer_email && !c.customer_phone && (
+                                                                        <span className="font-mono text-[9.5px] text-gray-400">
+                                                                            Sessão: {c.session_id ? c.session_id.slice(0, 18) + '...' : '#'}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="py-3 px-4 text-gray-700 font-semibold">
+                                                        {Array.isArray(c.items) ? c.items.length : 0} produto(s)
+                                                    </td>
+                                                    <td className="py-3 px-4 font-black text-[#7A3E4A] text-sm">
+                                                        R$ {(Number(c.subtotal) || 0).toFixed(2)}
+                                                    </td>
+                                                    <td className="py-3 px-4">
+                                                        <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-gray-100 text-gray-700 border border-gray-200">
+                                                            Estágio {c.stage || 0}/3
+                                                        </span>
+                                                    </td>
+                                                    <td className="py-3 px-4">
+                                                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold border uppercase tracking-wider ${
+                                                            c.status === 'recovered' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                                                            c.status === 'abandoned' ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-blue-50 text-blue-700 border-blue-200'
+                                                        }`}>
+                                                            {c.status === 'recovered' ? 'Recuperado' : c.status === 'abandoned' ? 'Abandonado' : 'Ativo'}
+                                                        </span>
+                                                    </td>
+                                                    <td className="py-3 px-4 text-gray-500 text-[11px] font-medium">
+                                                        {new Date(c.last_activity || c.created_at).toLocaleString('pt-BR')}
+                                                    </td>
+                                                </tr>
+                                            )
+                                        })
                                     )}
                                 </tbody>
                             </table>
                         </div>
+
+                        {/* Rodapé Paginador */}
+                        {totalCartPages > 1 && (
+                            <div className="flex items-center justify-between border-t border-[#EEEEEE] pt-4 text-xs text-gray-600">
+                                <span>Exibindo {paginatedCarts.length} de {filteredCarts.length} carrinhos</span>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        disabled={cartPage === 1}
+                                        onClick={() => setCartPage(p => Math.max(p - 1, 1))}
+                                        className="px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-xs font-bold text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                                    >
+                                        Anterior
+                                    </button>
+                                    <span className="font-bold text-gray-800">Página {cartPage} de {totalCartPages}</span>
+                                    <button
+                                        disabled={cartPage === totalCartPages}
+                                        onClick={() => setCartPage(p => Math.min(p + 1, totalCartPages))}
+                                        className="px-3 py-1.5 bg-[#7A3E4A] text-white rounded-lg text-xs font-bold hover:bg-[#603039] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                                    >
+                                        Próxima
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}
