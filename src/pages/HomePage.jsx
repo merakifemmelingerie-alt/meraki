@@ -105,7 +105,7 @@ export default function HomePage() {
             price3Items: 169,
             link: '/category/promo-combo',
             query: 'sutiã',
-            visible: true
+            visible: false
         }
     })
 

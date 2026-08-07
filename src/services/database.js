@@ -304,7 +304,90 @@ export async function initSupabaseSync() {
     try {
         console.log('🔄 Sincronizando tabelas com o Supabase...')
         
-        // 1. Sync Products
+        // 1. Sync Store Config FIRST (Critical visual & UI settings)
+        let dbConfigRaw = null
+        try {
+            const { data, error: configErr } = await supabase.from('store_config').select('*').limit(1).maybeSingle()
+            if (!configErr && data) {
+                dbConfigRaw = data
+            } else {
+                const res = await fetch(`${supabaseUrl}/rest/v1/store_config?select=*&limit=1`, {
+                    headers: { 'apikey': supabaseAnonKey }
+                })
+                if (res.ok) {
+                    const list = await res.json()
+                    dbConfigRaw = Array.isArray(list) ? list[0] : list
+                }
+            }
+        } catch (e) {
+            console.error('Erro ao buscar store_config no sync:', e)
+        }
+        const dbConfig = dbConfigRaw ? mapDbToFrontend('store_config', dbConfigRaw) : null
+        
+        if (dbConfig) {
+            const existingLocal = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
+            const mergedConfig = { ...existingLocal, ...dbConfig }
+            if (existingLocal.pix_key) mergedConfig.pix_key = existingLocal.pix_key
+            if (existingLocal.pixKey) mergedConfig.pixKey = existingLocal.pixKey
+
+            if (mergedConfig.topbarStyle && mergedConfig.topbarStyle.default_category_image) {
+                mergedConfig.default_category_image = mergedConfig.topbarStyle.default_category_image
+            }
+            localStorage.setItem('meraki_store_config', JSON.stringify(mergedConfig))
+            
+            if (Array.isArray(dbConfig.topbarMessages)) {
+                originalSetItem('meraki_topbar_messages', JSON.stringify(dbConfig.topbarMessages))
+            } else {
+                const existingLocalMsgs = localStorage.getItem('meraki_topbar_messages')
+                if (existingLocalMsgs) {
+                    try {
+                        mergedConfig.topbarMessages = JSON.parse(existingLocalMsgs)
+                        originalSetItem('meraki_store_config', JSON.stringify(mergedConfig))
+                    } catch (e) {}
+                }
+            }
+            if (dbConfig.topbarStyle) {
+                localStorage.setItem('meraki_topbar_style', JSON.stringify(dbConfig.topbarStyle))
+                window.dispatchEvent(new Event('topbarStyleUpdated'))
+                if (dbConfig.topbarStyle.availableSections) {
+                    localStorage.setItem('meraki_sections', JSON.stringify(dbConfig.topbarStyle.availableSections))
+                }
+                const rawHomeCats = dbConfig.topbarStyle.homepageCategories || [
+                    { name: 'Home', description: 'Voltar para a página inicial', image: '/assets/categories/cat-conjuntos.webp', link: '/' },
+                    { name: 'Categorias', description: 'Navegar pelas nossas coleções', image: '/assets/categories/cat-noite.webp', link: '/category/conjuntos' },
+                    { name: 'Política de Troca', description: 'Regras e prazos para trocas de produtos', image: '/assets/categories/cat-sexy.webp', link: '/returns' },
+                    { name: 'Ofertas', description: 'Confira nossos produtos com descontos', image: '/assets/categories/cat-plus.webp', link: '/category/ofertas' }
+                ]
+                const homeCats = Array.isArray(rawHomeCats) ? rawHomeCats.filter(c => c && c.name) : rawHomeCats
+                localStorage.setItem('meraki_homepage_categories', JSON.stringify(homeCats))
+            }
+            if (dbConfig.promoCombo !== undefined && dbConfig.promoCombo !== null) {
+                if (dbConfig.promoCombo.image && dbConfig.promoCombo.image.includes('photo-1616422285623')) {
+                    dbConfig.promoCombo.image = '/assets/categories/cat-conjuntos.webp'
+                }
+                localStorage.setItem('meraki_promo_combo', JSON.stringify(dbConfig.promoCombo))
+                window.dispatchEvent(new Event('promoComboUpdated'))
+            }
+            if (dbConfig.editorial) {
+                localStorage.setItem('meraki_editorial', JSON.stringify(dbConfig.editorial))
+                window.dispatchEvent(new Event('editorialUpdated'))
+            }
+            if (dbConfig.shippingMessage) localStorage.setItem('meraki_shipping_message', dbConfig.shippingMessage)
+            if (dbConfig.promoMessage) localStorage.setItem('meraki_promo_message', dbConfig.promoMessage)
+            if (dbConfig.availableSizes && Array.isArray(dbConfig.availableSizes)) localStorage.setItem('meraki_available_sizes', JSON.stringify(dbConfig.availableSizes))
+            if (dbConfig.availableColors && Array.isArray(dbConfig.availableColors)) localStorage.setItem('meraki_available_colors', JSON.stringify(dbConfig.availableColors))
+            if (dbConfig.availableEmojis && Array.isArray(dbConfig.availableEmojis)) localStorage.setItem('meraki_available_emojis', JSON.stringify(dbConfig.availableEmojis))
+            if (dbConfig.availableBadges && Array.isArray(dbConfig.availableBadges)) localStorage.setItem('meraki_available_badges', JSON.stringify(dbConfig.availableBadges))
+            if (dbConfig.rewardBar) localStorage.setItem('meraki_reward_bar', JSON.stringify(dbConfig.rewardBar))
+            if (dbConfig.categoryStyles) localStorage.setItem('meraki_category_styles', JSON.stringify(dbConfig.categoryStyles))
+            if (dbConfig.pagesContent) localStorage.setItem('meraki_pages_content', JSON.stringify(dbConfig.pagesContent))
+            if (dbConfig.customPagesList) localStorage.setItem('meraki_custom_pages_list', JSON.stringify(dbConfig.customPagesList))
+            if (dbConfig.deletedPages) localStorage.setItem('meraki_deleted_pages', JSON.stringify(dbConfig.deletedPages))
+            if (dbConfig.categoriesData) localStorage.setItem('meraki_categories_data', JSON.stringify(dbConfig.categoriesData))
+            window.dispatchEvent(new Event('storeConfigUpdated'))
+        }
+
+        // 2. Sync Products
         const { data: dbProducts, error: pError } = await supabase.from('products').select('*')
         if (!pError) {
             const cleanProducts = (dbProducts || []).filter(p => p && p.name)
@@ -380,167 +463,6 @@ export async function initSupabaseSync() {
         if (!rError) {
             const mappedReturns = (dbReturns || []).map(r => mapDbToFrontend('returns', r)).filter(r => r != null)
             localStorage.setItem('meraki_all_returns', JSON.stringify(mappedReturns))
-        }
-
-        // 7. Sync Store Config
-        let dbConfigRaw = null
-        try {
-            const { data, error: configErr } = await supabase.from('store_config').select('*').limit(1).maybeSingle()
-            if (!configErr && data) {
-                dbConfigRaw = data
-            } else {
-                const res = await fetch(`${supabaseUrl}/rest/v1/store_config?select=*&limit=1`, {
-                    headers: { 'apikey': supabaseAnonKey }
-                })
-                if (res.ok) {
-                    const list = await res.json()
-                    dbConfigRaw = Array.isArray(list) ? list[0] : list
-                }
-            }
-        } catch (e) {
-            console.error('Erro ao buscar store_config no sync:', e)
-        }
-        const dbConfig = dbConfigRaw ? mapDbToFrontend('store_config', dbConfigRaw) : null
-        
-        if (dbConfig) {
-            const existingLocal = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
-            const mergedConfig = { ...existingLocal, ...dbConfig }
-            if (existingLocal.pix_key) mergedConfig.pix_key = existingLocal.pix_key
-            if (existingLocal.pixKey) mergedConfig.pixKey = existingLocal.pixKey
-
-            if (mergedConfig.topbarStyle && mergedConfig.topbarStyle.default_category_image) {
-                mergedConfig.default_category_image = mergedConfig.topbarStyle.default_category_image
-            }
-            localStorage.setItem('meraki_store_config', JSON.stringify(mergedConfig))
-            // Extract and sync visual keys to individual localStorage items
-            if (Array.isArray(dbConfig.topbarMessages)) {
-                originalSetItem('meraki_topbar_messages', JSON.stringify(dbConfig.topbarMessages))
-            } else {
-                const existingLocalMsgs = localStorage.getItem('meraki_topbar_messages')
-                if (existingLocalMsgs) {
-                    try {
-                        mergedConfig.topbarMessages = JSON.parse(existingLocalMsgs)
-                        originalSetItem('meraki_store_config', JSON.stringify(mergedConfig))
-                    } catch (e) {}
-                }
-            }
-            if (dbConfig.topbarStyle) {
-                localStorage.setItem('meraki_topbar_style', JSON.stringify(dbConfig.topbarStyle))
-                window.dispatchEvent(new Event('topbarStyleUpdated'))
-                if (dbConfig.topbarStyle.availableSections) {
-                    localStorage.setItem('meraki_sections', JSON.stringify(dbConfig.topbarStyle.availableSections))
-                }
-                const rawHomeCats = dbConfig.topbarStyle.homepageCategories || [
-                    { name: 'Home', description: 'Voltar para a página inicial', image: '/assets/categories/cat-conjuntos.webp', link: '/' },
-                    { name: 'Categorias', description: 'Navegar pelas nossas coleções', image: '/assets/categories/cat-noite.webp', link: '/category/conjuntos' },
-                    { name: 'Política de Troca', description: 'Regras e prazos para trocas de produtos', image: '/assets/categories/cat-sexy.webp', link: '/returns' },
-                    { name: 'Ofertas', description: 'Confira nossos produtos com descontos', image: '/assets/categories/cat-plus.webp', link: '/category/ofertas' }
-                ]
-                const homeCats = Array.isArray(rawHomeCats) ? rawHomeCats.filter(c => c && c.name) : rawHomeCats
-                localStorage.setItem('meraki_homepage_categories', JSON.stringify(homeCats))
-            }
-            if (dbConfig.promoCombo) {
-                if (dbConfig.promoCombo.image && dbConfig.promoCombo.image.includes('photo-1616422285623')) {
-                    dbConfig.promoCombo.image = '/assets/categories/cat-conjuntos.webp'
-                }
-                localStorage.setItem('meraki_promo_combo', JSON.stringify(dbConfig.promoCombo))
-                window.dispatchEvent(new Event('promoComboUpdated'))
-            }
-            if (dbConfig.editorial) {
-                localStorage.setItem('meraki_editorial', JSON.stringify(dbConfig.editorial))
-                window.dispatchEvent(new Event('editorialUpdated'))
-            }
-            if (dbConfig.shippingMessage) localStorage.setItem('meraki_shipping_message', dbConfig.shippingMessage)
-            if (dbConfig.promoMessage) localStorage.setItem('meraki_promo_message', dbConfig.promoMessage)
-            if (dbConfig.availableSizes && Array.isArray(dbConfig.availableSizes)) localStorage.setItem('meraki_available_sizes', JSON.stringify(dbConfig.availableSizes))
-            if (dbConfig.availableColors && Array.isArray(dbConfig.availableColors)) localStorage.setItem('meraki_available_colors', JSON.stringify(dbConfig.availableColors))
-            if (dbConfig.availableEmojis && Array.isArray(dbConfig.availableEmojis)) localStorage.setItem('meraki_available_emojis', JSON.stringify(dbConfig.availableEmojis))
-            if (dbConfig.availableBadges && Array.isArray(dbConfig.availableBadges)) localStorage.setItem('meraki_available_badges', JSON.stringify(dbConfig.availableBadges))
-            if (dbConfig.rewardBar) localStorage.setItem('meraki_reward_bar', JSON.stringify(dbConfig.rewardBar))
-            if (dbConfig.categoryStyles) localStorage.setItem('meraki_category_styles', JSON.stringify(dbConfig.categoryStyles))
-            if (dbConfig.pagesContent) localStorage.setItem('meraki_pages_content', JSON.stringify(dbConfig.pagesContent))
-            if (dbConfig.customPagesList) localStorage.setItem('meraki_custom_pages_list', JSON.stringify(dbConfig.customPagesList))
-            if (dbConfig.deletedPages) localStorage.setItem('meraki_deleted_pages', JSON.stringify(dbConfig.deletedPages))
-            if (dbConfig.categoriesData) localStorage.setItem('meraki_categories_data', JSON.stringify(dbConfig.categoriesData))
-            window.dispatchEvent(new Event('storeConfigUpdated'))
-        } else {
-            const existingLocalMsgs = localStorage.getItem('meraki_topbar_messages')
-            let initialMsgs = [
-                "✨ Frete Grátis acima de R$ 299 • Parcele em até 12x",
-                "Utilize o cupom BEMVIND010 em sua primeira compra!",
-                "Ganhe 5% de desconto pagando no PIX!"
-            ]
-            if (existingLocalMsgs) {
-                try { initialMsgs = JSON.parse(existingLocalMsgs) } catch (e) {}
-            }
-
-            const defaultConfig = {
-                id: 'default',
-                whatsapp: '551123880403',
-                sac_phone: '(11) 2388-0403',
-                address: 'Avenida Alfredo Nasser, Qd. 14, Lt. 05 - Centro, Bonfinópolis - GO, CEP: 75195-000',
-                cnpj: '57.484.768/0064-89',
-                infinitepay_handle: 'merakimodafeminina2026',
-                topbarMessages: initialMsgs,
-                topbarStyle: { bgColor: '#5B6E57', textColor: '#FFFFFF' },
-                promoCombo: {
-                    title: 'Combo Sutiã',
-                    subtitle: 'Do P ao EG. Diversos modelos para você escolher.',
-                    image: '/assets/categories/cat-conjuntos.webp',
-                    price2Items: 139,
-                    price3Items: 169,
-                    link: '/category/promo-combo',
-                    query: 'sutiã',
-                    visible: true
-                },
-                editorial: {
-                    label: 'Artesanal & Premium',
-                    title: 'A arte de se sentir extraordinária.',
-                    description: 'Cada costura, cada detalhe em renda foi pensado para elevar sua confiança e celebrar sua beleza única em todos os momentos.',
-                    buttonText: 'Ver Manifesto',
-                    buttonLink: '/story',
-                    image: '/assets/banners/banner-2.webp'
-                },
-                shippingMessage: 'Frete grátis para a região Centro-Oeste nas compras acima de R$ 299,90.',
-                rewardBar: {
-                    enabled: true,
-                    target_type: 'value',
-                    target_value: 299.99,
-                    reward_type: 'frete_gratis',
-                    reward_title: 'Frete Grátis',
-                    success_message: 'Parabéns! Você ganhou Frete Grátis!'
-                }
-            }
-            localStorage.setItem('meraki_store_config', JSON.stringify(defaultConfig))
-            if (!existingLocalMsgs) {
-                localStorage.setItem('meraki_topbar_messages', JSON.stringify(defaultConfig.topbarMessages))
-            }
-            if (!localStorage.getItem('meraki_topbar_style')) {
-                localStorage.setItem('meraki_topbar_style', JSON.stringify(defaultConfig.topbarStyle))
-            }
-            if (!localStorage.getItem('meraki_promo_combo')) {
-                localStorage.setItem('meraki_promo_combo', JSON.stringify(defaultConfig.promoCombo))
-            }
-            if (!localStorage.getItem('meraki_editorial')) {
-                localStorage.setItem('meraki_editorial', JSON.stringify(defaultConfig.editorial))
-            }
-            if (!localStorage.getItem('meraki_shipping_message')) {
-                localStorage.setItem('meraki_shipping_message', defaultConfig.shippingMessage)
-            }
-            if (!localStorage.getItem('meraki_reward_bar')) {
-                localStorage.setItem('meraki_reward_bar', JSON.stringify(defaultConfig.rewardBar))
-            }
-            const defaultHomeCats = [
-                { name: 'Home', description: 'Voltar para a página inicial', image: '/assets/categories/cat-conjuntos.webp', link: '/' },
-                { name: 'Categorias', description: 'Navegar pelas nossas coleções', image: '/assets/categories/cat-noite.webp', link: '/category/conjuntos' },
-                { name: 'Política de Troca', description: 'Regras e prazos para trocas de produtos', image: '/assets/categories/cat-sexy.webp', link: '/returns' },
-                { name: 'Ofertas', description: 'Confira nossos produtos com descontos', image: '/assets/categories/cat-plus.webp', link: '/category/ofertas' }
-            ]
-            if (!localStorage.getItem('meraki_homepage_categories')) {
-                localStorage.setItem('meraki_homepage_categories', JSON.stringify(defaultHomeCats))
-            }
-            // Seed Supabase with defaultConfig so future queries will find the record
-            updateStoreConfig(defaultConfig)
         }
 
         console.log('✅ Sincronização concluída com sucesso.')
