@@ -299,6 +299,23 @@ function sanitizeLocalStorage() {
 // Run sanitization immediately at module load, before any component reads localStorage
 sanitizeLocalStorage()
 
+function setStorageIfChanged(key, newValue, dispatchEventName = null) {
+    if (typeof window === 'undefined') return false
+    const existing = localStorage.getItem(key)
+    if (existing !== newValue) {
+        if (key === 'meraki_categories' || key === 'meraki_topbar_messages' || key === 'meraki_store_config') {
+            originalSetItem(key, newValue)
+        } else {
+            localStorage.setItem(key, newValue)
+        }
+        if (dispatchEventName) {
+            window.dispatchEvent(new Event(dispatchEventName))
+        }
+        return true
+    }
+    return false
+}
+
 export async function initSupabaseSync() {
     isSyncing = true
     try {
@@ -333,24 +350,23 @@ export async function initSupabaseSync() {
             if (mergedConfig.topbarStyle && mergedConfig.topbarStyle.default_category_image) {
                 mergedConfig.default_category_image = mergedConfig.topbarStyle.default_category_image
             }
-            localStorage.setItem('meraki_store_config', JSON.stringify(mergedConfig))
+            setStorageIfChanged('meraki_store_config', JSON.stringify(mergedConfig), 'storeConfigUpdated')
             
             if (Array.isArray(dbConfig.topbarMessages)) {
-                originalSetItem('meraki_topbar_messages', JSON.stringify(dbConfig.topbarMessages))
+                setStorageIfChanged('meraki_topbar_messages', JSON.stringify(dbConfig.topbarMessages), 'topbarMessagesUpdated')
             } else {
                 const existingLocalMsgs = localStorage.getItem('meraki_topbar_messages')
                 if (existingLocalMsgs) {
                     try {
                         mergedConfig.topbarMessages = JSON.parse(existingLocalMsgs)
-                        originalSetItem('meraki_store_config', JSON.stringify(mergedConfig))
+                        setStorageIfChanged('meraki_store_config', JSON.stringify(mergedConfig))
                     } catch (e) {}
                 }
             }
             if (dbConfig.topbarStyle) {
-                localStorage.setItem('meraki_topbar_style', JSON.stringify(dbConfig.topbarStyle))
-                window.dispatchEvent(new Event('topbarStyleUpdated'))
+                setStorageIfChanged('meraki_topbar_style', JSON.stringify(dbConfig.topbarStyle), 'topbarStyleUpdated')
                 if (dbConfig.topbarStyle.availableSections) {
-                    localStorage.setItem('meraki_sections', JSON.stringify(dbConfig.topbarStyle.availableSections))
+                    setStorageIfChanged('meraki_sections', JSON.stringify(dbConfig.topbarStyle.availableSections))
                 }
                 const rawHomeCats = dbConfig.topbarStyle.homepageCategories || [
                     { name: 'Home', description: 'Voltar para a página inicial', image: '/assets/categories/cat-conjuntos.webp', link: '/' },
@@ -359,39 +375,36 @@ export async function initSupabaseSync() {
                     { name: 'Ofertas', description: 'Confira nossos produtos com descontos', image: '/assets/categories/cat-plus.webp', link: '/category/ofertas' }
                 ]
                 const homeCats = Array.isArray(rawHomeCats) ? rawHomeCats.filter(c => c && c.name) : rawHomeCats
-                localStorage.setItem('meraki_homepage_categories', JSON.stringify(homeCats))
+                setStorageIfChanged('meraki_homepage_categories', JSON.stringify(homeCats))
             }
             if (dbConfig.promoCombo !== undefined && dbConfig.promoCombo !== null) {
                 if (dbConfig.promoCombo.image && dbConfig.promoCombo.image.includes('photo-1616422285623')) {
                     dbConfig.promoCombo.image = '/assets/categories/cat-conjuntos.webp'
                 }
-                localStorage.setItem('meraki_promo_combo', JSON.stringify(dbConfig.promoCombo))
-                window.dispatchEvent(new Event('promoComboUpdated'))
+                setStorageIfChanged('meraki_promo_combo', JSON.stringify(dbConfig.promoCombo), 'promoComboUpdated')
             }
             if (dbConfig.editorial) {
-                localStorage.setItem('meraki_editorial', JSON.stringify(dbConfig.editorial))
-                window.dispatchEvent(new Event('editorialUpdated'))
+                setStorageIfChanged('meraki_editorial', JSON.stringify(dbConfig.editorial), 'editorialUpdated')
             }
-            if (dbConfig.shippingMessage) localStorage.setItem('meraki_shipping_message', dbConfig.shippingMessage)
-            if (dbConfig.promoMessage) localStorage.setItem('meraki_promo_message', dbConfig.promoMessage)
-            if (dbConfig.availableSizes && Array.isArray(dbConfig.availableSizes)) localStorage.setItem('meraki_available_sizes', JSON.stringify(dbConfig.availableSizes))
-            if (dbConfig.availableColors && Array.isArray(dbConfig.availableColors)) localStorage.setItem('meraki_available_colors', JSON.stringify(dbConfig.availableColors))
-            if (dbConfig.availableEmojis && Array.isArray(dbConfig.availableEmojis)) localStorage.setItem('meraki_available_emojis', JSON.stringify(dbConfig.availableEmojis))
-            if (dbConfig.availableBadges && Array.isArray(dbConfig.availableBadges)) localStorage.setItem('meraki_available_badges', JSON.stringify(dbConfig.availableBadges))
-            if (dbConfig.rewardBar) localStorage.setItem('meraki_reward_bar', JSON.stringify(dbConfig.rewardBar))
-            if (dbConfig.categoryStyles) localStorage.setItem('meraki_category_styles', JSON.stringify(dbConfig.categoryStyles))
-            if (dbConfig.pagesContent) localStorage.setItem('meraki_pages_content', JSON.stringify(dbConfig.pagesContent))
-            if (dbConfig.customPagesList) localStorage.setItem('meraki_custom_pages_list', JSON.stringify(dbConfig.customPagesList))
-            if (dbConfig.deletedPages) localStorage.setItem('meraki_deleted_pages', JSON.stringify(dbConfig.deletedPages))
-            if (dbConfig.categoriesData) localStorage.setItem('meraki_categories_data', JSON.stringify(dbConfig.categoriesData))
-            window.dispatchEvent(new Event('storeConfigUpdated'))
+            if (dbConfig.shippingMessage) setStorageIfChanged('meraki_shipping_message', dbConfig.shippingMessage)
+            if (dbConfig.promoMessage) setStorageIfChanged('meraki_promo_message', dbConfig.promoMessage)
+            if (dbConfig.availableSizes && Array.isArray(dbConfig.availableSizes)) setStorageIfChanged('meraki_available_sizes', JSON.stringify(dbConfig.availableSizes))
+            if (dbConfig.availableColors && Array.isArray(dbConfig.availableColors)) setStorageIfChanged('meraki_available_colors', JSON.stringify(dbConfig.availableColors))
+            if (dbConfig.availableEmojis && Array.isArray(dbConfig.availableEmojis)) setStorageIfChanged('meraki_available_emojis', JSON.stringify(dbConfig.availableEmojis))
+            if (dbConfig.availableBadges && Array.isArray(dbConfig.availableBadges)) setStorageIfChanged('meraki_available_badges', JSON.stringify(dbConfig.availableBadges))
+            if (dbConfig.rewardBar) setStorageIfChanged('meraki_reward_bar', JSON.stringify(dbConfig.rewardBar))
+            if (dbConfig.categoryStyles) setStorageIfChanged('meraki_category_styles', JSON.stringify(dbConfig.categoryStyles))
+            if (dbConfig.pagesContent) setStorageIfChanged('meraki_pages_content', JSON.stringify(dbConfig.pagesContent))
+            if (dbConfig.customPagesList) setStorageIfChanged('meraki_custom_pages_list', JSON.stringify(dbConfig.customPagesList))
+            if (dbConfig.deletedPages) setStorageIfChanged('meraki_deleted_pages', JSON.stringify(dbConfig.deletedPages))
+            if (dbConfig.categoriesData) setStorageIfChanged('meraki_categories_data', JSON.stringify(dbConfig.categoriesData))
         }
 
         // 2. Sync Products
         const { data: dbProducts, error: pError } = await supabase.from('products').select('*')
         if (!pError) {
             const cleanProducts = (dbProducts || []).filter(p => p && p.name)
-            localStorage.setItem('meraki_products', JSON.stringify(cleanProducts))
+            setStorageIfChanged('meraki_products', JSON.stringify(cleanProducts))
         }
 
         // 2. Sync Orders — always overwrite to clear stale cache
@@ -412,7 +425,7 @@ export async function initSupabaseSync() {
         const { data: dbBanners, error: bError } = await supabase.from('banners').select('*')
         if (!bError) {
             if (dbBanners && dbBanners.length > 0) {
-                localStorage.setItem('meraki_banners', JSON.stringify(dbBanners))
+                setStorageIfChanged('meraki_banners', JSON.stringify(dbBanners))
             } else {
                 const localBanners = JSON.parse(localStorage.getItem('meraki_banners') || '[]')
                 if (localBanners.length > 0) {
@@ -455,7 +468,7 @@ export async function initSupabaseSync() {
             }
 
             const mergedCategories = Array.from(categoryMap.values())
-            originalSetItem('meraki_categories', JSON.stringify(mergedCategories))
+            setStorageIfChanged('meraki_categories', JSON.stringify(mergedCategories))
         }
 
         // 6. Sync Returns — always overwrite to clear stale cache
