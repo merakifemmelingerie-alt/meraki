@@ -3791,8 +3791,10 @@ export function FinancialSection({
         return true
     })
 
-    const isOrderPaid = (status) => ['Aprovado', 'Pago', 'Concluído', 'Enviado', 'Entregue', 'paid', 'approved', 'completed'].includes(status)
-    const isOrderPending = (status) => ['PENDENTE', 'pending', 'Aguardando Pagamento', 'aguardando'].includes(status) || (!status || status === '')
+    const getNormStatus = (s) => (s || '').toString().trim().toLowerCase()
+    const isOrderPaid = (status) => ['pago', 'aprovado', 'concluido', 'concluído', 'enviado', 'entregue', 'paid', 'approved', 'completed'].includes(getNormStatus(status))
+    const isOrderCancelled = (status) => ['cancelado', 'cancelled', 'canceled', 'estornado', 'refunded', 'expirado'].includes(getNormStatus(status))
+    const isOrderPending = (status) => !isOrderPaid(status) && !isOrderCancelled(status)
 
     const paidOrdersDRE = filteredOrdersDRE.filter(o => isOrderPaid(o.status))
     const pendingOrdersDRE = filteredOrdersDRE.filter(o => isOrderPending(o.status))
@@ -4478,13 +4480,13 @@ export function FinancialSection({
                                                     <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 uppercase tracking-wider">
                                                         ✓ Pago
                                                     </span>
-                                                ) : isOrderPending(order.status) ? (
-                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-800 uppercase tracking-wider">
-                                                        ⏳ Aguardando
-                                                    </span>
-                                                ) : (
+                                                ) : isOrderCancelled(order.status) ? (
                                                     <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-red-100 text-red-800 uppercase tracking-wider">
                                                         ✕ Cancelado
+                                                    </span>
+                                                ) : (
+                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-800 uppercase tracking-wider">
+                                                        ⏳ Aguardando
                                                     </span>
                                                 )}
                                             </td>
