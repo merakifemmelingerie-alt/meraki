@@ -5902,6 +5902,16 @@ export function PollsSection() {
         loadPollsData()
     }
 
+    const hasActivePolls = polls.some(p => p.active)
+
+    const handleToggleAllPolls = async () => {
+        const targetState = !hasActivePolls
+        for (const p of polls) {
+            await togglePollActive(p.id, targetState)
+        }
+        setPolls(prev => prev.map(p => ({ ...p, active: targetState })))
+    }
+
     const handleToggleActive = async (id, currentActive) => {
         await togglePollActive(id, !currentActive)
         setPolls(prev => prev.map(p => p.id === id ? { ...p, active: !currentActive } : p))
@@ -5925,6 +5935,38 @@ export function PollsSection() {
                     className="px-4 py-2.5 bg-[#7A3E4A] hover:bg-[#5B6E57] text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-colors cursor-pointer"
                 >
                     + Criar Nova Enquete
+                </button>
+            </div>
+
+            {/* Master Switch Banner */}
+            <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                    <span className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0 ${
+                        hasActivePolls ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
+                    }`}>
+                        {hasActivePolls ? '📊' : '🚫'}
+                    </span>
+                    <div>
+                        <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider">
+                            Status de Exibição das Enquetes no Site
+                        </h3>
+                        <p className="text-xs text-gray-500 font-medium mt-0.5">
+                            {hasActivePolls 
+                                ? 'A enquete está ATIVA e visível para todas as clientes em tempo real.' 
+                                : 'A enquete está DESATIVADA. O botão "Enquetes & Votação" DESAPARECEU 100% do site em todos os computadores.'}
+                        </p>
+                    </div>
+                </div>
+
+                <button
+                    onClick={handleToggleAllPolls}
+                    className={`px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer shadow-xs whitespace-nowrap flex items-center gap-2 ${
+                        hasActivePolls
+                            ? 'bg-red-600 hover:bg-red-700 text-white'
+                            : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                    }`}
+                >
+                    {hasActivePolls ? '🔴 Desativar Enquetes (Ocultar no Site)' : '🟢 Ativar Enquete no Site'}
                 </button>
             </div>
 
@@ -5993,13 +6035,17 @@ export function PollsSection() {
                                     <div className="flex gap-2">
                                         <button
                                             onClick={() => handleToggleActive(poll.id, poll.active)}
-                                            className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-lg text-[10px] cursor-pointer"
+                                            className={`px-3 py-1.5 rounded-lg text-[11px] font-extrabold cursor-pointer transition-all ${
+                                                poll.active
+                                                    ? 'bg-amber-100 text-amber-900 hover:bg-amber-200 border border-amber-300'
+                                                    : 'bg-emerald-100 text-emerald-900 hover:bg-emerald-200 border border-emerald-300'
+                                            }`}
                                         >
-                                            {poll.active ? 'Pausar' : 'Ativar'}
+                                            {poll.active ? '⏸️ Desativar esta Enquete' : '▶️ Ativar no Site'}
                                         </button>
                                         <button
                                             onClick={() => handleDelete(poll.id)}
-                                            className="px-3 py-1 bg-red-50 hover:bg-red-100 text-red-600 font-bold rounded-lg text-[10px] cursor-pointer"
+                                            className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 font-bold rounded-lg text-[11px] cursor-pointer"
                                         >
                                             Excluir
                                         </button>

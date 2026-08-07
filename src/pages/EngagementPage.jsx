@@ -4,6 +4,7 @@ import BenefitsBar from '../components/BenefitsBar.jsx'
 import Footer from '../components/Footer.jsx'
 import WhatsAppButton from '../components/WhatsAppButton.jsx'
 import { submitSuggestion, getPolls, submitPollVote, getPollVotes, submitProductRequest } from '../services/database.js'
+import { supabase } from '../services/supabase.js'
 
 // Custom Luxury Dropdown Select Component (eliminates native OS blue menu)
 function CustomSelect({ value, onChange, options }) {
@@ -123,7 +124,24 @@ export default function EngagementPage() {
         } catch {}
 
         loadPollsData()
+
+        const channel = supabase
+            .channel('public:polls:engagement')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'polls' }, () => {
+                loadPollsData()
+            })
+            .subscribe()
+
+        return () => {
+            supabase.removeChannel(channel)
+        }
     }, [])
+
+    useEffect(() => {
+        if (activeTab === 'polls' && polls.length === 0) {
+            setActiveTab('suggestions')
+        }
+    }, [activeTab, polls])
 
     const loadPollsData = async () => {
         const { data } = await getPolls()
@@ -133,6 +151,8 @@ export default function EngagementPage() {
             const current = activePolls[0]
             setSelectedPoll(current)
             fetchVotesForPoll(current.id)
+        } else {
+            setSelectedPoll(null)
         }
     }
 
@@ -308,19 +328,21 @@ export default function EngagementPage() {
                         <span>Mural de Sugestões</span>
                     </button>
 
-                    <button
-                        onClick={() => { setActiveTab('polls'); setFeedbackMsg(''); }}
-                        className={`flex-1 py-3 px-4 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer ${
-                            activeTab === 'polls'
-                                ? 'bg-[#7A3E4A] text-white shadow-xs'
-                                : 'bg-transparent text-gray-600 hover:bg-[#FAF9F5]'
-                        }`}
-                    >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                        </svg>
-                        <span>Enquetes & Votação</span>
-                    </button>
+                    {polls.length > 0 && (
+                        <button
+                            onClick={() => { setActiveTab('polls'); setFeedbackMsg(''); }}
+                            className={`flex-1 py-3 px-4 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer ${
+                                activeTab === 'polls'
+                                    ? 'bg-[#7A3E4A] text-white shadow-xs'
+                                    : 'bg-transparent text-gray-600 hover:bg-[#FAF9F5]'
+                            }`}
+                        >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                            </svg>
+                            <span>Enquetes & Votação</span>
+                        </button>
+                    )}
 
                     <button
                         onClick={() => { setActiveTab('request'); setFeedbackMsg(''); }}
