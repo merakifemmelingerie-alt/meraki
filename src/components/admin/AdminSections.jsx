@@ -2800,7 +2800,10 @@ export function InstitutionalSection({ saving, setSaving, updateStoreConfig }) {
     const [customPagesList, setCustomPagesList] = useState(() => {
         try {
             const stored = localStorage.getItem('meraki_custom_pages_list')
-            if (stored) return JSON.parse(stored)
+            if (stored) {
+                const parsed = JSON.parse(stored)
+                if (Array.isArray(parsed)) return parsed
+            }
         } catch {}
         return []
     })
@@ -2808,7 +2811,10 @@ export function InstitutionalSection({ saving, setSaving, updateStoreConfig }) {
     const [deletedPages, setDeletedPages] = useState(() => {
         try {
             const stored = localStorage.getItem('meraki_deleted_pages')
-            if (stored) return JSON.parse(stored)
+            if (stored) {
+                const parsed = JSON.parse(stored)
+                if (Array.isArray(parsed)) return parsed
+            }
         } catch {}
         return []
     })
@@ -2820,11 +2826,12 @@ export function InstitutionalSection({ saving, setSaving, updateStoreConfig }) {
     const [newPageContent, setNewPageContent] = useState('')
 
     const allMasterPagesList = useMemo(() => {
-        return [...masterPagesList, ...customPagesList]
+        return [...masterPagesList, ...(Array.isArray(customPagesList) ? customPagesList : [])]
     }, [customPagesList])
 
     const pagesList = useMemo(() => {
-        return allMasterPagesList.filter(p => !deletedPages.includes(p.id))
+        const safeDeleted = Array.isArray(deletedPages) ? deletedPages : []
+        return allMasterPagesList.filter(p => !safeDeleted.includes(p.id))
     }, [allMasterPagesList, deletedPages])
 
     const handleCreatePage = async (e) => {
@@ -3082,9 +3089,9 @@ export function InstitutionalSection({ saving, setSaving, updateStoreConfig }) {
     const inputCls = "w-full px-4 py-3 bg-[#FAF9F5] border border-[#EEEEEE] rounded-xl text-sm text-gray-800 outline-none focus:border-[#7A3E4A] focus:ring-2 focus:ring-[#7A3E4A]/10 transition-all font-medium placeholder-gray-400"
     const labelCls = "block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5"
 
-    const isHtmlContent = /<[a-z][\s\S]*>/i.test(pageContent)
+    const isHtmlContent = typeof pageContent === 'string' && /<[a-z][\s\S]*>/i.test(pageContent)
     const renderPreviewContent = () => {
-        if (!pageContent) return <p className="text-gray-400 text-xs italic">Sem conteúdo digitado.</p>
+        if (!pageContent || typeof pageContent !== 'string') return <p className="text-gray-400 text-xs italic">Sem conteúdo digitado.</p>
         if (isHtmlContent) {
             return (
                 <div 

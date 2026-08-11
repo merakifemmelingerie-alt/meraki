@@ -186,7 +186,7 @@ export default function InfoPage({ tab: propTab }) {
                             dangerouslySetInnerHTML={{ __html: custom.content }}
                         />
                     ) : (
-                        custom.content.split('\n\n').filter(Boolean).map((p, idx) => (
+                        (typeof custom.content === 'string' ? custom.content : String(custom.content || '')).split('\n\n').filter(Boolean).map((p, idx) => (
                             <p key={idx} className="text-sm leading-relaxed text-gray-600 whitespace-pre-line">
                                 {p}
                             </p>
