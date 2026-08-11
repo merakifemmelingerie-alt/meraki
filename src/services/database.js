@@ -570,14 +570,14 @@ localStorage.setItem = function(key, value) {
         } else if (key === 'meraki_banners') {
             syncTableToSupabase('banners', parsed)
         } else if (key === 'meraki_categories') {
-            const categoriesWithDefaults = parsed.map(cat => ({
+            const categoriesWithDefaults = (Array.isArray(parsed) ? parsed : []).map(cat => ({
                 group: 'Geral',
                 ...cat,
             }))
             syncTableToSupabase('categories', categoriesWithDefaults)
         } else if (key.startsWith('meraki_returns_')) {
             const email = key.replace('meraki_returns_', '')
-            const returnsWithEmail = parsed.map(ret => ({ ...ret, customerEmail: email }))
+            const returnsWithEmail = (Array.isArray(parsed) ? parsed : []).map(ret => ({ ...ret, customerEmail: email }))
             syncTableToSupabase('returns', returnsWithEmail)
         } else if (key === 'meraki_store_config') {
             updateStoreConfig(parsed).then(() => {

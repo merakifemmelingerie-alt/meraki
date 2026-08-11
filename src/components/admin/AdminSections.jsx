@@ -370,7 +370,7 @@ export function CouponsSection({
 }
 
 export function BannersSection({
-    banners,
+    banners = [],
     setBannerModal,
     getAssetUrl,
     compressImage,
@@ -380,6 +380,7 @@ export function BannersSection({
     handleDeleteBanner,
     updateStoreConfig
 }) {
+    const safeBanners = Array.isArray(banners) ? banners : []
     const [activeTransition, setActiveTransition] = useState(() => {
         try {
             const config = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
@@ -484,7 +485,7 @@ export function BannersSection({
                 <div>
                     <h2 className="text-sm font-black text-gray-900">Banners do Carrossel</h2>
                     <p className="text-[10px] text-gray-400 font-medium">
-                        {banners.length} banner{banners.length !== 1 ? 's' : ''} ativo{banners.length !== 1 ? 's' : ''} • <span className="text-[#C6A76A] font-bold">Responsivo (Desktop + Mobile)</span>
+                        {safeBanners.length} banner{safeBanners.length !== 1 ? 's' : ''} ativo{safeBanners.length !== 1 ? 's' : ''} • <span className="text-[#C6A76A] font-bold">Responsivo (Desktop + Mobile)</span>
                     </p>
                 </div>
                 <button onClick={() => setBannerModal(true)} className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-[#7A3E4A] to-[#9A5060] text-white text-xs font-bold uppercase tracking-wider rounded-xl hover:shadow-lg hover:shadow-[#7A3E4A]/30 transition-all cursor-pointer">
@@ -547,7 +548,7 @@ export function BannersSection({
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {banners.map(bn => (
+                {safeBanners.map(bn => (
                     <div key={bn.id} className="bg-white rounded-2xl border border-[#EEEEEE] overflow-hidden hover:border-[#7A3E4A]/20 hover:shadow-lg transition-all group p-4 space-y-4">
                         {/* Previews: Widescreen Desktop + Vertical Mobile side-by-side */}
                         <div className="grid grid-cols-3 gap-3">
@@ -3720,14 +3721,14 @@ export function FinancialSection({
     }, [searchQuery, filter, period, startDate, endDate, itemsPerPage, activeTab])
 
     // Order DRE Calculation
-    const orderCostAnalysis = orders.map(order => {
+    const orderCostAnalysis = (orders || []).map(order => {
         const salePrice = Number(order.total) || 0
         const discountAmount = Number(order.discount) || 0
         
         let productCost = 0
         if (order.items && Array.isArray(order.items)) {
             order.items.forEach(item => {
-                const foundProd = products.find(p => p.id === item.id || p.name === item.name)
+                const foundProd = (products || []).find(p => p && (p.id === item.id || p.name === item.name))
                 const itemCost = foundProd?.cost_price || foundProd?.costPrice || (Number(item.price) * 0.35) || 0
                 productCost += itemCost * (Number(item.quantity) || 1)
             })
@@ -3809,7 +3810,7 @@ export function FinancialSection({
 
     const totalPendingOrdersRevenue = pendingOrdersDRE.reduce((sum, o) => sum + o.salePrice, 0)
 
-    const paidOrders = orders.filter(o => ['Pago', 'Enviado', 'Entregue'].includes(o.status))
+    const paidOrders = (orders || []).filter(o => o && ['Pago', 'Enviado', 'Entregue'].includes(o.status))
     const orderRevenues = paidOrders.map(o => ({
         id: `ord-${o.id}`,
         isOrder: true,
@@ -3824,7 +3825,7 @@ export function FinancialSection({
         created_at: o.created_at || new Date().toISOString()
     }))
 
-    const allTransactionsList = [...transactions, ...orderRevenues]
+    const allTransactionsList = [...(transactions || []), ...orderRevenues]
 
     const filteredTransactionsList = allTransactionsList.filter(item => {
         const itemDate = new Date(item.due_date || item.created_at)
@@ -6184,7 +6185,7 @@ export function WishlistAnalyticsSection() {
                             <span className="text-[10px] text-gray-400 font-normal">Demanda Direta</span>
                         </h3>
 
-                        {analytics.topProducts.length === 0 ? (
+                        {(!analytics?.topProducts || analytics.topProducts.length === 0) ? (
                             <div className="text-xs text-gray-400 py-6 text-center">Nenhum favorito registrado ainda.</div>
                         ) : (
                             <div className="space-y-2.5">
@@ -6209,12 +6210,12 @@ export function WishlistAnalyticsSection() {
                         
                         <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-xs space-y-4">
                             <h3 className="font-heading text-sm font-bold text-gray-900 uppercase tracking-wider">Cores Mais Procuradas</h3>
-                            {analytics.topColors.length === 0 ? (
+                            {(!analytics?.topColors || analytics.topColors.length === 0) ? (
                                 <div className="text-xs text-gray-400 py-4 text-center">Sem dados de cores.</div>
                             ) : (
                                 <div className="space-y-2.5">
                                     {analytics.topColors.map((item, idx) => {
-                                        const totalCol = analytics.topColors.reduce((a, b) => a + b.count, 0)
+                                        const totalCol = analytics.topColors.reduce((a, b) => a + (b.count || 0), 0)
                                         const pct = totalCol > 0 ? Math.round((item.count / totalCol) * 100) : 0
                                         return (
                                             <div key={idx} className="space-y-1 text-xs">
@@ -6234,7 +6235,7 @@ export function WishlistAnalyticsSection() {
 
                         <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-xs space-y-4">
                             <h3 className="font-heading text-sm font-bold text-gray-900 uppercase tracking-wider">Tamanhos Mais Desejados</h3>
-                            {analytics.topSizes.length === 0 ? (
+                            {(!analytics?.topSizes || analytics.topSizes.length === 0) ? (
                                 <div className="text-xs text-gray-400 py-4 text-center">Sem dados de tamanhos.</div>
                             ) : (
                                 <div className="grid grid-cols-2 gap-2">

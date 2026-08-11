@@ -736,20 +736,26 @@ export default function AdminPage() {
     )
 
     // ─── Computed ─────────────────────────────────────────────────────────────
+    const safeProducts = Array.isArray(products) ? products : []
+    const safeOrders = Array.isArray(orders) ? orders : []
+    const safeCustomers = Array.isArray(customers) ? customers : []
+    const safeReturns = Array.isArray(returns) ? returns : []
+    const safeCoupons = Array.isArray(coupons) ? coupons : []
+
     const filteredProducts = searchQuery
-        ? products.filter(p => p.name?.toLowerCase().includes(searchQuery.toLowerCase()) || p.category?.toLowerCase().includes(searchQuery.toLowerCase()))
-        : products
+        ? safeProducts.filter(p => p && (p.name?.toLowerCase().includes(searchQuery.toLowerCase()) || (typeof p.category === 'string' ? p.category : p.category?.name || '').toLowerCase().includes(searchQuery.toLowerCase())))
+        : safeProducts
 
-    const paginatedProducts = filteredProducts.slice((pPage - 1) * ITEMS_PER_PAGE, pPage * ITEMS_PER_PAGE)
-    const paginatedOrders = orders.slice((oPage - 1) * ITEMS_PER_PAGE, oPage * ITEMS_PER_PAGE)
-    const paginatedCustomers = customers.slice((cPage - 1) * ITEMS_PER_PAGE, cPage * ITEMS_PER_PAGE)
-    const paginatedReturns = returns.slice((rPage - 1) * ITEMS_PER_PAGE, rPage * ITEMS_PER_PAGE)
-    const paginatedCoupons = coupons.slice((cpPage - 1) * ITEMS_PER_PAGE, cpPage * ITEMS_PER_PAGE)
+    const paginatedProducts = (filteredProducts || []).slice((pPage - 1) * ITEMS_PER_PAGE, pPage * ITEMS_PER_PAGE)
+    const paginatedOrders = safeOrders.slice((oPage - 1) * ITEMS_PER_PAGE, oPage * ITEMS_PER_PAGE)
+    const paginatedCustomers = safeCustomers.slice((cPage - 1) * ITEMS_PER_PAGE, cPage * ITEMS_PER_PAGE)
+    const paginatedReturns = safeReturns.slice((rPage - 1) * ITEMS_PER_PAGE, rPage * ITEMS_PER_PAGE)
+    const paginatedCoupons = safeCoupons.slice((cpPage - 1) * ITEMS_PER_PAGE, cpPage * ITEMS_PER_PAGE)
 
-    const paidOrders = orders.filter(o => ['Pago', 'Enviado', 'Entregue'].includes(o.status))
-    const totalSales = paidOrders.reduce((sum, o) => sum + o.total, 0)
+    const paidOrders = safeOrders.filter(o => o && ['Pago', 'Enviado', 'Entregue'].includes(o.status))
+    const totalSales = paidOrders.reduce((sum, o) => sum + (Number(o?.total) || 0), 0)
     const ticketMedio = paidOrders.length > 0 ? totalSales / paidOrders.length : 0
-    const stats = { sales: totalSales, orders: orders.length, ticket: ticketMedio, customers: customers.length, products: products.length }
+    const stats = { sales: totalSales, orders: safeOrders.length, ticket: ticketMedio, customers: safeCustomers.length, products: safeProducts.length }
 
     const sectionLabel = (s) => ({ 'best-sellers': 'Best Sellers', 'featured': 'Destaques', 'new-collection': 'Novas Coleções' }[s] || s)
     const getProductImage = (product) => {

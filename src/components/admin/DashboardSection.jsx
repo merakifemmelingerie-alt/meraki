@@ -24,13 +24,13 @@ function StatusBadge({ status }) {
 }
 
 export default function DashboardSection({
-    adminName,
-    totalSales,
-    ticketMedio,
-    stats,
-    orders,
-    products,
-    coupons,
+    adminName = 'Admin',
+    totalSales = 0,
+    ticketMedio = 0,
+    stats = {},
+    orders = [],
+    products = [],
+    coupons = [],
     setActiveSection,
     getProductImage
 }) {
@@ -108,7 +108,7 @@ export default function DashboardSection({
                         </button>
                     </div>
                     <div className="divide-y divide-[#F5F5F5]">
-                        {orders.slice(0, 5).map(o => (
+                        {(orders || []).slice(0, 5).map(o => (
                             <div key={o.id} className="flex items-center justify-between px-5 py-3.5 hover:bg-[#FAF9F5] transition-colors">
                                 <div className="flex items-center gap-3">
                                     <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#7A3E4A]/10 to-[#C6A76A]/10 flex items-center justify-center text-[10px] font-black text-[#7A3E4A]">
@@ -125,7 +125,7 @@ export default function DashboardSection({
                                 </div>
                             </div>
                         ))}
-                        {orders.length === 0 && (
+                        {(!orders || orders.length === 0) && (
                             <div className="py-12 text-center">
                                 <Icon path="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" className="w-10 h-10 text-gray-200 mx-auto mb-2" />
                                 <p className="text-xs text-gray-400 font-medium">Nenhuma venda ainda</p>
@@ -151,9 +151,9 @@ export default function DashboardSection({
                     <div className="p-5 space-y-4">
                         <div className="grid grid-cols-3 gap-3">
                             {[
-                                { label: 'Produtos', value: stats.products },
+                                { label: 'Produtos', value: stats.products || 0 },
                                 { label: 'Categorias', value: [...new Set((products || []).filter(p => p && p.category).map(p => typeof p.category === 'object' ? p.category.name : p.category))].filter(Boolean).length },
-                                { label: 'Cupons', value: coupons.length },
+                                { label: 'Cupons', value: (coupons || []).length },
                             ].map((item, i) => (
                                 <div key={i} className="p-3 rounded-xl bg-[#FAF9F5] text-center border border-[#EEEEEE]">
                                     <p className="text-lg font-black text-[#7A3E4A]">{item.value}</p>
