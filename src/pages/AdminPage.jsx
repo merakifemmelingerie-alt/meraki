@@ -157,6 +157,7 @@ export default function AdminPage() {
         if (stored) {
             try {
                 const parsed = JSON.parse(stored)
+                if (!Array.isArray(parsed)) return []
                 return parsed
                     .map(c => typeof c === 'string' ? { name: c, description: 'Coleção Meraki', image: '/placeholder.jpg', group: 'Lingerie' } : c)
                     .filter(c => c && c.name)
@@ -172,7 +173,10 @@ export default function AdminPage() {
     const [masterSizesList, setMasterSizesList] = useState(() => {
         try {
             const stored = localStorage.getItem('meraki_available_sizes')
-            if (stored) return JSON.parse(stored)
+            if (stored) {
+                const parsed = JSON.parse(stored)
+                if (Array.isArray(parsed) && parsed.length > 0) return parsed
+            }
             const config = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
             if (config.availableSizes && Array.isArray(config.availableSizes) && config.availableSizes.length > 0) {
                 return config.availableSizes
@@ -209,8 +213,14 @@ export default function AdminPage() {
     const ITEMS_PER_PAGE = 8
 
     const [sections, setSections] = useState(() => {
-        const stored = localStorage.getItem('meraki_sections')
-        return stored ? JSON.parse(stored) : [
+        try {
+            const stored = localStorage.getItem('meraki_sections')
+            if (stored) {
+                const parsed = JSON.parse(stored)
+                if (Array.isArray(parsed)) return parsed
+            }
+        } catch {}
+        return [
             { id: 'best-sellers', label: 'Best Sellers' },
             { id: 'featured', label: 'Destaques' },
             { id: 'new-collection', label: 'Novas Coleções' }
@@ -296,6 +306,7 @@ export default function AdminPage() {
             const config = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
             if (config.availableBadges) return config.availableBadges.split(',').map(b => b.trim()).filter(Boolean)
         } catch {}
+        return []
     })
 
     useEffect(() => {
@@ -1670,7 +1681,7 @@ export default function AdminPage() {
                                 </div>
                                 {topbarMessages.length > 0 ? (
                                     <div className="divide-y divide-[#EEEEEE]">
-                                        {topbarMessages.map((msg, index) => (
+                                        {(topbarMessages || []).map((msg, index) => (
                                             <div key={index} className="p-4 flex items-center justify-between gap-4 hover:bg-[#FAF9F5] transition-colors">
                                                 <div className="flex-1">
                                                     <input
@@ -1830,7 +1841,7 @@ export default function AdminPage() {
                                 <div>
                                     <label className={labelCls}>Categoria</label>
                                     <div className="flex flex-wrap gap-1.5 mb-2 bg-[#FAF9F5] p-3 rounded-xl border border-[#EEEEEE]">
-                                        {categories.map(cat => {
+                                        {(categories || []).map(cat => {
                                             const catName = typeof cat === 'object' ? cat.name : cat
                                             return (
                                                 <button
@@ -1892,7 +1903,7 @@ export default function AdminPage() {
                                                         Sem Estilo Específico
                                                     </button>
 
-                                                    {catStyles.map(st => {
+                                                    {(catStyles || []).map(st => {
                                                         const stName = typeof st === 'string' ? st : st.name
                                                         const isSelected = selectedModalSubcategory?.toLowerCase() === stName?.toLowerCase()
                                                         return (
@@ -2009,7 +2020,7 @@ export default function AdminPage() {
                                         {/* Chip selector */}
                                         <div className="flex flex-wrap gap-2 bg-[#FAF9F5] p-3 rounded-xl border border-[#EEEEEE]">
                                             {/* Indicador do badge atual do produto se não estiver na lista */}
-                                            {selectedModalBadge && !masterBadgesList.some(b => b.toLowerCase() === selectedModalBadge.toLowerCase()) && (
+                                            {selectedModalBadge && !(masterBadgesList || []).some(b => b.toLowerCase() === selectedModalBadge.toLowerCase()) && (
                                                 <div className="flex items-center rounded-lg border border-[#D11A6E] overflow-hidden bg-[#D11A6E]/5">
                                                     <span className="px-3 py-1.5 text-xs font-bold text-[#D11A6E]">
                                                         {selectedModalBadge} <span className="text-[9px] ml-1 opacity-60">(atual)</span>
@@ -2030,7 +2041,7 @@ export default function AdminPage() {
                                             >
                                                 Sem etiqueta
                                             </button>
-                                            {masterBadgesList.map(tag => {
+                                            {(masterBadgesList || []).map(tag => {
                                                 const isSelected = selectedModalBadge.toLowerCase() === tag.toLowerCase()
                                                 return (
                                                     <div key={tag} className="flex items-center rounded-lg border border-[#EEEEEE] overflow-hidden">
@@ -2050,7 +2061,7 @@ export default function AdminPage() {
                                                             type="button"
                                                             title="Remover tag"
                                                             onClick={async () => {
-                                                                const updated = masterBadgesList.filter(b => b !== tag)
+                                                                const updated = (masterBadgesList || []).filter(b => b !== tag)
                                                                 setMasterBadgesList(updated)
                                                                 if (selectedModalBadge.toLowerCase() === tag.toLowerCase()) setSelectedModalBadge('')
                                                                 await saveBadgesToConfig(updated)
@@ -2073,8 +2084,8 @@ export default function AdminPage() {
                                                     if (e.key === 'Enter') {
                                                         e.preventDefault()
                                                         const val = newBadgeInput.trim().toUpperCase()
-                                                        if (val && !masterBadgesList.includes(val)) {
-                                                            const updated = [...masterBadgesList, val]
+                                                        if (val && !(masterBadgesList || []).includes(val)) {
+                                                            const updated = [...(masterBadgesList || []), val]
                                                             setMasterBadgesList(updated)
                                                             setSelectedModalBadge(val)
                                                             setNewBadgeInput('')
@@ -2089,8 +2100,8 @@ export default function AdminPage() {
                                                 type="button"
                                                 onClick={async () => {
                                                     const val = newBadgeInput.trim().toUpperCase()
-                                                    if (val && !masterBadgesList.includes(val)) {
-                                                        const updated = [...masterBadgesList, val]
+                                                    if (val && !(masterBadgesList || []).includes(val)) {
+                                                        const updated = [...(masterBadgesList || []), val]
                                                         setMasterBadgesList(updated)
                                                         setSelectedModalBadge(val)
                                                         setNewBadgeInput('')
@@ -2109,7 +2120,7 @@ export default function AdminPage() {
                                     <label className={labelCls}>Seção da Loja</label>
                                     <div className="space-y-3">
                                         <div className="flex flex-wrap gap-2 bg-[#FAF9F5] p-3 rounded-xl border border-[#EEEEEE]">
-                                            {sections.map(sec => {
+                                            {(sections || []).map(sec => {
                                                 const isSelected = selectedModalSection === sec.id
                                                 const isDefault = ['best-sellers', 'featured', 'new-collection'].includes(sec.id)
                                                 return (
@@ -2205,7 +2216,7 @@ export default function AdminPage() {
                                             <span className="text-[10px] text-gray-400 font-normal">Passe o mouse no tamanho e clique no ✕ para excluir da lista</span>
                                         </div>
                                         <div className="flex flex-wrap gap-2 bg-[#FAF9F5] p-3 rounded-xl border border-[#EEEEEE] mb-3">
-                                            {masterSizesList.map(size => {
+                                            {(masterSizesList || []).map(size => {
                                                 const isSelected = selectedModalSizes.includes(size)
                                                 return (
                                                     <div key={size} className="relative group">
@@ -2269,7 +2280,7 @@ export default function AdminPage() {
                                     <div>
                                         <label className={labelCls}>Cores Disponíveis</label>
                                         <div className="flex flex-wrap gap-1.5 bg-[#FAF9F5] p-3 rounded-xl border border-[#EEEEEE]">
-                                            {colorsList.map(color => {
+                                            {(colorsList || []).map(color => {
                                                 const isSelected = selectedModalColors.includes(color)
                                                 const hex = colorHexMap[color] || '#CCCCCC'
                                                 return (
@@ -2371,7 +2382,7 @@ export default function AdminPage() {
                                         </div>
 
                                         <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
-                                            {selectedModalSizes.map(size => (
+                                            {(selectedModalSizes || []).map(size => (
                                                 <div key={size} className="bg-white p-3 rounded-xl border border-gray-200 shadow-2xs space-y-2">
                                                     <div className="flex items-center gap-2 border-b border-gray-100 pb-1.5">
                                                         <span className="px-2 py-0.5 bg-[#7A3E4A] text-white text-[10px] font-black rounded-md uppercase">
@@ -2379,7 +2390,7 @@ export default function AdminPage() {
                                                         </span>
                                                     </div>
                                                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                                                        {selectedModalColors.map(color => {
+                                                        {(selectedModalColors || []).map(color => {
                                                             const hex = colorHexMap[color] || '#CCCCCC'
                                                             const key = `${size}_${color}`
                                                             const qty = modalVariantStock[key] !== undefined ? modalVariantStock[key] : ''
@@ -2432,7 +2443,7 @@ export default function AdminPage() {
                                         </div>
 
                                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
-                                            {selectedModalColors.map(color => {
+                                            {(selectedModalColors || []).map(color => {
                                                 const hex = colorHexMap[color] || '#CCCCCC'
                                                 const qty = modalColorStock[color] !== undefined ? modalColorStock[color] : ''
                                                 return (
@@ -2482,7 +2493,7 @@ export default function AdminPage() {
                                         </div>
 
                                         <div className="space-y-3">
-                                            {selectedModalColors.map(color => {
+                                            {(selectedModalColors || []).map(color => {
                                                 const hex = colorHexMap[color] || '#CCCCCC'
                                                 const assignedImg = modalColorImages[color] || ''
                                                 const availablePhotos = existingImages
@@ -2588,7 +2599,7 @@ export default function AdminPage() {
                                                     + Adicionar Kit
                                                 </button>
                                             </div>
-                                            {kitOptions.map((kit, index) => {
+                                            {(kitOptions || []).map((kit, index) => {
                                                 const unitPrice = (kit.price && kit.qty) ? (parseFloat(kit.price) / parseInt(kit.qty)).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0,00'
                                                 return (
                                                     <div key={index} className="flex items-end gap-2 bg-white p-3 rounded-xl border border-gray-200 shadow-xs">
@@ -2733,7 +2744,7 @@ export default function AdminPage() {
                                                 <label className={labelCls}>Emojis Disponíveis para Personalização</label>
                                                 
                                                 <div className="flex flex-wrap gap-1.5 p-2 bg-white rounded-xl border border-[#EEEEEE]">
-                                                    {masterEmojisList.map(emoji => {
+                                                    {(masterEmojisList || []).map(emoji => {
                                                         const isSelected = customizableEmojis.includes(emoji)
                                                         return (
                                                             <div 
