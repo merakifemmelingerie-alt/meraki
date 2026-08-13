@@ -1201,17 +1201,16 @@ export function CategoriesSection({
                                     const { urls } = await uploadMultipleImages([compressed])
                                     if (urls?.[0]) {
                                         const stored = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
-                                        const newConfig = { ...stored, id: 'default', default_category_image: urls[0] }
+                                        const currentStyle = JSON.parse(localStorage.getItem('meraki_topbar_style') || '{"bgColor": "#C6A76A", "textColor": "#FFFFFF"}')
+                                        // Mescla os dois estados de topbarStyle (o embutido em store_config e o avulso)
+                                        // e grava os dois em uma única atualização para evitar que gravações
+                                        // assíncronas concorrentes sobrescrevam a imagem recém-enviada.
+                                        const mergedTopbarStyle = { ...currentStyle, ...(stored.topbarStyle || {}), default_category_image: urls[0] }
+
+                                        const newConfig = { ...stored, id: 'default', default_category_image: urls[0], topbarStyle: mergedTopbarStyle }
                                         localStorage.setItem('meraki_store_config', JSON.stringify(newConfig))
-                                        
-                                        try {
-                                            const currentStyle = JSON.parse(localStorage.getItem('meraki_topbar_style') || '{"bgColor": "#C6A76A", "textColor": "#FFFFFF"}')
-                                            const newStyle = { ...currentStyle, default_category_image: urls[0] }
-                                            localStorage.setItem('meraki_topbar_style', JSON.stringify(newStyle))
-                                        } catch (err) {
-                                            console.error(err)
-                                        }
-                                        
+                                        localStorage.setItem('meraki_topbar_style', JSON.stringify(mergedTopbarStyle))
+
                                         window.dispatchEvent(new Event('storeConfigUpdated'))
                                         setDefaultCategoryImage(urls[0])
                                     }
