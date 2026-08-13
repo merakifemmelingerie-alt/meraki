@@ -27,7 +27,9 @@ const EngagementPage = lazy(() => import('./pages/EngagementPage.jsx'))
 function ScrollToTopReset() {
     const { pathname } = useLocation()
     useEffect(() => {
-        window.scrollTo(0, 0)
+        // behavior: 'instant' overrides the global smooth scroll-behavior so
+        // page navigation doesn't trigger a slow animated scroll to the top
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
     }, [pathname])
     return null
 }

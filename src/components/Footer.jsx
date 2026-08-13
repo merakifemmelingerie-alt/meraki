@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import ScrollReveal from './ScrollReveal.jsx'
 
 export default function Footer() {
     const [butterflySrc, setButterflySrc] = useState('/assets/borboleta-v2.webp')
@@ -154,7 +155,7 @@ export default function Footer() {
     ].filter(l => !deletedPages.includes(l.id)).map(mapLinkTitle)
 
     return (
-        <footer className="bg-[#FAF9F5] pt-16 pb-12 text-gray-600 font-sans">
+        <ScrollReveal variant="fade-up" as="footer" className="bg-[#FAF9F5] pt-16 pb-12 text-gray-600 font-sans">
             <div className="max-w-7xl mx-auto px-4 sm:px-6">
                 
                 {/* Center Brand Text Logo */}
@@ -327,6 +328,6 @@ export default function Footer() {
                     </p>
                 </div>
             </div>
-        </footer>
+        </ScrollReveal>
     )
 }

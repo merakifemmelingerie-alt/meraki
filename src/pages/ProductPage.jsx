@@ -11,6 +11,7 @@ import SearchOverlay from '../components/SearchOverlay.jsx'
 import QuickViewModal from '../components/QuickViewModal.jsx'
 import Notification from '../components/Notification.jsx'
 import WhatsAppButton from '../components/WhatsAppButton.jsx'
+import ScrollReveal from '../components/ScrollReveal.jsx'
 import { fetchProductReviews, createProductReview } from '../services/database.js'
 
 const slugifyCategory = (name) => name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s-]/g, '').trim().replace(/[\s-]+/g, '-')
@@ -1072,20 +1073,21 @@ export default function ProductPage() {
 
                 {/* Related Products Section */}
                 {relatedProducts.length > 0 && (
-                    <section className="py-16 border-t border-gray-100">
+                    <ScrollReveal variant="fade-up" as="section" className="py-16 border-t border-gray-100">
                         <h3 className="font-heading text-2xl text-gray-900 mb-8 text-center">Quem viu este produto também se interessou</h3>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
-                            {relatedProducts.map(rel => (
-                                <ProductCard
-                                    key={rel.id}
-                                    product={rel}
-                                    onQuickView={setQuickViewProduct}
-                                    onToggleWishlist={toggleWishlist}
-                                    isWishlisted={isWishlisted(rel.id)}
-                                />
+                            {relatedProducts.map((rel, idx) => (
+                                <ScrollReveal key={rel.id} variant="fade-up" delay={idx * 80}>
+                                    <ProductCard
+                                        product={rel}
+                                        onQuickView={setQuickViewProduct}
+                                        onToggleWishlist={toggleWishlist}
+                                        isWishlisted={isWishlisted(rel.id)}
+                                    />
+                                </ScrollReveal>
                             ))}
                         </div>
-                    </section>
+                    </ScrollReveal>
                 )}
             </main>
 
