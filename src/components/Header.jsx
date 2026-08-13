@@ -57,6 +57,15 @@ export default function Header({ cartCount = 0, wishlistCount = 0, onSearchOpen 
         }
     })
 
+    const [defaultCategoryLink, setDefaultCategoryLink] = useState(() => {
+        try {
+            const stored = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
+            return stored?.default_category_link || '/category/plus-size'
+        } catch {
+            return '/category/plus-size'
+        }
+    })
+
     const [categories, setCategories] = useState(() => {
         const stored = localStorage.getItem('meraki_categories')
         if (stored) {
@@ -79,6 +88,9 @@ export default function Header({ cartCount = 0, wishlistCount = 0, onSearchOpen 
                 const stored = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
                 if (stored?.default_category_image) {
                     setDefaultCategoryImage(stored.default_category_image)
+                }
+                if (stored?.default_category_link) {
+                    setDefaultCategoryLink(stored.default_category_link)
                 }
             } catch {}
         }
@@ -461,7 +473,7 @@ export default function Header({ cartCount = 0, wishlistCount = 0, onSearchOpen 
                                                 </p>
                                             </div>
                                             <Link 
-                                                to={hoveredCategory ? `/category/${slugifyCategory(hoveredCategory.name)}` : "/category/plus-size"} 
+                                                to={hoveredCategory ? `/category/${slugifyCategory(hoveredCategory.name)}` : defaultCategoryLink}
                                                 onClick={() => setIsMegaMenuOpen(false)}
                                                 className={`relative z-10 w-full py-2 bg-gradient-to-r ${hoveredCategory ? 'from-[#C6A76A] to-[#A88940] hover:shadow-[#C6A76A]/20' : 'from-[#7A3E4A] to-[#9A5060] hover:shadow-[#7A3E4A]/20'} text-white text-[9px] font-bold uppercase tracking-wider text-center rounded-lg hover:shadow-md transition-all duration-300 block`}
                                             >

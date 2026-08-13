@@ -957,6 +957,10 @@ export function CategoriesSection({
         const stored = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
         return stored.default_category_image || categories?.[0]?.image || '/assets/categories/cat-sexy.webp'
     })
+    const [defaultCategoryLink, setDefaultCategoryLink] = useState(() => {
+        const stored = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
+        return stored.default_category_link || '/category/plus-size'
+    })
 
     // Subcategory style filters state
     const slugifyCat = (name) => (name || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s-]/g, '').trim().replace(/[\s-]+/g, '-')
@@ -1009,11 +1013,26 @@ export function CategoriesSection({
             } else if (categories && categories.length > 0 && categories[0]?.image) {
                 setDefaultCategoryImage(categories[0].image)
             }
+            if (stored.default_category_link) {
+                setDefaultCategoryLink(stored.default_category_link)
+            }
         }
         syncDefaultImage()
         window.addEventListener('storeConfigUpdated', syncDefaultImage)
         return () => window.removeEventListener('storeConfigUpdated', syncDefaultImage)
     }, [categories])
+
+    const saveDefaultCategoryLink = (link) => {
+        const value = (link || '').trim() || '/category/plus-size'
+        setDefaultCategoryLink(value)
+        const stored = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
+        const currentStyle = JSON.parse(localStorage.getItem('meraki_topbar_style') || '{"bgColor": "#C6A76A", "textColor": "#FFFFFF"}')
+        const mergedTopbarStyle = { ...currentStyle, ...(stored.topbarStyle || {}), default_category_link: value }
+        const newConfig = { ...stored, id: 'default', default_category_link: value, topbarStyle: mergedTopbarStyle }
+        localStorage.setItem('meraki_store_config', JSON.stringify(newConfig))
+        localStorage.setItem('meraki_topbar_style', JSON.stringify(mergedTopbarStyle))
+        window.dispatchEvent(new Event('storeConfigUpdated'))
+    }
 
     const resetForm = () => {
         setEditingIndex(null)
@@ -1235,14 +1254,27 @@ export function CategoriesSection({
                             }}
                             className="hidden" 
                         />
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             disabled={saving}
                             onClick={() => document.getElementById('defaultCatImageInput').click()}
                             className="w-full py-3 bg-[#7A3E4A]/10 hover:bg-[#7A3E4A]/15 text-[#7A3E4A] text-[10px] font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer text-center disabled:opacity-50"
                         >
                             Alterar Imagem Padrão
                         </button>
+
+                        <div>
+                            <label className="block text-[10px] font-bold text-gray-700 mb-1 uppercase tracking-wider">Link do botão "Ver Destaque"</label>
+                            <input
+                                type="text"
+                                defaultValue={defaultCategoryLink}
+                                key={defaultCategoryLink}
+                                onBlur={e => saveDefaultCategoryLink(e.target.value)}
+                                placeholder="/category/plus-size"
+                                className="w-full px-3 py-2 border border-[#EEEEEE] rounded-xl text-xs outline-none"
+                            />
+                            <p className="text-[9px] text-gray-400 mt-1">Para onde vai o botão "Ver Destaque" quando nenhuma categoria está em destaque no menu. Alterações são salvas automaticamente ao sair do campo.</p>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -130,6 +130,9 @@ export function mapDbToFrontend(table, item) {
         if (mapped.topbarStyle && mapped.topbarStyle.default_category_image) {
             mapped.default_category_image = mapped.topbarStyle.default_category_image
         }
+        if (mapped.topbarStyle && mapped.topbarStyle.default_category_link) {
+            mapped.default_category_link = mapped.topbarStyle.default_category_link
+        }
 
         const rawPromo = item.promocombo !== undefined ? item.promocombo : (item.promoCombo !== undefined ? item.promoCombo : item.promo_combo)
         if (rawPromo !== undefined) {
@@ -352,6 +355,9 @@ export async function initSupabaseSync() {
 
             if (mergedConfig.topbarStyle && mergedConfig.topbarStyle.default_category_image) {
                 mergedConfig.default_category_image = mergedConfig.topbarStyle.default_category_image
+            }
+            if (mergedConfig.topbarStyle && mergedConfig.topbarStyle.default_category_link) {
+                mergedConfig.default_category_link = mergedConfig.topbarStyle.default_category_link
             }
             setStorageIfChanged('meraki_store_config', JSON.stringify(mergedConfig), 'storeConfigUpdated')
             
