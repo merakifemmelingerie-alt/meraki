@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getAssetUrl } from '../utils/assets.js'
 import { recordWishlistAction } from '../services/database.js'
@@ -84,6 +84,17 @@ export default function ProductCard({ product, onQuickView, onToggleWishlist, is
     const defaultImg = Array.isArray(product?.image) ? (product.image[0] || '/placeholder.jpg') : (product?.image || '/placeholder.jpg')
     const imageSrc = getAssetUrl(selectedColorImg || defaultImg)
 
+    // Fade the image in once it actually finishes downloading instead of
+    // letting the browser pop it in the instant the network request
+    // completes — checks .complete on src change so an already-cached
+    // image (whose 'load' event can fire before the listener attaches)
+    // doesn't get stuck invisible.
+    const imgRef = useRef(null)
+    const [imgLoaded, setImgLoaded] = useState(false)
+    useEffect(() => {
+        setImgLoaded(imgRef.current?.complete || false)
+    }, [imageSrc])
+
     const handleCardClick = (e) => {
         if (e.target.closest('button')) return
         if (product?.id) navigate(`/product/${product.id}`)
@@ -96,14 +107,17 @@ export default function ProductCard({ product, onQuickView, onToggleWishlist, is
             {/* Image Wrapper */}
             <div className="relative aspect-[3/4] overflow-hidden bg-[#F9F9F9] rounded-t-2xl">
                 <img
+                    ref={imgRef}
                     src={imageSrc}
                     alt={product.name}
                     loading="lazy"
                     decoding="async"
-                    className="w-full h-full object-cover transition-transform duration-1000 cubic-bezier(0.19, 1, 0.22, 1) group-hover:scale-105"
+                    className={`w-full h-full object-cover transition-[opacity,transform] duration-1000 cubic-bezier(0.19, 1, 0.22, 1) group-hover:scale-105 ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
+                    onLoad={() => setImgLoaded(true)}
                     onError={(e) => {
                         e.target.onError = null; // prevent infinite loop
                         e.target.src = getAssetUrl('/placeholder.jpg');
+                        setImgLoaded(true)
                     }}
                 />
 
