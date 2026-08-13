@@ -84,6 +84,7 @@ export default function AdminPage() {
     const [couponModal, setCouponModal] = useState(false)
     const [editingCoupon, setEditingCoupon] = useState(null)
     const [bannerModal, setBannerModal] = useState(false)
+    const [editingBannerId, setEditingBannerId] = useState(null)
 
     const [saving, setSaving] = useState(false)
     const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -1048,21 +1049,42 @@ export default function AdminPage() {
             setSaving(false)
             return
         }
-        const newBanner = { 
-            id: generateUUID(), 
-            image: imageUrl, 
-            mobile_image: mobileImageUrl, 
-            alt: bannerForm.alt || 'Banner Meraki', 
-            link: bannerForm.link || '/shop' 
+
+        let updated
+        if (editingBannerId) {
+            updated = banners.map(b => b.id === editingBannerId ? {
+                ...b,
+                image: imageUrl,
+                mobile_image: mobileImageUrl,
+                alt: bannerForm.alt || 'Banner Meraki',
+                link: bannerForm.link || '/shop'
+            } : b)
+        } else {
+            const newBanner = {
+                id: generateUUID(),
+                image: imageUrl,
+                mobile_image: mobileImageUrl,
+                alt: bannerForm.alt || 'Banner Meraki',
+                link: bannerForm.link || '/shop'
+            }
+            updated = [...banners, newBanner]
         }
-        const updated = [...banners, newBanner]
         setBanners(updated); localStorage.setItem('meraki_banners', JSON.stringify(updated))
         setBannerForm({ image: '', mobile_image: '', alt: '', link: '/shop' })
         setBannerImageFiles([])
         setBannerMobileImageFiles([])
         setBannerModal(false)
+        setEditingBannerId(null)
         setSaving(false)
         window.dispatchEvent(new Event('bannersUpdated'))
+    }
+
+    const openEditBanner = (bn) => {
+        setBannerForm({ image: bn.image || '', mobile_image: bn.mobile_image || '', alt: bn.alt || '', link: bn.link || '/shop' })
+        setBannerImageFiles([])
+        setBannerMobileImageFiles([])
+        setEditingBannerId(bn.id)
+        setBannerModal(true)
     }
 
     const handleDeleteBanner = (id) => {
@@ -1361,7 +1383,8 @@ export default function AdminPage() {
                     {activeSection === 'banners' && (
                         <BannersSection
                             banners={banners}
-                            setBannerModal={setBannerModal}
+                            setBannerModal={() => { setEditingBannerId(null); setBannerForm({ image: '', mobile_image: '', alt: '', link: '/shop' }); setBannerImageFiles([]); setBannerMobileImageFiles([]); setBannerModal(true) }}
+                            onEditBanner={openEditBanner}
                             getAssetUrl={getAssetUrl}
                             compressImage={compressImage}
                             uploadMultipleImages={uploadMultipleImages}
@@ -2918,11 +2941,11 @@ export default function AdminPage() {
             {/* ═══════════════════════════════════════════════════════════════════ */}
             {bannerModal && (
                 <>
-                    <div className="fixed inset-0 z-[90] bg-black/50 backdrop-blur-sm" onClick={() => setBannerModal(false)} />
+                    <div className="fixed inset-0 z-[90] bg-black/50 backdrop-blur-sm" onClick={() => { setBannerModal(false); setEditingBannerId(null) }} />
                     <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[95] bg-white rounded-2xl shadow-2xl max-w-sm w-[calc(100%-2rem)]">
                         <div className="flex items-center justify-between p-5 border-b border-[#EEEEEE]">
-                            <h2 className="text-sm font-black text-gray-900">Adicionar Banner</h2>
-                            <button onClick={() => setBannerModal(false)} className="w-8 h-8 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center cursor-pointer transition-colors">
+                            <h2 className="text-sm font-black text-gray-900">{editingBannerId ? 'Editar Banner' : 'Adicionar Banner'}</h2>
+                            <button onClick={() => { setBannerModal(false); setEditingBannerId(null) }} className="w-8 h-8 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center cursor-pointer transition-colors">
                                 <Icon path="M6 18L18 6M6 6l12 12" className="w-4 h-4 text-gray-600" />
                             </button>
                         </div>
@@ -2946,7 +2969,7 @@ export default function AdminPage() {
                             <div><label className={labelCls}>Texto Alternativo (Alt)</label><input type="text" placeholder="Ex: Nova Coleção" value={bannerForm.alt} onChange={e => setBannerForm(prev => ({ ...prev, alt: e.target.value }))} className={inputCls} /></div>
                             <div><label className={labelCls}>Link de Destino</label><input type="text" value={bannerForm.link} onChange={e => setBannerForm(prev => ({ ...prev, link: e.target.value }))} className={inputCls} /></div>
                             <button type="submit" disabled={saving} className="w-full py-4 bg-gradient-to-r from-[#7A3E4A] to-[#9A5060] text-white text-xs font-black uppercase tracking-widest rounded-xl hover:shadow-lg hover:shadow-[#7A3E4A]/30 transition-all cursor-pointer disabled:opacity-50">
-                                {saving ? 'Salvando...' : 'Adicionar Banner'}
+                                {saving ? 'Salvando...' : (editingBannerId ? 'Salvar Alterações' : 'Adicionar Banner')}
                             </button>
                         </form>
                     </div>

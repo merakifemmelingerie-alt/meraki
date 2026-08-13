@@ -372,6 +372,7 @@ export function CouponsSection({
 export function BannersSection({
     banners = [],
     setBannerModal,
+    onEditBanner,
     getAssetUrl,
     compressImage,
     uploadMultipleImages,
@@ -640,12 +641,20 @@ export function BannersSection({
                                 </div>
                             </div>
 
-                            <button
-                                onClick={() => handleDeleteBanner(bn.id)}
-                                className="w-full py-2 rounded-xl border border-red-100 text-red-400 hover:bg-red-50 hover:text-red-600 text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer"
-                            >
-                                Remover Banner
-                            </button>
+                            <div className="grid grid-cols-2 gap-2">
+                                <button
+                                    onClick={() => onEditBanner && onEditBanner(bn)}
+                                    className="w-full py-2 rounded-xl border border-[#7A3E4A]/20 text-[#7A3E4A] hover:bg-[#7A3E4A]/5 text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer"
+                                >
+                                    Editar Alt/Link
+                                </button>
+                                <button
+                                    onClick={() => handleDeleteBanner(bn.id)}
+                                    className="w-full py-2 rounded-xl border border-red-100 text-red-400 hover:bg-red-50 hover:text-red-600 text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer"
+                                >
+                                    Remover Banner
+                                </button>
+                            </div>
                         </div>
                     </div>
                 ))}
