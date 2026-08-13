@@ -122,6 +122,67 @@ export function mapDbToFrontend(table, item) {
         if (item.infinitepay_handle !== undefined) mapped.infinitepay_handle = item.infinitepay_handle
         if (item.infinitepayhandle !== undefined) mapped.infinitepay_handle = item.infinitepayhandle
         mapped.pixKey = mapped.pix_key
+
+        if (item.topbarmessages !== undefined) mapped.topbarMessages = item.topbarmessages
+        if (item.topbarMessages !== undefined) mapped.topbarMessages = item.topbarMessages
+        if (item.topbarstyle !== undefined) mapped.topbarStyle = item.topbarstyle
+        if (item.topbarStyle !== undefined) mapped.topbarStyle = item.topbarStyle
+        if (mapped.topbarStyle && mapped.topbarStyle.default_category_image) {
+            mapped.default_category_image = mapped.topbarStyle.default_category_image
+        }
+
+        const rawPromo = item.promocombo !== undefined ? item.promocombo : (item.promoCombo !== undefined ? item.promoCombo : item.promo_combo)
+        if (rawPromo !== undefined) {
+            let parsed = rawPromo
+            if (typeof parsed === 'string') {
+                try { parsed = JSON.parse(parsed) } catch (e) {}
+            }
+            mapped.promoCombo = parsed
+        }
+
+        const rawEditorial = item.editorial
+        if (rawEditorial !== undefined) {
+            let parsed = rawEditorial
+            if (typeof parsed === 'string') {
+                try { parsed = JSON.parse(parsed) } catch (e) {}
+            }
+            mapped.editorial = parsed
+        }
+
+        if (item.available_colors !== undefined) mapped.availableColors = item.available_colors
+        if (item.availableColors !== undefined) mapped.availableColors = item.availableColors
+        if (item.available_emojis !== undefined) mapped.availableEmojis = item.available_emojis
+        if (item.availableEmojis !== undefined) mapped.availableEmojis = item.availableEmojis
+        if (item.shipping_message !== undefined) mapped.shippingMessage = item.shipping_message
+        if (item.shippingMessage !== undefined) mapped.shippingMessage = item.shippingMessage
+        if (item.promo_message !== undefined) mapped.promoMessage = item.promo_message
+        if (item.promoMessage !== undefined) mapped.promoMessage = item.promoMessage
+        if (item.promomessage !== undefined) mapped.promoMessage = item.promomessage
+        if (item.available_badges !== undefined) mapped.availableBadges = item.available_badges
+        if (item.availableBadges !== undefined) mapped.availableBadges = item.availableBadges
+        if (item.available_sizes !== undefined) mapped.availableSizes = item.available_sizes
+        if (item.availableSizes !== undefined) mapped.availableSizes = item.availableSizes
+        if (item.availablesizes !== undefined) mapped.availableSizes = item.availablesizes
+        if (item.installment_text !== undefined) mapped.installmentText = item.installment_text
+        if (item.installmentText !== undefined) mapped.installmentText = item.installmentText
+        if (item.banner_transition !== undefined) mapped.bannerTransition = item.banner_transition
+        if (item.bannerTransition !== undefined) mapped.bannerTransition = item.bannerTransition
+        if (item.maintenance_mode !== undefined) {
+            mapped.maintenance_mode = item.maintenance_mode
+            mapped.maintenanceMode = item.maintenance_mode
+        }
+        if (item.maintenance_title !== undefined) {
+            mapped.maintenance_title = item.maintenance_title
+            mapped.maintenanceTitle = item.maintenance_title
+        }
+        if (item.maintenance_message !== undefined) {
+            mapped.maintenance_message = item.maintenance_message
+            mapped.maintenanceMessage = item.maintenance_message
+        }
+        if (item.maintenance_eta !== undefined) {
+            mapped.maintenance_eta = item.maintenance_eta
+            mapped.maintenanceEta = item.maintenance_eta
+        }
     } else if (table === 'products') {
         mapped.category = normalizeCategoryName(item.category)
         if (item.inpromocombo !== undefined) mapped.inPromoCombo = item.inpromocombo
@@ -195,67 +256,6 @@ export function mapDbToFrontend(table, item) {
             }
         } else {
             mapped.sizes = []
-        }
-    } else if (table === 'store_config') {
-        if (item.topbarmessages !== undefined) mapped.topbarMessages = item.topbarmessages
-        if (item.topbarMessages !== undefined) mapped.topbarMessages = item.topbarMessages
-        if (item.topbarstyle !== undefined) mapped.topbarStyle = item.topbarstyle
-        if (item.topbarStyle !== undefined) mapped.topbarStyle = item.topbarStyle
-        if (mapped.topbarStyle && mapped.topbarStyle.default_category_image) {
-            mapped.default_category_image = mapped.topbarStyle.default_category_image
-        }
-
-        const rawPromo = item.promocombo !== undefined ? item.promocombo : (item.promoCombo !== undefined ? item.promoCombo : item.promo_combo)
-        if (rawPromo !== undefined) {
-            let parsed = rawPromo
-            if (typeof parsed === 'string') {
-                try { parsed = JSON.parse(parsed) } catch (e) {}
-            }
-            mapped.promoCombo = parsed
-        }
-        
-        const rawEditorial = item.editorial
-        if (rawEditorial !== undefined) {
-            let parsed = rawEditorial
-            if (typeof parsed === 'string') {
-                try { parsed = JSON.parse(parsed) } catch (e) {}
-            }
-            mapped.editorial = parsed
-        }
-        
-        if (item.available_colors !== undefined) mapped.availableColors = item.available_colors
-        if (item.availableColors !== undefined) mapped.availableColors = item.availableColors
-        if (item.available_emojis !== undefined) mapped.availableEmojis = item.available_emojis
-        if (item.availableEmojis !== undefined) mapped.availableEmojis = item.availableEmojis
-        if (item.shipping_message !== undefined) mapped.shippingMessage = item.shipping_message
-        if (item.shippingMessage !== undefined) mapped.shippingMessage = item.shippingMessage
-        if (item.promo_message !== undefined) mapped.promoMessage = item.promo_message
-        if (item.promoMessage !== undefined) mapped.promoMessage = item.promoMessage
-        if (item.promomessage !== undefined) mapped.promoMessage = item.promomessage
-        if (item.available_badges !== undefined) mapped.availableBadges = item.available_badges
-        if (item.availableBadges !== undefined) mapped.availableBadges = item.availableBadges
-        if (item.available_sizes !== undefined) mapped.availableSizes = item.available_sizes
-        if (item.availableSizes !== undefined) mapped.availableSizes = item.availableSizes
-        if (item.availablesizes !== undefined) mapped.availableSizes = item.availablesizes
-        if (item.installment_text !== undefined) mapped.installmentText = item.installment_text
-        if (item.installmentText !== undefined) mapped.installmentText = item.installmentText
-        if (item.banner_transition !== undefined) mapped.bannerTransition = item.banner_transition
-        if (item.bannerTransition !== undefined) mapped.bannerTransition = item.bannerTransition
-        if (item.maintenance_mode !== undefined) {
-            mapped.maintenance_mode = item.maintenance_mode
-            mapped.maintenanceMode = item.maintenance_mode
-        }
-        if (item.maintenance_title !== undefined) {
-            mapped.maintenance_title = item.maintenance_title
-            mapped.maintenanceTitle = item.maintenance_title
-        }
-        if (item.maintenance_message !== undefined) {
-            mapped.maintenance_message = item.maintenance_message
-            mapped.maintenanceMessage = item.maintenance_message
-        }
-        if (item.maintenance_eta !== undefined) {
-            mapped.maintenance_eta = item.maintenance_eta
-            mapped.maintenanceEta = item.maintenance_eta
         }
     }
     return mapped
