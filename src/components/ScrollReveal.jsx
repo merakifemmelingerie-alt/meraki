@@ -1,8 +1,20 @@
-import { useScrollReveal } from '../hooks/useScrollReveal.js'
+import { motion, useReducedMotion } from 'framer-motion'
+
+const variants = {
+    'fade-up': { hidden: { opacity: 0, y: 48 }, visible: { opacity: 1, y: 0 } },
+    'fade-in': { hidden: { opacity: 0 }, visible: { opacity: 1 } },
+    'fade-left': { hidden: { opacity: 0, x: -48 }, visible: { opacity: 1, x: 0 } },
+    'fade-right': { hidden: { opacity: 0, x: 48 }, visible: { opacity: 1, x: 0 } },
+    'scale-up': { hidden: { opacity: 0, scale: 0.93 }, visible: { opacity: 1, scale: 1 } },
+}
 
 /**
  * ScrollReveal — animates children as they scroll into view.
- * Uses CSS data-attributes for transitions (immune to Tailwind overrides).
+ * Backed by framer-motion's whileInView (IntersectionObserver under the
+ * hood), so it reliably animates on first paint, after route changes, and
+ * on scroll — without the manual event-timing edge cases a hand-rolled
+ * scroll listener runs into (e.g. the scroll-to-top reset on navigation
+ * firing a native 'scroll' event that reveals content instantly).
  * Variants: 'fade-up' | 'fade-in' | 'fade-left' | 'fade-right' | 'scale-up'
  */
 export default function ScrollReveal({
@@ -10,21 +22,27 @@ export default function ScrollReveal({
     variant = 'fade-up',
     delay = 0,
     className = '',
-    as: Tag = 'div',
+    as = 'div',
     ...props
 }) {
-    const { ref, isVisible } = useScrollReveal()
+    const prefersReducedMotion = useReducedMotion()
+    const MotionTag = motion[as] || motion.div
 
     return (
-        <Tag
-            ref={ref}
-            data-sr={variant}
-            data-visible={isVisible ? 'true' : 'false'}
-            style={delay > 0 ? { transitionDelay: `${delay}ms` } : undefined}
+        <MotionTag
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '0px 0px -80px 0px' }}
+            variants={variants[variant] || variants['fade-up']}
+            transition={
+                prefersReducedMotion
+                    ? { duration: 0 }
+                    : { duration: 0.75, delay: delay / 1000, ease: [0.22, 1, 0.36, 1] }
+            }
             className={className}
             {...props}
         >
             {children}
-        </Tag>
+        </MotionTag>
     )
 }
