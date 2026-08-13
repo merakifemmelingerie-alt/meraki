@@ -1,10 +1,10 @@
 import { motion, useReducedMotion } from 'framer-motion'
 
 const variants = {
-    'fade-up': { hidden: { opacity: 0, y: 48 }, visible: { opacity: 1, y: 0 } },
+    'fade-up': { hidden: { opacity: 0, y: 28 }, visible: { opacity: 1, y: 0 } },
     'fade-in': { hidden: { opacity: 0 }, visible: { opacity: 1 } },
-    'fade-left': { hidden: { opacity: 0, x: -48 }, visible: { opacity: 1, x: 0 } },
-    'fade-right': { hidden: { opacity: 0, x: 48 }, visible: { opacity: 1, x: 0 } },
+    'fade-left': { hidden: { opacity: 0, x: -28 }, visible: { opacity: 1, x: 0 } },
+    'fade-right': { hidden: { opacity: 0, x: 28 }, visible: { opacity: 1, x: 0 } },
     'scale-up': { hidden: { opacity: 0, scale: 0.93 }, visible: { opacity: 1, scale: 1 } },
 }
 
@@ -32,12 +32,16 @@ export default function ScrollReveal({
         <MotionTag
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, margin: '0px 0px -80px 0px' }}
+            // Positive bottom margin starts the animation while the element
+            // is still below the visible viewport, so fast scrolling (flick
+            // of a wheel/trackpad) still gets to see it play instead of the
+            // transition finishing off-screen before it's ever looked at.
+            viewport={{ once: true, margin: '0px 0px 300px 0px', amount: 0 }}
             variants={variants[variant] || variants['fade-up']}
             transition={
                 prefersReducedMotion
                     ? { duration: 0 }
-                    : { duration: 0.75, delay: delay / 1000, ease: [0.22, 1, 0.36, 1] }
+                    : { duration: 0.45, delay: delay / 1000, ease: [0.22, 1, 0.36, 1] }
             }
             className={className}
             {...props}
