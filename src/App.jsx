@@ -4,7 +4,7 @@ import HomePage from './pages/HomePage.jsx'
 import CartDrawer from './components/CartDrawer.jsx'
 import SearchOverlay from './components/SearchOverlay.jsx'
 import TrackingManager from './components/TrackingManager.jsx'
-import { isInitialSyncComplete } from './services/database.js'
+import { isInitialSyncComplete, mapDbToFrontend } from './services/database.js'
 import { ErrorBoundary } from './components/ErrorBoundary.jsx'
 import { supabase } from './services/supabase.js'
 import { getAssetUrl } from './utils/assets.js'
@@ -115,7 +115,8 @@ function AppContent() {
                     const list = await res.json()
                     const fallbackData = Array.isArray(list) ? list[0] : list
                     if (fallbackData) {
-                        const merged = { ...storeConfig, ...fallbackData }
+                        const fresh = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
+                        const merged = { ...fresh, ...mapDbToFrontend('store_config', fallbackData) }
                         localStorage.setItem('meraki_store_config', JSON.stringify(merged))
                         setStoreConfig(merged)
                     }
@@ -123,7 +124,8 @@ function AppContent() {
                 }
 
                 if (data) {
-                    const merged = { ...storeConfig, ...data }
+                    const fresh = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
+                    const merged = { ...fresh, ...mapDbToFrontend('store_config', data) }
                     localStorage.setItem('meraki_store_config', JSON.stringify(merged))
                     setStoreConfig(merged)
                 }
