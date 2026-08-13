@@ -16,7 +16,11 @@ export function smoothScrollToTop(duration = 1200) {
         const progress = Math.min(1, elapsed / duration);
         
         const easedProgress = easeOutCubic(progress);
-        window.scrollTo(0, Math.ceil((1 - easedProgress) * start));
+        // behavior: 'instant' is required here — otherwise the global CSS
+        // scroll-behavior: smooth makes the browser smooth each of these
+        // per-frame jumps on top of the easing this function already does,
+        // compounding into a much slower, laggier scroll than intended.
+        window.scrollTo({ top: Math.ceil((1 - easedProgress) * start), behavior: 'instant' });
 
         if (window.scrollY > 0 && progress < 1) {
             requestAnimationFrame(scroll);
