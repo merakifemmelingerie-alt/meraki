@@ -35,17 +35,19 @@ export function useScrollReveal() {
             }
         }
 
-        // The whole page mounts underneath the splash loading screen, so an
-        // immediate check here would mark above-the-fold elements as
-        // "visible" while they're still hidden behind it — by the time the
-        // splash disappears the fade-up animation has already happened
-        // unseen. Wait for the splash to actually finish, then reveal on
-        // the next paint so the browser has a frame to register the hidden
-        // state before transitioning to visible.
+        // Calling reveal() synchronously on mount never animates: React
+        // commits the "hidden" DOM and the "visible" state update in the
+        // same tick, so the browser paints straight to the final state
+        // with nothing to transition from. Deferring by two animation
+        // frames guarantees the browser paints the hidden style first
+        // (this matters both for the very first load — where the splash
+        // loading screen covers the mount — and for later route changes,
+        // where every page mounts fresh and would otherwise snap into
+        // view instantly).
         const revealNextFrame = () => requestAnimationFrame(() => requestAnimationFrame(reveal))
 
         if (isInitialSyncComplete) {
-            reveal()
+            revealNextFrame()
         } else {
             window.addEventListener('meraki_db_synced', revealNextFrame, { once: true })
         }
