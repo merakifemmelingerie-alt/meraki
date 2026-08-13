@@ -22,43 +22,48 @@ export function useScrollReveal() {
             return
         }
 
-        const reveal = () => {
-            if (revealed.current || !el) return
+        const isInView = () => {
             const rect = el.getBoundingClientRect()
             const viewH = window.innerHeight || document.documentElement.clientHeight
             // Trigger when top of element is within the viewport (80px from bottom edge)
-            if (rect.top < viewH - 80 && rect.bottom > 0) {
-                setIsVisible(true)
-                revealed.current = true
-                window.removeEventListener('scroll', reveal)
-                window.removeEventListener('resize', reveal)
-            }
+            return rect.top < viewH - 80 && rect.bottom > 0
         }
 
-        // Calling reveal() synchronously on mount never animates: React
-        // commits the "hidden" DOM and the "visible" state update in the
-        // same tick, so the browser paints straight to the final state
-        // with nothing to transition from. Deferring by two animation
-        // frames guarantees the browser paints the hidden style first
-        // (this matters both for the very first load — where the splash
-        // loading screen covers the mount — and for later route changes,
-        // where every page mounts fresh and would otherwise snap into
-        // view instantly).
-        const revealNextFrame = () => requestAnimationFrame(() => requestAnimationFrame(reveal))
+        const commitReveal = () => {
+            if (revealed.current) return
+            setIsVisible(true)
+            revealed.current = true
+            window.removeEventListener('scroll', checkAndReveal)
+            window.removeEventListener('resize', checkAndReveal)
+        }
+
+        // Every path that can reveal an element — the initial mount check,
+        // a 'scroll' event, a 'resize' event — must defer the actual state
+        // change by two animation frames, or the browser never paints the
+        // "hidden" style before switching to "visible" and the CSS
+        // transition has nothing to animate from (it just snaps into
+        // view). This matters even for scroll: navigating to a new page
+        // resets the scroll position to the top, which fires a native
+        // 'scroll' event synchronously and would otherwise reveal
+        // above-the-fold content instantly.
+        const checkAndReveal = () => {
+            if (revealed.current || !el || !isInView()) return
+            requestAnimationFrame(() => requestAnimationFrame(commitReveal))
+        }
 
         if (isInitialSyncComplete) {
-            revealNextFrame()
+            checkAndReveal()
         } else {
-            window.addEventListener('meraki_db_synced', revealNextFrame, { once: true })
+            window.addEventListener('meraki_db_synced', checkAndReveal, { once: true })
         }
 
-        window.addEventListener('scroll', reveal)
-        window.addEventListener('resize', reveal)
+        window.addEventListener('scroll', checkAndReveal)
+        window.addEventListener('resize', checkAndReveal)
 
         return () => {
-            window.removeEventListener('meraki_db_synced', revealNextFrame)
-            window.removeEventListener('scroll', reveal)
-            window.removeEventListener('resize', reveal)
+            window.removeEventListener('meraki_db_synced', checkAndReveal)
+            window.removeEventListener('scroll', checkAndReveal)
+            window.removeEventListener('resize', checkAndReveal)
         }
     }, [])
 
