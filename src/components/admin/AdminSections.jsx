@@ -993,12 +993,17 @@ export function CategoriesSection({
     const [styleImage, setStyleImage] = useState('')
 
     useEffect(() => {
-        const stored = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
-        if (stored.default_category_image) {
-            setDefaultCategoryImage(stored.default_category_image)
-        } else if (categories && categories.length > 0 && categories[0]?.image) {
-            setDefaultCategoryImage(categories[0].image)
+        const syncDefaultImage = () => {
+            const stored = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
+            if (stored.default_category_image) {
+                setDefaultCategoryImage(stored.default_category_image)
+            } else if (categories && categories.length > 0 && categories[0]?.image) {
+                setDefaultCategoryImage(categories[0].image)
+            }
         }
+        syncDefaultImage()
+        window.addEventListener('storeConfigUpdated', syncDefaultImage)
+        return () => window.removeEventListener('storeConfigUpdated', syncDefaultImage)
     }, [categories])
 
     const resetForm = () => {

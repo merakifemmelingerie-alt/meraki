@@ -201,7 +201,10 @@ export function mapDbToFrontend(table, item) {
         if (item.topbarMessages !== undefined) mapped.topbarMessages = item.topbarMessages
         if (item.topbarstyle !== undefined) mapped.topbarStyle = item.topbarstyle
         if (item.topbarStyle !== undefined) mapped.topbarStyle = item.topbarStyle
-        
+        if (mapped.topbarStyle && mapped.topbarStyle.default_category_image) {
+            mapped.default_category_image = mapped.topbarStyle.default_category_image
+        }
+
         const rawPromo = item.promocombo !== undefined ? item.promocombo : (item.promoCombo !== undefined ? item.promoCombo : item.promo_combo)
         if (rawPromo !== undefined) {
             let parsed = rawPromo
