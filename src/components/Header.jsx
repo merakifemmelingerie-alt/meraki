@@ -60,9 +60,9 @@ export default function Header({ cartCount = 0, wishlistCount = 0, onSearchOpen 
     const [defaultCategoryLink, setDefaultCategoryLink] = useState(() => {
         try {
             const stored = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
-            return stored?.default_category_link || '/category/plus-size'
+            return stored?.default_category_link || '/shop'
         } catch {
-            return '/category/plus-size'
+            return '/shop'
         }
     })
 

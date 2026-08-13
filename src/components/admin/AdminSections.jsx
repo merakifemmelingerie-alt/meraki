@@ -959,7 +959,7 @@ export function CategoriesSection({
     })
     const [defaultCategoryLink, setDefaultCategoryLink] = useState(() => {
         const stored = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
-        return stored.default_category_link || '/category/plus-size'
+        return stored.default_category_link || '/shop'
     })
 
     // Subcategory style filters state
@@ -1023,7 +1023,7 @@ export function CategoriesSection({
     }, [categories])
 
     const saveDefaultCategoryLink = (link) => {
-        const value = (link || '').trim() || '/category/plus-size'
+        const value = (link || '').trim() || '/shop'
         setDefaultCategoryLink(value)
         const stored = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
         const currentStyle = JSON.parse(localStorage.getItem('meraki_topbar_style') || '{"bgColor": "#C6A76A", "textColor": "#FFFFFF"}')
@@ -1270,7 +1270,7 @@ export function CategoriesSection({
                                 defaultValue={defaultCategoryLink}
                                 key={defaultCategoryLink}
                                 onBlur={e => saveDefaultCategoryLink(e.target.value)}
-                                placeholder="/category/plus-size"
+                                placeholder="/shop"
                                 className="w-full px-3 py-2 border border-[#EEEEEE] rounded-xl text-xs outline-none"
                             />
                             <p className="text-[9px] text-gray-400 mt-1">Para onde vai o botão "Ver Destaque" quando nenhuma categoria está em destaque no menu. Alterações são salvas automaticamente ao sair do campo.</p>
