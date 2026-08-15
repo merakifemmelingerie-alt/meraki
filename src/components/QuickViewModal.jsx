@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { getAssetUrl } from '../utils/assets.js'
 import { fetchProductReviews } from '../services/database.js'
 
 export default function QuickViewModal({ product, isOpen, onClose, onAddToCart, isWishlisted, onToggleWishlist }) {
+    const navigate = useNavigate()
     const [selectedSize, setSelectedSize] = useState(null)
     const [errorMsg, setErrorMsg] = useState('')
     const [currentImageIndex, setCurrentImageIndex] = useState(0)
@@ -220,7 +222,7 @@ export default function QuickViewModal({ product, isOpen, onClose, onAddToCart, 
                         <button
                             onClick={() => {
                                 onClose();
-                                window.location.hash = `/product/${product.id}`;
+                                navigate(`/product/${product.id}`);
                             }}
                             className="text-center text-[10px] font-bold uppercase tracking-wider text-[#7A3E4A] hover:text-[#5A2E34] transition-colors py-1.5 border-b border-[#7A3E4A]/30 hover:border-[#7A3E4A] self-center focus:outline-none"
                         >

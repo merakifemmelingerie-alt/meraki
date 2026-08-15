@@ -1,4 +1,4 @@
-import { HashRouter, Routes, Route, useLocation } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { useEffect, useState, lazy, Suspense } from 'react'
 import HomePage from './pages/HomePage.jsx'
 import CartDrawer from './components/CartDrawer.jsx'
@@ -153,25 +153,11 @@ function AppContent() {
         }
     }, [])
 
-    // Convert direct browser URL visits like /admin or /auth without hash into HashRouter format
-    useEffect(() => {
-        const rawPath = (window.location.pathname || '').toLowerCase()
-        if (rawPath === '/admin' || rawPath === '/admin/') {
-            window.location.replace(window.location.origin + '/#/admin')
-        } else if (rawPath === '/auth' || rawPath === '/auth/' || rawPath === '/login' || rawPath === '/login/') {
-            window.location.replace(window.location.origin + '/#/auth')
-        }
-    }, [])
-
     const isMaintenance = storeConfig?.maintenance_mode || storeConfig?.maintenanceMode
     const currentPath = (location.pathname || '').toLowerCase()
-    const windowPath = (window.location.pathname || '').toLowerCase()
-    const windowHash = (window.location.hash || '').toLowerCase()
 
-    const isAdminRoute = 
-        currentPath.startsWith('/admin') || currentPath.startsWith('/auth') || currentPath.startsWith('/login') ||
-        windowPath.startsWith('/admin') || windowPath.startsWith('/auth') || windowPath.startsWith('/login') ||
-        windowHash.includes('/admin') || windowHash.includes('/auth') || windowHash.includes('/login')
+    const isAdminRoute =
+        currentPath.startsWith('/admin') || currentPath.startsWith('/auth') || currentPath.startsWith('/login')
 
     if (isMaintenance && !isAdminRoute) {
         return <MaintenanceScreen config={storeConfig} />
@@ -245,12 +231,12 @@ export default function App() {
 
     return (
         <ErrorBoundary>
-            <HashRouter>
+            <BrowserRouter>
                 <SplashLoader loading={loading} />
                 <ScrollToTopReset />
                 <TrackingManager />
                 <AppContent />
-            </HashRouter>
+            </BrowserRouter>
         </ErrorBoundary>
     )
 }
