@@ -409,8 +409,8 @@ export async function initSupabaseSync() {
             if (dbConfig.categoriesData) setStorageIfChanged('meraki_categories_data', JSON.stringify(dbConfig.categoriesData))
         }
 
-        // 2. Sync Products
-        const { data: dbProducts, error: pError } = await supabase.from('products').select('*')
+        // 2. Sync Products (usa a view publica, sem cost_price, pois este cache alimenta paginas publicas)
+        const { data: dbProducts, error: pError } = await supabase.from('products_public').select('*')
         if (!pError) {
             const cleanProducts = (dbProducts || []).filter(p => p && p.name)
             setStorageIfChanged('meraki_products', JSON.stringify(cleanProducts))
@@ -807,6 +807,9 @@ async function syncTableToSupabase(table, items) {
 }
 
 // Helper database functions expected by pages
+// getProducts/getProductsBySection retornam TODAS as colunas (inclusive cost_price) e devem
+// ser usadas apenas no painel administrativo. Paginas publicas usam getPublicProducts/
+// getPublicProductsBySection, que consultam a view products_public (sem cost_price).
 export async function getProducts() {
     try {
         const { data, error } = await supabase.from('products').select('*')
@@ -815,6 +818,30 @@ export async function getProducts() {
         return { data: mapped, error: null }
     } catch (e) {
         return { data: [], error: e }
+    }
+}
+
+// Colunas seguras para exposicao publica (tudo em TABLE_COLUMNS.products, exceto cost_price).
+// Usada como fallback caso a view products_public ainda nao tenha sido criada no banco.
+const PUBLIC_PRODUCT_COLUMNS = 'id,name,category,subcategory,price,original_price,image,badge,section,sizes,description,stock,created_at,colors,inpromocombo,iscustomizable,custompricewith,custompricewithout,customfeeletter,customfeenumber,customfeeemoji,customizable_emojis,has_kits,kit_options,color_stock,variant_stock,color_images'
+
+export async function getPublicProducts() {
+    try {
+        const { data, error } = await supabase.from('products_public').select('*')
+        if (error) throw error
+        const mapped = (data || []).map(p => mapDbToFrontend('products', p))
+        return { data: mapped, error: null }
+    } catch (e) {
+        // Fallback: view products_public ainda nao existe no banco. Consulta a tabela
+        // real pedindo explicitamente apenas as colunas publicas (sem cost_price).
+        try {
+            const { data, error } = await supabase.from('products').select(PUBLIC_PRODUCT_COLUMNS)
+            if (error) throw error
+            const mapped = (data || []).map(p => mapDbToFrontend('products', p))
+            return { data: mapped, error: null }
+        } catch (fallbackError) {
+            return { data: [], error: fallbackError }
+        }
     }
 }
 
@@ -846,6 +873,24 @@ export async function getProductsBySection(section) {
         return { data: mapped, error: null }
     } catch (e) {
         return { data: [], error: e }
+    }
+}
+
+export async function getPublicProductsBySection(section) {
+    try {
+        const { data, error } = await supabase.from('products_public').select('*').eq('section', section)
+        if (error) throw error
+        const mapped = (data || []).map(p => mapDbToFrontend('products', p))
+        return { data: mapped, error: null }
+    } catch (e) {
+        try {
+            const { data, error } = await supabase.from('products').select(PUBLIC_PRODUCT_COLUMNS).eq('section', section)
+            if (error) throw error
+            const mapped = (data || []).map(p => mapDbToFrontend('products', p))
+            return { data: mapped, error: null }
+        } catch (fallbackError) {
+            return { data: [], error: fallbackError }
+        }
     }
 }
 

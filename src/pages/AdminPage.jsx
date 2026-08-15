@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth.js'
 import { getAssetUrl } from '../utils/assets.js'
-import { useProducts } from '../hooks/useProducts.js'
+import { useAdminProducts } from '../hooks/useProducts.js'
 import { supabase } from '../services/supabase.js'
 import { createProduct, updateProduct, deleteProduct, uploadMultipleImages, deleteImage, createCategory, getProfiles, updateStoreConfig, clearProductBadges, generateUUID, getFinancialTransactions, createFinancialTransaction, updateFinancialTransactionStatus, deleteFinancialTransaction } from '../services/database.js'
 import { signOut } from '../services/auth.js'
@@ -56,7 +56,7 @@ function StatusBadge({ status }) {
 
 export default function AdminPage() {
     const { session, user, admin, loading: authLoading } = useAuth()
-    const { products, loading: productsLoading, setProducts } = useProducts()
+    const { products, loading: productsLoading, setProducts } = useAdminProducts()
     const [activeSection, setActiveSection] = useState('dashboard')
     const [searchQuery, setSearchQuery] = useState('')
 
