@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useParams, Link } from 'react-router-dom'
+import Seo from '../components/Seo.jsx'
 import Header from '../components/Header.jsx'
 import BenefitsBar from '../components/BenefitsBar.jsx'
 import Footer from '../components/Footer.jsx'
@@ -467,8 +468,13 @@ export default function InfoPage({ tab: propTab }) {
 
     return (
         <div className="bg-[#FCFAFA] min-h-screen flex flex-col font-sans">
+            <Seo
+                title={sections.find(s => s.id === activeTab)?.label}
+                path={`/${activeTab}`}
+                noindex={activeTab === 'wishlist'}
+            />
             <Header cartCount={cartCount} wishlistCount={wishlistCount} onSearchOpen={() => setSearchOpen(true)} />
-            
+
             <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full py-8 flex-grow">
                 {/* Mobile Dropdown Navigator (Custom Premium Dropdown) */}
                 <div className="block md:hidden mb-6 relative">

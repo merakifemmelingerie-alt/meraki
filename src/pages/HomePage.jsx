@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react'
 import ScrollReveal from '../components/ScrollReveal.jsx'
+import Seo from '../components/Seo.jsx'
 import { getAssetUrl } from '../utils/assets.js'
 import { Link, useNavigate } from 'react-router-dom'
 import Header from '../components/Header.jsx'
@@ -239,6 +240,7 @@ export default function HomePage() {
 
     return (
         <div className="bg-[#FCFAFA]">
+            <Seo />
             <Header cartCount={cartCount} wishlistCount={wishlistCount} onSearchOpen={() => setSearchOpen(true)} />
 
             <HeroBanner />

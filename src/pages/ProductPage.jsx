@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from 'react'
 import { useParams, Link } from 'react-router-dom'
+import Seo from '../components/Seo.jsx'
 import { getAssetUrl } from '../utils/assets.js'
 import { useProducts } from '../hooks/useProducts.js'
 import { useCart } from '../hooks/useCart.js'
@@ -333,8 +334,34 @@ export default function ProductPage() {
     const imageSrc = getAssetUrl(productImages[activeImageIndex] || '/placeholder.jpg')
     const colors = product.colors ? (Array.isArray(product.colors) ? product.colors : (typeof product.colors === 'string' ? product.colors.split(',').map(c => c.trim()) : [])) : []
 
+    const productImage = Array.isArray(product.image) ? product.image[0] : product.image
+    const productJsonLd = {
+        '@context': 'https://schema.org',
+        '@type': 'Product',
+        name: product.name,
+        image: productImage ? [getAssetUrl(productImage)] : undefined,
+        description: product.description || `${product.name} - Meraki Femme`,
+        category: product.category,
+        offers: {
+            '@type': 'Offer',
+            url: `https://merakifemme.com.br/product/${product.id}`,
+            priceCurrency: 'BRL',
+            price: Number(product.price) || 0,
+            availability: (product.stock === undefined || product.stock > 0)
+                ? 'https://schema.org/InStock'
+                : 'https://schema.org/OutOfStock'
+        }
+    }
+
     return (
         <div className="bg-[#FCFAFA] min-h-screen flex flex-col font-sans">
+            <Seo
+                title={product.name}
+                description={product.description ? product.description.slice(0, 155) : `${product.name} - Compre na Meraki Femme, lingerie e moda feminina premium.`}
+                path={`/product/${product.id}`}
+                image={productImage ? getAssetUrl(productImage) : undefined}
+            />
+            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }} />
             <Header cartCount={cartCount} wishlistCount={wishlistCount} onSearchOpen={() => setSearchOpen(true)} />
 
             {/* Breadcrumbs */}

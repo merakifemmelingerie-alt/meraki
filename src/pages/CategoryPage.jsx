@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import ScrollReveal from '../components/ScrollReveal.jsx'
+import Seo from '../components/Seo.jsx'
 import { useParams, Link } from 'react-router-dom'
 import Header from '../components/Header.jsx'
 import Footer from '../components/Footer.jsx'
@@ -579,6 +580,7 @@ export default function CategoryPage() {
 
     return (
         <div className="bg-[#FCFAFA] min-h-screen flex flex-col">
+            <Seo title={meta.title} description={meta.description} path={`/category/${slug}`} />
             <Header cartCount={cartCount} wishlistCount={wishlistCount} onSearchOpen={() => setSearchOpen(true)} />
 
             {/* Category Hero Header */}

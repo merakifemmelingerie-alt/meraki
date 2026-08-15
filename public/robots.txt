@@ -2,5 +2,9 @@ User-agent: *
 Allow: /
 Disallow: /checkout
 Disallow: /profile
+Disallow: /admin
+Disallow: /auth
+Disallow: /login
+Disallow: /wishlist
 
-Sitemap: https://merakimodafeminina.com.br/sitemap.xml
+Sitemap: https://merakifemme.com.br/sitemap.xml

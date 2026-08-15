@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
-import { useEffect, useLayoutEffect, useState, lazy, Suspense } from 'react'
+import { useEffect, useState, lazy, Suspense } from 'react'
 import HomePage from './pages/HomePage.jsx'
 import CartDrawer from './components/CartDrawer.jsx'
 import SearchOverlay from './components/SearchOverlay.jsx'
@@ -34,21 +34,6 @@ function ScrollToTopReset() {
     return null
 }
 
-// Mantem a barra de enderecos sempre mostrando so o dominio (sem /category/...,
-// /product/... etc.), por pedido explicito do cliente. A navegacao interna do
-// React Router continua funcionando normalmente (o conteudo muda), so a URL
-// visivel e' reescrita de volta pra raiz logo apos cada troca de rota.
-// Efeito colateral aceito: recarregar a pagina ou compartilhar o link sempre
-// volta pra Home, ja que o navegador so guarda "/" no historico.
-function AddressBarMask() {
-    const location = useLocation()
-    useLayoutEffect(() => {
-        if (window.location.pathname !== '/' || window.location.search) {
-            window.history.replaceState(window.history.state, '', '/')
-        }
-    }, [location])
-    return null
-}
 
 function PageFallback() {
     return (
@@ -250,7 +235,6 @@ export default function App() {
             <BrowserRouter>
                 <SplashLoader loading={loading} />
                 <ScrollToTopReset />
-                <AddressBarMask />
                 <TrackingManager />
                 <AppContent />
             </BrowserRouter>
