@@ -84,7 +84,10 @@ export async function signOut() {
 export async function signInWithProvider(provider) {
     try {
         const { data, error } = await supabase.auth.signInWithOAuth({
-            provider: provider.toLowerCase()
+            provider: provider.toLowerCase(),
+            options: {
+                redirectTo: window.location.origin + '/#/auth'
+            }
         })
         if (error) throw error
         return { data, error: null }
@@ -120,21 +123,30 @@ export async function getUserProfile(userId) {
             .select('*')
             .eq('id', userId)
             .maybeSingle()
-            
+
         if (error) throw error
-        
+
         if (!data) {
-            // Profile not found in database, return temporary placeholder profile
+            // Primeiro login desse usuario (ex: via Google/Facebook, que nao passa pelo
+            // signUp()) e ainda nao existe uma linha em profiles. Cria agora, pra ele
+            // ficar registrado como cliente de verdade no banco.
             const { data: { user } } = await supabase.auth.getUser()
-            return {
-                profile: {
-                    id: userId,
-                    email: user?.email || '',
-                    full_name: user?.user_metadata?.full_name || '',
-                    tipo_user: 'customer'
-                },
-                error: null
+            const newProfile = {
+                id: userId,
+                email: user?.email || '',
+                full_name: user?.user_metadata?.full_name || user?.user_metadata?.name || '',
+                tipo_user: 'customer'
             }
+            const { data: inserted, error: insertError } = await supabase
+                .from('profiles')
+                .upsert(newProfile)
+                .select()
+                .maybeSingle()
+            if (insertError) {
+                console.error('Erro ao criar perfil de cliente no primeiro login:', insertError)
+                return { profile: newProfile, error: null }
+            }
+            return { profile: inserted || newProfile, error: null }
         }
 
         return { profile: data, error: null }
