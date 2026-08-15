@@ -807,22 +807,34 @@ async function syncTableToSupabase(table, items) {
 }
 
 // Helper database functions expected by pages
-// getProducts/getProductsBySection retornam TODAS as colunas (inclusive cost_price) e devem
-// ser usadas apenas no painel administrativo. Paginas publicas usam getPublicProducts/
-// getPublicProductsBySection, que consultam a view products_public (sem cost_price).
+// getProducts/getProductsBySection consultam a view products_public, que devolve cost_price
+// de verdade apenas quando quem esta logado e admin (checagem is_admin() dentro da view no
+// banco) e NULL para qualquer outra pessoa. Usadas no painel administrativo. Paginas publicas
+// usam getPublicProducts/getPublicProductsBySection (mesma view, cost_price sempre NULL pra elas).
 export async function getProducts() {
     try {
-        const { data, error } = await supabase.from('products').select('*')
+        const { data, error } = await supabase.from('products_public').select('*')
         if (error) throw error
         const mapped = (data || []).map(p => mapDbToFrontend('products', p))
         return { data: mapped, error: null }
     } catch (e) {
-        return { data: [], error: e }
+        // Fallback: view ainda nao existe no banco. Usa a tabela real (funciona
+        // normalmente ate a migracao de seguranca ser aplicada no Supabase).
+        try {
+            const { data, error } = await supabase.from('products').select('*')
+            if (error) throw error
+            const mapped = (data || []).map(p => mapDbToFrontend('products', p))
+            return { data: mapped, error: null }
+        } catch (fallbackError) {
+            return { data: [], error: fallbackError }
+        }
     }
 }
 
 // Colunas seguras para exposicao publica (tudo em TABLE_COLUMNS.products, exceto cost_price).
-// Usada como fallback caso a view products_public ainda nao tenha sido criada no banco.
+// Usada como fallback caso a view products_public ainda nao tenha sido criada no banco, e
+// tambem como RETURNING de insert/update (cost_price fica bloqueado por coluna no banco para
+// todos os papeis da API — o valor de volta e reidratado localmente a partir do payload enviado).
 const PUBLIC_PRODUCT_COLUMNS = 'id,name,category,subcategory,price,original_price,image,badge,section,sizes,description,stock,created_at,colors,inpromocombo,iscustomizable,custompricewith,custompricewithout,customfeeletter,customfeenumber,customfeeemoji,customizable_emojis,has_kits,kit_options,color_stock,variant_stock,color_images'
 
 export async function getPublicProducts() {
@@ -857,22 +869,35 @@ export async function getProfiles() {
 
 export async function getProductById(id) {
     try {
-        const { data, error } = await supabase.from('products').select('*').eq('id', id).maybeSingle()
+        const { data, error } = await supabase.from('products_public').select('*').eq('id', id).maybeSingle()
         if (error) throw error
         return { data: data ? mapDbToFrontend('products', data) : null, error: null }
     } catch (e) {
-        return { data: null, error: e }
+        try {
+            const { data, error } = await supabase.from('products').select('*').eq('id', id).maybeSingle()
+            if (error) throw error
+            return { data: data ? mapDbToFrontend('products', data) : null, error: null }
+        } catch (fallbackError) {
+            return { data: null, error: fallbackError }
+        }
     }
 }
 
 export async function getProductsBySection(section) {
     try {
-        const { data, error } = await supabase.from('products').select('*').eq('section', section)
+        const { data, error } = await supabase.from('products_public').select('*').eq('section', section)
         if (error) throw error
         const mapped = (data || []).map(p => mapDbToFrontend('products', p))
         return { data: mapped, error: null }
     } catch (e) {
-        return { data: [], error: e }
+        try {
+            const { data, error } = await supabase.from('products').select('*').eq('section', section)
+            if (error) throw error
+            const mapped = (data || []).map(p => mapDbToFrontend('products', p))
+            return { data: mapped, error: null }
+        } catch (fallbackError) {
+            return { data: [], error: fallbackError }
+        }
     }
 }
 
@@ -900,7 +925,9 @@ export async function createProduct(product) {
         let data = null
         let error = null
 
-        const res = await supabase.from('products').insert([payload]).select().single()
+        // cost_price fica de fora do RETURNING (coluna bloqueada no banco pra API);
+        // o valor volta pro estado local a partir do proprio payload enviado abaixo.
+        const res = await supabase.from('products').insert([payload]).select(PUBLIC_PRODUCT_COLUMNS).single()
         data = res.data
         error = res.error
 
@@ -911,12 +938,12 @@ export async function createProduct(product) {
             delete fallbackPayload.kit_options
             delete fallbackPayload.color_stock
             delete fallbackPayload.variant_stock
-            const retry = await supabase.from('products').insert([fallbackPayload]).select().single()
+            const retry = await supabase.from('products').insert([fallbackPayload]).select(PUBLIC_PRODUCT_COLUMNS).single()
             if (retry.error) throw retry.error
             data = retry.data
         }
-        
-        const mapped = mapDbToFrontend('products', data)
+
+        const mapped = { ...mapDbToFrontend('products', data), cost_price: payload.cost_price }
         const current = JSON.parse(localStorage.getItem('meraki_products') || '[]')
         current.unshift({ ...mapped, ...product })
         originalSetItem('meraki_products', JSON.stringify(current))
@@ -934,7 +961,9 @@ export async function updateProduct(id, updates) {
         let data = null
         let error = null
 
-        const res = await supabase.from('products').update(payload).eq('id', id).select().single()
+        // cost_price fica de fora do RETURNING (coluna bloqueada no banco pra API);
+        // o valor volta pro estado local a partir do proprio payload enviado abaixo.
+        const res = await supabase.from('products').update(payload).eq('id', id).select(PUBLIC_PRODUCT_COLUMNS).single()
         data = res.data
         error = res.error
 
@@ -945,12 +974,12 @@ export async function updateProduct(id, updates) {
             delete fallbackPayload.kit_options
             delete fallbackPayload.color_stock
             delete fallbackPayload.variant_stock
-            const retry = await supabase.from('products').update(fallbackPayload).eq('id', id).select().single()
+            const retry = await supabase.from('products').update(fallbackPayload).eq('id', id).select(PUBLIC_PRODUCT_COLUMNS).single()
             if (retry.error) throw retry.error
             data = retry.data
         }
 
-        const mapped = mapDbToFrontend('products', data)
+        const mapped = { ...mapDbToFrontend('products', data), ...(payload.cost_price !== undefined ? { cost_price: payload.cost_price } : {}) }
         const current = JSON.parse(localStorage.getItem('meraki_products') || '[]')
         const idx = current.findIndex(p => p.id === id)
         if (idx !== -1) {
@@ -984,7 +1013,7 @@ export async function deleteProduct(id) {
 export async function searchProducts(query) {
     try {
         const { data, error } = await supabase
-            .from('products')
+            .from('products_public')
             .select('*')
             .or(`name.ilike.%${query}%,category.ilike.%${query}%,description.ilike.%${query}%`)
         if (error) throw error
