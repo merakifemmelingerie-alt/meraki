@@ -10,7 +10,8 @@ import {
     getProductRequests, updateProductRequestStatus, deleteProductRequest,
     getCollectionsPlanning, createCollectionPlanning, updateCollectionPlanning, deleteCollectionPlanning,
     getCollectionTasks, createCollectionTask, toggleCollectionTask, deleteCollectionTask,
-    getCommercialCalendar, createCommercialEvent, deleteCommercialEvent
+    getCommercialCalendar, createCommercialEvent, deleteCommercialEvent,
+    mergeTopbarStyle
 } from '../../services/database.js'
 
 function Icon({ path, className = 'w-5 h-5' }) {
@@ -938,8 +939,7 @@ export function CategoriesSection({
     getAssetUrl,
     homepageCategories = [],
     setHomepageCategories,
-    saveHomepageCategoriesToConfig,
-    updateStoreConfig
+    saveHomepageCategoriesToConfig
 }) {
     const [editingIndex, setEditingIndex] = useState(null)
     const [catName, setCatName] = useState('')
@@ -1026,16 +1026,7 @@ export function CategoriesSection({
     const saveDefaultCategoryLink = async (link) => {
         const value = (link || '').trim() || '/shop'
         setDefaultCategoryLink(value)
-        const stored = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
-        const currentStyle = JSON.parse(localStorage.getItem('meraki_topbar_style') || '{"bgColor": "#C6A76A", "textColor": "#FFFFFF"}')
-        const mergedTopbarStyle = { ...currentStyle, ...(stored.topbarStyle || {}), default_category_link: value }
-        const newConfig = { ...stored, id: 'default', default_category_link: value, topbarStyle: mergedTopbarStyle }
-        localStorage.setItem('meraki_store_config', JSON.stringify(newConfig))
-        localStorage.setItem('meraki_topbar_style', JSON.stringify(mergedTopbarStyle))
-        window.dispatchEvent(new Event('storeConfigUpdated'))
-        if (updateStoreConfig) {
-            await updateStoreConfig({ topbarStyle: mergedTopbarStyle })
-        }
+        await mergeTopbarStyle({ default_category_link: value })
     }
 
     const resetForm = () => {
@@ -1237,22 +1228,8 @@ export function CategoriesSection({
                                     const compressed = await compressImage(file, 1200)
                                     const { urls } = await uploadMultipleImages([compressed])
                                     if (urls?.[0]) {
-                                        const stored = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
-                                        const currentStyle = JSON.parse(localStorage.getItem('meraki_topbar_style') || '{"bgColor": "#C6A76A", "textColor": "#FFFFFF"}')
-                                        // Mescla os dois estados de topbarStyle (o embutido em store_config e o avulso)
-                                        // e grava os dois em uma única atualização para evitar que gravações
-                                        // assíncronas concorrentes sobrescrevam a imagem recém-enviada.
-                                        const mergedTopbarStyle = { ...currentStyle, ...(stored.topbarStyle || {}), default_category_image: urls[0] }
-
-                                        const newConfig = { ...stored, id: 'default', default_category_image: urls[0], topbarStyle: mergedTopbarStyle }
-                                        localStorage.setItem('meraki_store_config', JSON.stringify(newConfig))
-                                        localStorage.setItem('meraki_topbar_style', JSON.stringify(mergedTopbarStyle))
-
-                                        window.dispatchEvent(new Event('storeConfigUpdated'))
                                         setDefaultCategoryImage(urls[0])
-                                        if (updateStoreConfig) {
-                                            await updateStoreConfig({ topbarStyle: mergedTopbarStyle })
-                                        }
+                                        await mergeTopbarStyle({ default_category_image: urls[0] })
                                     }
                                 } catch (err) {
                                     console.error(err)

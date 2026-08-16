@@ -4,7 +4,7 @@ import { useAuth } from '../hooks/useAuth.js'
 import { getAssetUrl } from '../utils/assets.js'
 import { useAdminProducts } from '../hooks/useProducts.js'
 import { supabase } from '../services/supabase.js'
-import { createProduct, updateProduct, deleteProduct, uploadMultipleImages, deleteImage, createCategory, getProfiles, updateStoreConfig, clearProductBadges, generateUUID, getFinancialTransactions, createFinancialTransaction, updateFinancialTransactionStatus, deleteFinancialTransaction } from '../services/database.js'
+import { createProduct, updateProduct, deleteProduct, uploadMultipleImages, deleteImage, createCategory, getProfiles, updateStoreConfig, mergeTopbarStyle, clearProductBadges, generateUUID, getFinancialTransactions, createFinancialTransaction, updateFinancialTransactionStatus, deleteFinancialTransaction } from '../services/database.js'
 import { signOut } from '../services/auth.js'
 import AdminSidebar from '../components/admin/AdminSidebar.jsx'
 import DashboardSection from '../components/admin/DashboardSection.jsx'
@@ -345,24 +345,19 @@ export default function AdminPage() {
     }
 
     const saveSectionsToConfig = async (list) => {
-        localStorage.setItem('meraki_sections', JSON.stringify(list))
         try {
-            const currentStyle = JSON.parse(localStorage.getItem('meraki_topbar_style') || '{"bgColor": "#C6A76A", "textColor": "#FFFFFF"}')
-            const newStyle = { ...currentStyle, availableSections: list }
-            localStorage.setItem('meraki_topbar_style', JSON.stringify(newStyle))
-            await updateStoreConfig({ topbarStyle: newStyle })
+            localStorage.setItem('meraki_sections', JSON.stringify(list))
+            await mergeTopbarStyle({ availableSections: list })
         } catch (e) {
             console.error(e)
         }
     }
 
     const saveHomepageCategoriesToConfig = async (list) => {
-        localStorage.setItem('meraki_homepage_categories', JSON.stringify(list))
         try {
-            const currentStyle = JSON.parse(localStorage.getItem('meraki_topbar_style') || '{"bgColor": "#C6A76A", "textColor": "#FFFFFF"}')
-            const newStyle = { ...currentStyle, homepageCategories: list }
-            localStorage.setItem('meraki_topbar_style', JSON.stringify(newStyle))
-            await updateStoreConfig({ topbarStyle: newStyle })
+            localStorage.setItem('meraki_homepage_categories', JSON.stringify(list))
+            window.dispatchEvent(new Event('homepageCategoriesUpdated'))
+            await mergeTopbarStyle({ homepageCategories: list })
         } catch (e) {
             console.error(e)
         }
@@ -1444,7 +1439,6 @@ export default function AdminPage() {
                             homepageCategories={homepageCategories}
                             setHomepageCategories={setHomepageCategories}
                             saveHomepageCategoriesToConfig={saveHomepageCategoriesToConfig}
-                            updateStoreConfig={updateStoreConfig}
                         />
                     )}
 
@@ -1627,11 +1621,10 @@ export default function AdminPage() {
                                             <input
                                                 type="color"
                                                 value={topbarStyle.bgColor}
-                                                onChange={(e) => {
+                                                onChange={async (e) => {
                                                     const updated = { ...topbarStyle, bgColor: e.target.value }
                                                     setTopbarStyle(updated)
-                                                    localStorage.setItem('meraki_topbar_style', JSON.stringify(updated))
-                                                    window.dispatchEvent(new Event('topbarStyleUpdated'))
+                                                    await mergeTopbarStyle({ bgColor: e.target.value })
                                                 }}
                                                 className="w-10 h-10 rounded-lg border border-[#EEEEEE] cursor-pointer p-0.5 bg-white"
                                             />
@@ -1644,11 +1637,10 @@ export default function AdminPage() {
                                             <input
                                                 type="color"
                                                 value={topbarStyle.textColor}
-                                                onChange={(e) => {
+                                                onChange={async (e) => {
                                                     const updated = { ...topbarStyle, textColor: e.target.value }
                                                     setTopbarStyle(updated)
-                                                    localStorage.setItem('meraki_topbar_style', JSON.stringify(updated))
-                                                    window.dispatchEvent(new Event('topbarStyleUpdated'))
+                                                    await mergeTopbarStyle({ textColor: e.target.value })
                                                 }}
                                                 className="w-10 h-10 rounded-lg border border-[#EEEEEE] cursor-pointer p-0.5 bg-white"
                                             />
@@ -1666,11 +1658,10 @@ export default function AdminPage() {
                                 <div className="flex gap-2 pt-1">
                                     <button
                                         type="button"
-                                        onClick={() => {
-                                            const reset = { bgColor: '#C6A76A', textColor: '#FFFFFF' }
+                                        onClick={async () => {
+                                            const reset = { ...topbarStyle, bgColor: '#C6A76A', textColor: '#FFFFFF' }
                                             setTopbarStyle(reset)
-                                            localStorage.setItem('meraki_topbar_style', JSON.stringify(reset))
-                                            window.dispatchEvent(new Event('topbarStyleUpdated'))
+                                            await mergeTopbarStyle({ bgColor: '#C6A76A', textColor: '#FFFFFF' })
                                         }}
                                         className="text-[10px] font-bold text-gray-400 hover:text-[#7A3E4A] px-3 py-1.5 rounded-lg hover:bg-[#FAF9F5] transition-all cursor-pointer border border-[#EEEEEE]"
                                     >

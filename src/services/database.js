@@ -594,9 +594,6 @@ localStorage.setItem = function(key, value) {
             })
         } else if (
             key === 'meraki_topbar_messages' ||
-            key === 'meraki_topbar_style' ||
-            key === 'meraki_sections' ||
-            key === 'meraki_homepage_categories' ||
             key === 'meraki_promo_combo' ||
             key === 'meraki_editorial' ||
             key === 'meraki_shipping_message' ||
@@ -1169,6 +1166,30 @@ export async function updateStoreConfig(config) {
     if (config.pixKey) merged.pixKey = config.pixKey
     originalSetItem('meraki_store_config', JSON.stringify(merged))
     return { data: merged, error: null }
+}
+
+// topbarStyle guarda varios recursos independentes num unico JSON (cores da faixa,
+// link/imagem padrao do menu, cartoes da home, secoes disponiveis). Gravar esse campo
+// direto a partir do cache local do navegador e perigoso: se o cache local estiver
+// desatualizado (ex: outro admin salvou algo em outro dispositivo/aba), o `upsert`
+// substitui o JSON inteiro e apaga silenciosamente o que nao veio junto. Por isso toda
+// alteracao parcial de topbarStyle deve passar por aqui, que busca o valor mais recente
+// direto do banco antes de mesclar e salvar.
+export async function mergeTopbarStyle(partial) {
+    let base = {}
+    try {
+        const { data } = await supabase.from('store_config').select('topbarstyle').eq('id', 'default').maybeSingle()
+        base = (data && data.topbarstyle) || {}
+    } catch (e) {
+        console.warn('Erro ao buscar topbarStyle atual, usando cache local como base:', e)
+        try { base = JSON.parse(localStorage.getItem('meraki_topbar_style') || '{}') } catch (_) {}
+    }
+    const merged = { ...base, ...partial }
+    originalSetItem('meraki_topbar_style', JSON.stringify(merged))
+    await updateStoreConfig({ topbarStyle: merged })
+    window.dispatchEvent(new Event('topbarStyleUpdated'))
+    window.dispatchEvent(new Event('storeConfigUpdated'))
+    return merged
 }
 
 export async function clearProductBadges(badgeList) {
