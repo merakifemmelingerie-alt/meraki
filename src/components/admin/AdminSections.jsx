@@ -938,7 +938,8 @@ export function CategoriesSection({
     getAssetUrl,
     homepageCategories = [],
     setHomepageCategories,
-    saveHomepageCategoriesToConfig
+    saveHomepageCategoriesToConfig,
+    updateStoreConfig
 }) {
     const [editingIndex, setEditingIndex] = useState(null)
     const [catName, setCatName] = useState('')
@@ -1022,7 +1023,7 @@ export function CategoriesSection({
         return () => window.removeEventListener('storeConfigUpdated', syncDefaultImage)
     }, [categories])
 
-    const saveDefaultCategoryLink = (link) => {
+    const saveDefaultCategoryLink = async (link) => {
         const value = (link || '').trim() || '/shop'
         setDefaultCategoryLink(value)
         const stored = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
@@ -1032,6 +1033,9 @@ export function CategoriesSection({
         localStorage.setItem('meraki_store_config', JSON.stringify(newConfig))
         localStorage.setItem('meraki_topbar_style', JSON.stringify(mergedTopbarStyle))
         window.dispatchEvent(new Event('storeConfigUpdated'))
+        if (updateStoreConfig) {
+            await updateStoreConfig({ topbarStyle: mergedTopbarStyle })
+        }
     }
 
     const resetForm = () => {
@@ -1246,6 +1250,9 @@ export function CategoriesSection({
 
                                         window.dispatchEvent(new Event('storeConfigUpdated'))
                                         setDefaultCategoryImage(urls[0])
+                                        if (updateStoreConfig) {
+                                            await updateStoreConfig({ topbarStyle: mergedTopbarStyle })
+                                        }
                                     }
                                 } catch (err) {
                                     console.error(err)

@@ -350,6 +350,7 @@ export default function AdminPage() {
             const currentStyle = JSON.parse(localStorage.getItem('meraki_topbar_style') || '{"bgColor": "#C6A76A", "textColor": "#FFFFFF"}')
             const newStyle = { ...currentStyle, availableSections: list }
             localStorage.setItem('meraki_topbar_style', JSON.stringify(newStyle))
+            await updateStoreConfig({ topbarStyle: newStyle })
         } catch (e) {
             console.error(e)
         }
@@ -361,6 +362,7 @@ export default function AdminPage() {
             const currentStyle = JSON.parse(localStorage.getItem('meraki_topbar_style') || '{"bgColor": "#C6A76A", "textColor": "#FFFFFF"}')
             const newStyle = { ...currentStyle, homepageCategories: list }
             localStorage.setItem('meraki_topbar_style', JSON.stringify(newStyle))
+            await updateStoreConfig({ topbarStyle: newStyle })
         } catch (e) {
             console.error(e)
         }
@@ -1442,6 +1444,7 @@ export default function AdminPage() {
                             homepageCategories={homepageCategories}
                             setHomepageCategories={setHomepageCategories}
                             saveHomepageCategoriesToConfig={saveHomepageCategoriesToConfig}
+                            updateStoreConfig={updateStoreConfig}
                         />
                     )}
 
