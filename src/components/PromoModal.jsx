@@ -259,8 +259,8 @@ export default function PromoModal({ onNotification }) {
                         alt="Meraki Femme"
                         className="absolute inset-0 w-full h-full object-cover"
                         style={{
-                            WebkitMaskImage: 'linear-gradient(100deg, transparent 0%, transparent 4%, rgba(0,0,0,0.6) 26%, #000 48%)',
-                            maskImage: 'linear-gradient(100deg, transparent 0%, transparent 4%, rgba(0,0,0,0.6) 26%, #000 48%)',
+                            WebkitMaskImage: 'linear-gradient(90deg, transparent 0%, transparent 4%, rgba(0,0,0,0.6) 26%, #000 48%)',
+                            maskImage: 'linear-gradient(90deg, transparent 0%, transparent 4%, rgba(0,0,0,0.6) 26%, #000 48%)',
                         }}
                     />
                     <div
