@@ -222,7 +222,7 @@ export default function PromoModal({ onNotification }) {
 
                         <button
                             type="submit"
-                            className="w-full py-4 bg-[#7A3E4A] hover:bg-[#5A2E34] text-white text-xs font-bold uppercase tracking-[0.25em] rounded-full transition-all duration-200 hover:scale-[1.015] active:scale-[0.99] cursor-pointer shadow-lg shadow-[#7A3E4A]/20"
+                            className="welcome-modal-cta-pulse w-full py-4 bg-[#7A3E4A] hover:bg-[#5A2E34] text-white text-xs font-bold uppercase tracking-[0.25em] rounded-full transition-all duration-200 hover:scale-[1.015] active:scale-[0.99] cursor-pointer shadow-lg shadow-[#7A3E4A]/20"
                         >
                             Quero meu desconto
                         </button>
@@ -352,7 +352,7 @@ export default function PromoModal({ onNotification }) {
 
                         <button
                             type="submit"
-                            className="w-full py-3.5 bg-[#7A3E4A] hover:bg-[#5A2E34] text-white text-[11px] font-bold uppercase tracking-[0.2em] rounded-full transition-all duration-200 active:scale-[0.98] cursor-pointer shadow-lg shadow-[#7A3E4A]/20"
+                            className="welcome-modal-cta-pulse w-full py-3.5 bg-[#7A3E4A] hover:bg-[#5A2E34] text-white text-[11px] font-bold uppercase tracking-[0.2em] rounded-full transition-all duration-200 active:scale-[0.98] cursor-pointer shadow-lg shadow-[#7A3E4A]/20"
                         >
                             Quero meu desconto
                         </button>

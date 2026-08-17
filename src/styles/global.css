@@ -219,11 +219,28 @@
     mix-blend-mode: overlay;
 }
 
+.welcome-modal-cta-pulse {
+    animation: welcomeModalCtaPulse 1.8s ease-in-out infinite;
+}
+
+.welcome-modal-cta-pulse:hover {
+    animation-play-state: paused;
+}
+
+@keyframes welcomeModalCtaPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.045); }
+}
+
 @media (prefers-reduced-motion: reduce) {
     .welcome-modal-panel,
     .welcome-modal-stagger {
         transition: opacity 200ms ease !important;
         transform: none !important;
+    }
+
+    .welcome-modal-cta-pulse {
+        animation: none !important;
     }
 }
 
