@@ -124,7 +124,7 @@ export default function PromoModal({ onNotification }) {
 
     if (!config.enabled) return null
 
-    const inputClass = 'w-full bg-white border border-[#EEEEEE] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#7A3E4A] transition-colors duration-200 text-[#1A1A1A] placeholder:text-gray-400'
+    const inputClass = 'w-full bg-transparent border-b border-[#7A3E4A]/20 py-2.5 text-sm outline-none focus:border-[#7A3E4A] transition-colors duration-200 text-[#1A1A1A] placeholder:text-gray-400'
 
     return (
         <div className={`fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#1A1A1A]/60 backdrop-blur-sm transition-opacity duration-300 ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
