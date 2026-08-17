@@ -25,9 +25,9 @@ function readConfig() {
     return DEFAULT_CONFIG
 }
 
-function LogoMark({ butterflyClass, markClass = '', mainClass, subClass }) {
+function LogoMark({ butterflyClass, markClass = '', mainClass, subClass, stacked = false }) {
     return (
-        <div className={`inline-flex flex-col items-center gap-1.5 animate-logo-breath ${markClass}`}>
+        <div className={`inline-flex items-center ${stacked ? 'flex-col gap-1.5' : 'gap-2'} animate-logo-breath ${markClass}`}>
             <img
                 src={getAssetUrl('/assets/borboleta-v2.webp')}
                 alt="Borboleta Meraki"
@@ -298,6 +298,7 @@ export default function PromoModal({ onNotification }) {
 
                     <div className="welcome-modal-stagger flex flex-col items-center mb-3">
                         <LogoMark
+                            stacked
                             butterflyClass="w-7 h-7"
                             markClass="justify-center"
                             mainClass="text-[15px] tracking-[0.18em]"

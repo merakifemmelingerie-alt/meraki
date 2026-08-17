@@ -873,13 +873,6 @@ export function WelcomeModalSection({
                             if (urls?.[0]) desktopImage = urls[0]
                         }
 
-                        let mobileImage = wm.mobileImage
-                        if (form.wmMobileImage.files?.[0]) {
-                            const compressed = await compressImage(form.wmMobileImage.files[0], 1200)
-                            const { urls } = await uploadMultipleImages([compressed])
-                            if (urls?.[0]) mobileImage = urls[0]
-                        }
-
                         const updated = {
                             ...wm,
                             eyebrow: form.wmEyebrow.value.trim(),
@@ -892,7 +885,6 @@ export function WelcomeModalSection({
                             instagramHandle: form.wmInstagram.value.trim(),
                             delaySeconds: parseFloat(form.wmDelay.value) || 2.5,
                             desktopImage,
-                            mobileImage,
                         }
                         await save(updated)
                         setSaving(false)
@@ -963,25 +955,15 @@ export function WelcomeModalSection({
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-[10px] font-bold text-gray-700 mb-1 uppercase tracking-wider">Imagem Desktop (vertical, tela cheia)</label>
-                            <input type="file" name="wmDesktopImage" accept="image/*" className="w-full text-xs text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[#7A3E4A]/10 file:text-[#7A3E4A] hover:file:bg-[#7A3E4A]/20 cursor-pointer" />
-                            {wm.desktopImage && (
-                                <div className="w-full h-28 mt-2 rounded-lg overflow-hidden border border-[#EEEEEE] bg-gray-50">
-                                    <img src={getAssetUrl(wm.desktopImage)} alt="Preview desktop" className="w-full h-full object-cover" />
-                                </div>
-                            )}
-                        </div>
-                        <div>
-                            <label className="block text-[10px] font-bold text-gray-700 mb-1 uppercase tracking-wider">Imagem Mobile (faixa horizontal)</label>
-                            <input type="file" name="wmMobileImage" accept="image/*" className="w-full text-xs text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[#7A3E4A]/10 file:text-[#7A3E4A] hover:file:bg-[#7A3E4A]/20 cursor-pointer" />
-                            {wm.mobileImage && (
-                                <div className="w-full h-28 mt-2 rounded-lg overflow-hidden border border-[#EEEEEE] bg-gray-50">
-                                    <img src={getAssetUrl(wm.mobileImage)} alt="Preview mobile" className="w-full h-full object-cover" />
-                                </div>
-                            )}
-                        </div>
+                    <div>
+                        <label className="block text-[10px] font-bold text-gray-700 mb-1 uppercase tracking-wider">Imagem Desktop (vertical, tela cheia)</label>
+                        <p className="text-[9px] text-gray-400 font-medium mb-1.5">Convertida automaticamente para WebP ao enviar — sem perda perceptível de qualidade e com carregamento mais rápido. No mobile o pop-up não exibe imagem.</p>
+                        <input type="file" name="wmDesktopImage" accept="image/*" className="w-full text-xs text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[#7A3E4A]/10 file:text-[#7A3E4A] hover:file:bg-[#7A3E4A]/20 cursor-pointer" />
+                        {wm.desktopImage && (
+                            <div className="w-full h-28 mt-2 rounded-lg overflow-hidden border border-[#EEEEEE] bg-gray-50">
+                                <img src={getAssetUrl(wm.desktopImage)} alt="Preview desktop" className="w-full h-full object-cover" />
+                            </div>
+                        )}
                     </div>
 
                     <div className="flex justify-end pt-2">
