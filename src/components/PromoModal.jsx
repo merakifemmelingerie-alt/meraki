@@ -152,7 +152,7 @@ export default function PromoModal({ onNotification }) {
                         src={getAssetUrl('/assets/borboleta-v2.webp')}
                         alt=""
                         aria-hidden="true"
-                        className="absolute -bottom-12 -right-14 w-64 h-64 object-contain opacity-[0.05] rotate-12 pointer-events-none select-none"
+                        className="absolute bottom-4 right-4 w-44 h-44 object-contain opacity-[0.06] rotate-12 pointer-events-none select-none"
                     />
 
                     <button
