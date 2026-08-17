@@ -25,9 +25,9 @@ function readConfig() {
     return DEFAULT_CONFIG
 }
 
-function LogoMark({ butterflyClass, markClass, mainClass, subClass }) {
+function LogoMark({ butterflyClass, markClass = '', mainClass, subClass }) {
     return (
-        <div className={`inline-flex items-center gap-2 animate-logo-breath ${markClass}`}>
+        <div className={`inline-flex flex-col items-center gap-1.5 animate-logo-breath ${markClass}`}>
             <img
                 src={getAssetUrl('/assets/borboleta-v2.webp')}
                 alt="Borboleta Meraki"
