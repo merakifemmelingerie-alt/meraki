@@ -263,10 +263,6 @@ export default function PromoModal({ onNotification }) {
                             maskImage: 'linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.009) 2.6%, rgba(0,0,0,0.058) 5.2%, rgba(0,0,0,0.163) 7.8%, rgba(0,0,0,0.317) 10.4%, rgba(0,0,0,0.5) 13%, rgba(0,0,0,0.683) 15.6%, rgba(0,0,0,0.837) 18.2%, rgba(0,0,0,0.942) 20.8%, rgba(0,0,0,0.991) 23.4%, #000 26%)',
                         }}
                     />
-                    <div
-                        className="absolute inset-0"
-                        style={{ background: 'linear-gradient(to top, rgba(26,26,26,0.22) 0%, rgba(26,26,26,0) 30%)' }}
-                    />
                 </div>
             </div>
 
