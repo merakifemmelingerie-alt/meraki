@@ -296,6 +296,17 @@ export default function PromoModal({ onNotification }) {
                 </div>
 
                 <div className="relative -mt-6 rounded-t-[24px] bg-[#FDF8F4] px-6 pb-6 pt-5 overflow-y-auto z-[1]" style={{ boxShadow: '0 -10px 20px -12px rgba(122,62,74,0.1)' }}>
+                    <div
+                        className="absolute -top-6 left-1/2 -translate-x-1/2 w-72 h-72 rounded-full pointer-events-none select-none"
+                        style={{ background: 'radial-gradient(circle, rgba(198,167,106,0.14) 0%, rgba(198,167,106,0) 70%)' }}
+                    />
+                    <img
+                        src={getAssetUrl('/assets/borboleta-v2.webp')}
+                        alt=""
+                        aria-hidden="true"
+                        className="absolute bottom-3 right-3 w-24 h-24 object-contain opacity-[0.06] rotate-12 pointer-events-none select-none"
+                    />
+
                     <div className="welcome-modal-stagger flex flex-col items-center mb-3">
                         <LogoMark
                             butterflyClass="w-7 h-7"
