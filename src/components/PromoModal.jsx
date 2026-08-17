@@ -66,7 +66,7 @@ export default function PromoModal({ onNotification }) {
     const [config, setConfig] = useState(readConfig)
     const [isOpen, setIsOpen] = useState(false)
     const [name, setName] = useState('')
-    const [phone, setPhone] = useState('')
+    const [phone, setPhone] = useState('+55 ')
     const [email, setEmail] = useState('')
     const [accepted, setAccepted] = useState(false)
 
