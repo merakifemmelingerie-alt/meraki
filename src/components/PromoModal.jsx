@@ -33,7 +33,7 @@ function LogoMark({ butterflyClass, markClass, mainClass, subClass }) {
                 alt="Borboleta Meraki"
                 className={`object-contain animate-butterfly-flight ${butterflyClass}`}
             />
-            <div className="flex flex-col leading-none">
+            <div className="flex flex-col items-center leading-none">
                 <span className={`font-heading uppercase font-black text-[#1A1A1A] ${mainClass}`}>Meraki</span>
                 <span className={`uppercase text-[#7A3E4A] font-extrabold ${subClass}`}>---- Femme ----</span>
             </div>
