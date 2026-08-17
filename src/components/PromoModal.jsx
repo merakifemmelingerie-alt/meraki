@@ -94,7 +94,7 @@ export default function PromoModal({ onNotification }) {
             {/* ═══ DESKTOP ═══ */}
             <div
                 data-open={isOpen}
-                className="welcome-modal-panel hidden md:flex relative w-full max-w-5xl bg-[#1B0F12] text-white rounded-[28px] overflow-hidden shadow-2xl z-10 border border-[#C6A76A]/15"
+                className="welcome-modal-panel hidden md:flex relative w-full max-w-5xl bg-[#5A2E34] text-white rounded-[28px] overflow-hidden shadow-2xl z-10 border border-[#C6A76A]/15"
             >
                 <div className="welcome-modal-grain absolute inset-0 pointer-events-none z-0" />
 
@@ -114,7 +114,7 @@ export default function PromoModal({ onNotification }) {
                         <img
                             src={getAssetUrl('/assets/borboleta-v2.webp')}
                             alt="Borboleta Meraki"
-                            className="w-7 h-7 object-contain animate-butterfly-flight"
+                            className="w-7 h-7 object-contain animate-butterfly-flight brightness-0 invert"
                         />
                         <span className="text-[#C6A76A] text-[10px] uppercase font-bold tracking-[0.4em]">
                             {config.eyebrow}
@@ -181,7 +181,7 @@ export default function PromoModal({ onNotification }) {
 
                         <button
                             type="submit"
-                            className="w-full py-4 bg-[#C6A76A] hover:bg-[#d4b87d] text-[#1B0F12] text-xs font-bold uppercase tracking-[0.25em] rounded-full transition-all duration-200 hover:scale-[1.015] active:scale-[0.99] cursor-pointer"
+                            className="w-full py-4 bg-[#C6A76A] hover:bg-[#d4b87d] text-[#5A2E34] text-xs font-bold uppercase tracking-[0.25em] rounded-full transition-all duration-200 hover:scale-[1.015] active:scale-[0.99] cursor-pointer"
                         >
                             Quero meu desconto
                         </button>
@@ -209,7 +209,7 @@ export default function PromoModal({ onNotification }) {
                     />
                     <div
                         className="absolute inset-0"
-                        style={{ background: 'linear-gradient(105deg, #1B0F12 0%, rgba(27,15,18,0.55) 16%, rgba(27,15,18,0) 40%)' }}
+                        style={{ background: 'linear-gradient(105deg, #5A2E34 0%, rgba(90,46,52,0.55) 16%, rgba(90,46,52,0) 40%)' }}
                     />
                 </div>
             </div>
@@ -217,7 +217,7 @@ export default function PromoModal({ onNotification }) {
             {/* ═══ MOBILE ═══ */}
             <div
                 data-open={isOpen}
-                className="welcome-modal-panel flex md:hidden relative w-full max-w-sm bg-[#1B0F12] text-white rounded-[22px] overflow-hidden shadow-2xl z-10 border border-[#C6A76A]/15 flex-col max-h-[92vh]"
+                className="welcome-modal-panel flex md:hidden relative w-full max-w-sm bg-[#5A2E34] text-white rounded-[22px] overflow-hidden shadow-2xl z-10 border border-[#C6A76A]/15 flex-col max-h-[92vh]"
             >
                 <div className="welcome-modal-grain absolute inset-0 pointer-events-none z-0" />
 
@@ -229,7 +229,7 @@ export default function PromoModal({ onNotification }) {
                     />
                     <div
                         className="absolute inset-0"
-                        style={{ background: 'linear-gradient(to bottom, rgba(27,15,18,0.15) 0%, #1B0F12 96%)' }}
+                        style={{ background: 'linear-gradient(to bottom, rgba(90,46,52,0.15) 0%, #5A2E34 96%)' }}
                     />
                     <button
                         onClick={handleClose}
@@ -247,7 +247,7 @@ export default function PromoModal({ onNotification }) {
                         <img
                             src={getAssetUrl('/assets/borboleta-v2.webp')}
                             alt="Borboleta Meraki"
-                            className="w-5 h-5 object-contain animate-butterfly-flight"
+                            className="w-5 h-5 object-contain animate-butterfly-flight brightness-0 invert"
                         />
                         <span className="text-[#C6A76A] text-[9px] uppercase font-bold tracking-[0.35em]">
                             {config.eyebrow}
@@ -311,7 +311,7 @@ export default function PromoModal({ onNotification }) {
 
                         <button
                             type="submit"
-                            className="w-full py-3.5 bg-[#C6A76A] hover:bg-[#d4b87d] text-[#1B0F12] text-[11px] font-bold uppercase tracking-[0.2em] rounded-full transition-all duration-200 active:scale-[0.98] cursor-pointer"
+                            className="w-full py-3.5 bg-[#C6A76A] hover:bg-[#d4b87d] text-[#5A2E34] text-[11px] font-bold uppercase tracking-[0.2em] rounded-full transition-all duration-200 active:scale-[0.98] cursor-pointer"
                         >
                             Quero meu desconto
                         </button>
