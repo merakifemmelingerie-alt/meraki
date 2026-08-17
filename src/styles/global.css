@@ -241,8 +241,13 @@
     }
 
     .welcome-modal-cta-pulse {
-        animation: none !important;
+        animation: welcomeModalCtaPulseGentle 1.6s ease-in-out infinite !important;
     }
+}
+
+@keyframes welcomeModalCtaPulseGentle {
+    0%, 100% { box-shadow: 0 8px 20px -6px rgba(122, 62, 74, 0.35); opacity: 1; }
+    50% { box-shadow: 0 14px 32px -6px rgba(122, 62, 74, 0.6); opacity: 0.88; }
 }
 
 @keyframes logoBreath {
