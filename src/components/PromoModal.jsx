@@ -140,6 +140,14 @@ export default function PromoModal({ onNotification }) {
 
                 {/* Content panel */}
                 <div className="relative w-[46%] shrink-0 p-14 flex flex-col justify-center overflow-hidden">
+                    <div
+                        className="absolute -top-24 -left-20 w-96 h-96 rounded-full pointer-events-none select-none"
+                        style={{ background: 'radial-gradient(circle, rgba(198,167,106,0.16) 0%, rgba(198,167,106,0) 70%)' }}
+                    />
+                    <div
+                        className="absolute inset-0 pointer-events-none select-none"
+                        style={{ background: 'linear-gradient(160deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0) 32%)' }}
+                    />
                     <img
                         src={getAssetUrl('/assets/borboleta-v2.webp')}
                         alt=""
@@ -163,9 +171,12 @@ export default function PromoModal({ onNotification }) {
                             mainClass="text-[19px] tracking-[0.2em]"
                             subClass="text-[9px] tracking-[0.42em] ml-[0.42em]"
                         />
-                        <span className="block text-[#C6A76A] text-[10px] uppercase font-bold tracking-[0.4em] mt-3">
-                            {config.eyebrow}
-                        </span>
+                        <div className="flex items-center gap-2.5 mt-3">
+                            <span className="h-px w-5 bg-[#C6A76A]/60" />
+                            <span className="text-[#C6A76A] text-[10px] uppercase font-bold tracking-[0.4em]">
+                                {config.eyebrow}
+                            </span>
+                        </div>
                     </div>
 
                     <h2 className="welcome-modal-stagger font-heading text-5xl text-[#1A1A1A] leading-[1.05] mb-3">
@@ -247,14 +258,14 @@ export default function PromoModal({ onNotification }) {
                         src={getAssetUrl(config.desktopImage)}
                         alt="Meraki Femme"
                         className="absolute inset-0 w-full h-full object-cover"
+                        style={{
+                            WebkitMaskImage: 'linear-gradient(100deg, transparent 0%, transparent 4%, rgba(0,0,0,0.6) 26%, #000 48%)',
+                            maskImage: 'linear-gradient(100deg, transparent 0%, transparent 4%, rgba(0,0,0,0.6) 26%, #000 48%)',
+                        }}
                     />
                     <div
                         className="absolute inset-0"
-                        style={{ background: 'linear-gradient(105deg, #FDF8F4 0%, rgba(253,248,244,0.5) 15%, rgba(253,248,244,0) 38%)' }}
-                    />
-                    <div
-                        className="absolute inset-0"
-                        style={{ background: 'linear-gradient(to top, rgba(26,26,26,0.28) 0%, rgba(26,26,26,0) 30%)' }}
+                        style={{ background: 'linear-gradient(to top, rgba(26,26,26,0.22) 0%, rgba(26,26,26,0) 30%)' }}
                     />
                 </div>
             </div>
@@ -296,9 +307,13 @@ export default function PromoModal({ onNotification }) {
                             mainClass="text-[15px] tracking-[0.18em]"
                             subClass="text-[7px] tracking-[0.36em] ml-[0.36em]"
                         />
-                        <span className="text-[#C6A76A] text-[9px] uppercase font-bold tracking-[0.35em] mt-2">
-                            {config.eyebrow}
-                        </span>
+                        <div className="flex items-center gap-2 mt-2">
+                            <span className="h-px w-4 bg-[#C6A76A]/60" />
+                            <span className="text-[#C6A76A] text-[9px] uppercase font-bold tracking-[0.35em]">
+                                {config.eyebrow}
+                            </span>
+                            <span className="h-px w-4 bg-[#C6A76A]/60" />
+                        </div>
                     </div>
 
                     <h2 className="welcome-modal-stagger font-heading text-2xl text-[#1A1A1A] leading-tight text-center mb-1">
