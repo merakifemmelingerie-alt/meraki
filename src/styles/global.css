@@ -220,7 +220,8 @@
 }
 
 .welcome-modal-cta-pulse {
-    animation: welcomeModalCtaPulse 1.8s ease-in-out infinite;
+    animation: welcomeModalCtaPulse 1.4s ease-in-out infinite;
+    transform-origin: center;
 }
 
 .welcome-modal-cta-pulse:hover {
@@ -228,8 +229,8 @@
 }
 
 @keyframes welcomeModalCtaPulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.045); }
+    0%, 100% { transform: scale(1); box-shadow: 0 8px 20px -6px rgba(122, 62, 74, 0.35); }
+    50% { transform: scale(1.09); box-shadow: 0 14px 32px -6px rgba(122, 62, 74, 0.55); }
 }
 
 @media (prefers-reduced-motion: reduce) {
