@@ -233,6 +233,20 @@
     50% { transform: scale(1.09); box-shadow: 0 14px 32px -6px rgba(122, 62, 74, 0.55); }
 }
 
+.welcome-modal-kenburns {
+    transform: scale(1);
+    transform-origin: 60% 35%;
+}
+
+.welcome-modal-kenburns[data-open="true"] {
+    animation: welcomeModalKenBurns 9s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+@keyframes welcomeModalKenBurns {
+    from { transform: scale(1); }
+    to { transform: scale(1.14); }
+}
+
 @media (prefers-reduced-motion: reduce) {
     .welcome-modal-panel,
     .welcome-modal-stagger {
@@ -242,6 +256,11 @@
 
     .welcome-modal-cta-pulse {
         animation: welcomeModalCtaPulseGentle 1.6s ease-in-out infinite !important;
+    }
+
+    .welcome-modal-kenburns[data-open="true"] {
+        animation: none !important;
+        transform: scale(1) !important;
     }
 }
 

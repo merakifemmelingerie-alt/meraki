@@ -274,11 +274,12 @@ export default function PromoModal({ onNotification }) {
             >
                 <div className="welcome-modal-grain absolute inset-0 pointer-events-none z-0" />
 
-                <div className="relative h-[188px] shrink-0">
+                <div className="relative h-[188px] shrink-0 overflow-hidden">
                     <img
                         src={getAssetUrl(config.mobileImage)}
                         alt="Meraki Femme"
-                        className="absolute inset-0 w-full h-full object-cover"
+                        data-open={isOpen}
+                        className="welcome-modal-kenburns absolute inset-0 w-full h-full object-cover"
                     />
                     <div
                         className="absolute inset-0"
@@ -296,6 +297,11 @@ export default function PromoModal({ onNotification }) {
                 </div>
 
                 <div className="relative -mt-6 rounded-t-[24px] bg-[#FDF8F4] px-6 pb-6 pt-5 overflow-y-auto z-[1]" style={{ boxShadow: '0 -10px 20px -12px rgba(122,62,74,0.1)' }}>
+                    <div className="absolute -top-[7px] inset-x-0 z-[2] pointer-events-none flex items-center select-none">
+                        <span className="w-3.5 h-3.5 rounded-full shrink-0 -translate-x-1/2" style={{ background: 'rgba(20,14,12,0.4)' }} />
+                        <span className="flex-1 mx-1 border-t border-dashed" style={{ borderColor: 'rgba(122,62,74,0.3)' }} />
+                        <span className="w-3.5 h-3.5 rounded-full shrink-0 translate-x-1/2" style={{ background: 'rgba(20,14,12,0.4)' }} />
+                    </div>
                     <div
                         className="absolute -top-6 left-1/2 -translate-x-1/2 w-72 h-72 rounded-full pointer-events-none select-none"
                         style={{ background: 'radial-gradient(circle, rgba(198,167,106,0.14) 0%, rgba(198,167,106,0) 70%)' }}
