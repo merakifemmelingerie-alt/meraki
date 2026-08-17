@@ -1547,6 +1547,46 @@ export async function saveOrderRealCost(costData) {
 }
 
 // ==============================================================================
+// NEWSLETTER
+// ==============================================================================
+
+export async function subscribeNewsletter(email) {
+    const clean = (email || '').trim().toLowerCase()
+    if (!clean) return { data: null, error: new Error('E-mail inválido') }
+    try {
+        const { data, error } = await supabase
+            .from('newsletter_subscribers')
+            .insert([{ email: clean, created_at: new Date().toISOString() }])
+            .select()
+            .single()
+
+        if (error) {
+            // Código 23505 = violação de constraint UNIQUE (e-mail já inscrito)
+            if (error.code === '23505') return { data: { email: clean }, error: null, alreadySubscribed: true }
+            throw error
+        }
+        return { data, error: null }
+    } catch (e) {
+        console.error('Erro ao inscrever e-mail na newsletter:', e)
+        return { data: null, error: e }
+    }
+}
+
+export async function getNewsletterSubscribers() {
+    try {
+        const { data, error } = await supabase
+            .from('newsletter_subscribers')
+            .select('*')
+            .order('created_at', { ascending: false })
+        if (error) throw error
+        return { data: data || [], error: null }
+    } catch (e) {
+        console.error('Erro ao buscar inscritos da newsletter:', e)
+        return { data: [], error: e }
+    }
+}
+
+// ==============================================================================
 // MURAL DE SUGESTÕES, ENQUETES, WISHLIST INTELIGENTE & PEDIDOS DE PRODUTOS
 // ==============================================================================
 

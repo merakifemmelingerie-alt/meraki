@@ -11,7 +11,7 @@ import {
     getCollectionsPlanning, createCollectionPlanning, updateCollectionPlanning, deleteCollectionPlanning,
     getCollectionTasks, createCollectionTask, toggleCollectionTask, deleteCollectionTask,
     getCommercialCalendar, createCommercialEvent, deleteCommercialEvent,
-    mergeTopbarStyle
+    mergeTopbarStyle, getNewsletterSubscribers
 } from '../../services/database.js'
 
 function Icon({ path, className = 'w-5 h-5' }) {
@@ -2158,6 +2158,95 @@ export function CustomersSection({
                     </div>
                 </>
             )}
+        </div>
+    )
+}
+
+// ─── SECTION 9.5: NEWSLETTER ───────────────────────────────────────────────────
+export function NewsletterSection() {
+    const [subscribers, setSubscribers] = useState([])
+    const [loading, setLoading] = useState(true)
+    const [searchQuery, setSearchQuery] = useState('')
+
+    useEffect(() => {
+        getNewsletterSubscribers().then(({ data }) => {
+            setSubscribers(data || [])
+            setLoading(false)
+        })
+    }, [])
+
+    const filtered = subscribers.filter(s => (s.email || '').toLowerCase().includes(searchQuery.toLowerCase()))
+
+    const exportCsv = () => {
+        const rows = [['email', 'inscrito_em'], ...subscribers.map(s => [s.email, s.created_at])]
+        const csv = rows.map(r => r.map(v => `"${(v ?? '').toString().replace(/"/g, '""')}"`).join(',')).join('\n')
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `newsletter-meraki-${new Date().toISOString().slice(0, 10)}.csv`
+        a.click()
+        URL.revokeObjectURL(url)
+    }
+
+    return (
+        <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h2 className="text-lg font-black text-gray-900">Newsletter</h2>
+                    <p className="text-[11px] text-gray-400 font-medium">E-mails inscritos pelo formulário "Junte-se ao Universo Meraki" na home.</p>
+                </div>
+                <button
+                    onClick={exportCsv}
+                    disabled={subscribers.length === 0}
+                    className="px-5 py-2.5 bg-[#7A3E4A] hover:bg-[#5A2E34] text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+                >
+                    Exportar CSV
+                </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="bg-white rounded-2xl border border-[#EEEEEE] p-5">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Total de Inscritos</p>
+                    <p className="text-2xl font-black text-[#7A3E4A]">{subscribers.length}</p>
+                </div>
+            </div>
+
+            <div className="bg-white rounded-2xl border border-[#EEEEEE] overflow-hidden">
+                <div className="p-4 border-b border-[#F8F8F8]">
+                    <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={e => setSearchQuery(e.target.value)}
+                        placeholder="Buscar por e-mail..."
+                        className="w-full max-w-sm px-3 py-2 border border-[#EEEEEE] rounded-xl text-xs outline-none focus:border-[#7A3E4A]"
+                    />
+                </div>
+                {loading ? (
+                    <div className="flex justify-center py-12">
+                        <div className="w-8 h-8 border-[1px] border-[#C6A76A] border-t-transparent rounded-full animate-spin" />
+                    </div>
+                ) : filtered.length === 0 ? (
+                    <p className="text-center text-gray-400 text-xs py-12">Nenhum e-mail inscrito ainda.</p>
+                ) : (
+                    <table className="w-full text-xs">
+                        <thead>
+                            <tr className="text-left text-[10px] uppercase tracking-widest text-gray-400 border-b border-[#F8F8F8]">
+                                <th className="px-4 py-3 font-bold">E-mail</th>
+                                <th className="px-4 py-3 font-bold">Inscrito em</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {filtered.map(s => (
+                                <tr key={s.id} className="border-b border-[#F8F8F8] last:border-0 hover:bg-[#FAF9F5]">
+                                    <td className="px-4 py-3 font-semibold text-gray-700">{s.email}</td>
+                                    <td className="px-4 py-3 text-gray-400">{s.created_at ? new Date(s.created_at).toLocaleDateString('pt-BR') : '-'}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                )}
+            </div>
         </div>
     )
 }

@@ -18,6 +18,7 @@ import PromoModal from '../components/PromoModal.jsx'
 import { useProducts } from '../hooks/useProducts.js'
 import { useCart } from '../hooks/useCart.js'
 import { useWishlist } from '../hooks/useWishlist.js'
+import { subscribeNewsletter } from '../services/database.js'
 
 // ─── ProductSection defined OUTSIDE the parent component ──────────────────
 // This is critical: defining it inside causes React to remount on every render,
@@ -230,6 +231,24 @@ export default function HomePage() {
     const showNotification = useCallback((message) => {
         setNotification({ message, visible: true })
     }, [])
+
+    const [newsletterEmail, setNewsletterEmail] = useState('')
+    const [newsletterSubmitting, setNewsletterSubmitting] = useState(false)
+
+    const handleNewsletterSubmit = useCallback(async (e) => {
+        e.preventDefault()
+        const email = newsletterEmail.trim()
+        if (!email || newsletterSubmitting) return
+        setNewsletterSubmitting(true)
+        const { error, alreadySubscribed } = await subscribeNewsletter(email)
+        setNewsletterSubmitting(false)
+        if (error) {
+            showNotification('Não foi possível concluir a inscrição. Tente novamente.')
+            return
+        }
+        setNewsletterEmail('')
+        showNotification(alreadySubscribed ? 'Esse e-mail já faz parte do universo Meraki!' : 'Bem-vinda ao universo Meraki!')
+    }, [newsletterEmail, newsletterSubmitting, showNotification])
 
     const handleAddToCart = useCallback((product, size) => {
         addToCart(product, size)
@@ -458,16 +477,19 @@ export default function HomePage() {
                         <h2 className="font-heading text-4xl md:text-6xl text-[#1A1A1A] mb-8 px-4">Junte-se ao Universo <span className="italic">Meraki</span>.</h2>
                         <p className="text-[#666666] mb-12 font-light text-lg max-w-xl mx-auto leading-relaxed">Assine nossa newsletter e receba convites para eventos exclusivos, lançamentos antecipados e curadoria de moda íntima.</p>
 
-                        <form className="relative max-w-md mx-auto group" onSubmit={(e) => { e.preventDefault(); showNotification('Bem-vinda ao universo Meraki!') }}>
+                        <form className="relative max-w-md mx-auto group" onSubmit={handleNewsletterSubmit}>
                             <div className="flex flex-col sm:flex-row items-center border-b border-[#1A1A1A] pb-2 transition-all duration-500 focus-within:border-[#C6A76A]">
                                 <input
                                     type="email"
+                                    value={newsletterEmail}
+                                    onChange={(e) => setNewsletterEmail(e.target.value)}
                                     placeholder="SEU MELHOR E-MAIL"
                                     required
-                                    className="w-full px-2 py-4 text-[11px] font-bold tracking-[0.2em] outline-none bg-transparent placeholder:text-gray-300"
+                                    disabled={newsletterSubmitting}
+                                    className="w-full px-2 py-4 text-[11px] font-bold tracking-[0.2em] outline-none bg-transparent placeholder:text-gray-300 disabled:opacity-50"
                                 />
-                                <button type="submit" className="whitespace-nowrap px-8 py-4 text-[11px] font-bold uppercase tracking-[0.2em] text-[#1A1A1A] hover:text-[#C6A76A] transition-colors">
-                                    Inscrever
+                                <button type="submit" disabled={newsletterSubmitting} className="whitespace-nowrap px-8 py-4 text-[11px] font-bold uppercase tracking-[0.2em] text-[#1A1A1A] hover:text-[#C6A76A] transition-colors disabled:opacity-50 cursor-pointer">
+                                    {newsletterSubmitting ? 'Enviando...' : 'Inscrever'}
                                 </button>
                             </div>
                         </form>
