@@ -1554,18 +1554,19 @@ export async function subscribeNewsletter(email) {
     const clean = (email || '').trim().toLowerCase()
     if (!clean) return { data: null, error: new Error('E-mail inválido') }
     try {
-        const { data, error } = await supabase
+        // Sem .select(): a política de leitura é restrita ao admin, então pedir o
+        // registro de volta faria o Postgres negar o INSERT inteiro (não consegue
+        // satisfazer o RETURNING sob RLS para quem não é admin).
+        const { error } = await supabase
             .from('newsletter_subscribers')
             .insert([{ email: clean, created_at: new Date().toISOString() }])
-            .select()
-            .single()
 
         if (error) {
             // Código 23505 = violação de constraint UNIQUE (e-mail já inscrito)
             if (error.code === '23505') return { data: { email: clean }, error: null, alreadySubscribed: true }
             throw error
         }
-        return { data, error: null }
+        return { data: { email: clean }, error: null }
     } catch (e) {
         console.error('Erro ao inscrever e-mail na newsletter:', e)
         return { data: null, error: e }
