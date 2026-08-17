@@ -153,6 +153,15 @@ export function mapDbToFrontend(table, item) {
             mapped.editorial = parsed
         }
 
+        const rawWelcomeModal = item.welcome_modal !== undefined ? item.welcome_modal : item.welcomeModal
+        if (rawWelcomeModal !== undefined) {
+            let parsed = rawWelcomeModal
+            if (typeof parsed === 'string') {
+                try { parsed = JSON.parse(parsed) } catch (e) {}
+            }
+            mapped.welcomeModal = parsed
+        }
+
         if (item.available_colors !== undefined) mapped.availableColors = item.available_colors
         if (item.availableColors !== undefined) mapped.availableColors = item.availableColors
         if (item.available_emojis !== undefined) mapped.availableEmojis = item.available_emojis
