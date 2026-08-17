@@ -1,8 +1,8 @@
 import { useEffect } from 'react'
 
 const SITE_URL = 'https://merakifemme.com.br'
-const DEFAULT_TITLE = 'Meraki Femme - Moda Feminina Premium'
-const DEFAULT_DESCRIPTION = 'Meraki Femme - Lingerie e Moda Feminina Premium. Conheça nossas coleções exclusivas de conjuntos, camisolas, fantasias e acessórios.'
+const DEFAULT_TITLE = 'Meraki Femme - Moda Íntima Premium'
+const DEFAULT_DESCRIPTION = 'Meraki Femme - Lingerie e Moda Íntima Premium. Conheça nossas coleções exclusivas de conjuntos, camisolas, fantasias e acessórios.'
 const DEFAULT_IMAGE = `${SITE_URL}/og-image.png`
 
 // Componente de SEO por pagina. O React 19 promove title/meta/link renderizados
