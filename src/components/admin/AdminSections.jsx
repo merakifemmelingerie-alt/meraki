@@ -830,6 +830,171 @@ export function PromoComboSection({
     )
 }
 
+// ─── SECTION 6.5: WELCOME MODAL (POP-UP DE BOAS-VINDAS) ───────────────────────
+export function WelcomeModalSection({
+    welcomeModal,
+    setWelcomeModal,
+    saving,
+    setSaving,
+    compressImage,
+    uploadMultipleImages,
+    getAssetUrl,
+    updateStoreConfig
+}) {
+    const wm = welcomeModal || {}
+
+    const save = async (updated) => {
+        setWelcomeModal(updated)
+        localStorage.setItem('meraki_welcome_modal', JSON.stringify(updated))
+        window.dispatchEvent(new Event('welcomeModalUpdated'))
+        if (updateStoreConfig) {
+            await updateStoreConfig({ welcomeModal: updated })
+        }
+    }
+
+    return (
+        <div className="space-y-5">
+            <div>
+                <h2 className="text-sm font-black text-gray-900">Pop-up de Boas-vindas</h2>
+                <p className="text-[10px] text-gray-400 font-medium font-sans">Tela que aparece para visitantes na primeira vez que entram no site, com desconto de boas-vindas.</p>
+            </div>
+
+            <div className="bg-white rounded-2xl border border-[#EEEEEE] p-5">
+                <form
+                    onSubmit={async (e) => {
+                        e.preventDefault()
+                        const form = e.target
+                        setSaving(true)
+
+                        let desktopImage = wm.desktopImage
+                        if (form.wmDesktopImage.files?.[0]) {
+                            const compressed = await compressImage(form.wmDesktopImage.files[0], 1600)
+                            const { urls } = await uploadMultipleImages([compressed])
+                            if (urls?.[0]) desktopImage = urls[0]
+                        }
+
+                        let mobileImage = wm.mobileImage
+                        if (form.wmMobileImage.files?.[0]) {
+                            const compressed = await compressImage(form.wmMobileImage.files[0], 1200)
+                            const { urls } = await uploadMultipleImages([compressed])
+                            if (urls?.[0]) mobileImage = urls[0]
+                        }
+
+                        const updated = {
+                            ...wm,
+                            eyebrow: form.wmEyebrow.value.trim(),
+                            headline: form.wmHeadline.value.trim(),
+                            headlineItalic: form.wmHeadlineItalic.value.trim(),
+                            highlight: form.wmHighlight.value.trim(),
+                            highlightItalic: form.wmHighlightItalic.value.trim(),
+                            discountText: form.wmDiscountText.value.trim(),
+                            discountSubtext: form.wmDiscountSubtext.value.trim(),
+                            instagramHandle: form.wmInstagram.value.trim(),
+                            delaySeconds: parseFloat(form.wmDelay.value) || 2.5,
+                            desktopImage,
+                            mobileImage,
+                        }
+                        await save(updated)
+                        setSaving(false)
+                        alert('Pop-up de boas-vindas atualizado com sucesso!')
+                    }}
+                    className="space-y-4"
+                >
+                    <div className="p-4 bg-[#FAF9F5] rounded-xl border border-[#EEEEEE]">
+                        <label className="flex items-center gap-2.5 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={wm.enabled !== false}
+                                onChange={(e) => save({ ...wm, enabled: e.target.checked })}
+                                className="w-4 h-4 text-[#7A3E4A] focus:ring-[#7A3E4A] border-gray-300 rounded cursor-pointer"
+                            />
+                            <span className="text-xs font-bold text-[#7A3E4A] uppercase tracking-wider">Exibir Pop-up de Boas-vindas para Novos Visitantes</span>
+                        </label>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div>
+                            <label className="block text-[10px] font-bold text-gray-700 mb-1 uppercase tracking-wider">Texto Pequeno (Rótulo)</label>
+                            <input type="text" name="wmEyebrow" defaultValue={wm.eyebrow ?? 'Boas-vindas'} className="w-full px-3 py-2 border border-[#EEEEEE] rounded-xl text-xs outline-none" />
+                        </div>
+                        <div>
+                            <label className="block text-[10px] font-bold text-gray-700 mb-1 uppercase tracking-wider">Título</label>
+                            <input type="text" name="wmHeadline" defaultValue={wm.headline ?? 'Primeira vez'} className="w-full px-3 py-2 border border-[#EEEEEE] rounded-xl text-xs outline-none" />
+                        </div>
+                        <div>
+                            <label className="block text-[10px] font-bold text-gray-700 mb-1 uppercase tracking-wider">Título (Itálico)</label>
+                            <input type="text" name="wmHeadlineItalic" defaultValue={wm.headlineItalic ?? 'por aqui?'} className="w-full px-3 py-2 border border-[#EEEEEE] rounded-xl text-xs outline-none" />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-[10px] font-bold text-gray-700 mb-1 uppercase tracking-wider">Subtítulo</label>
+                            <input type="text" name="wmHighlight" defaultValue={wm.highlight ?? 'Preparamos um presente'} className="w-full px-3 py-2 border border-[#EEEEEE] rounded-xl text-xs outline-none" />
+                        </div>
+                        <div>
+                            <label className="block text-[10px] font-bold text-gray-700 mb-1 uppercase tracking-wider">Subtítulo (Itálico)</label>
+                            <input type="text" name="wmHighlightItalic" defaultValue={wm.highlightItalic ?? 'especial'} className="w-full px-3 py-2 border border-[#EEEEEE] rounded-xl text-xs outline-none" />
+                        </div>
+                    </div>
+
+                    <div className="p-4 bg-[#FAF9F5] rounded-xl border border-[#EEEEEE] space-y-3">
+                        <p className="text-[10px] font-bold text-[#7A3E4A] uppercase tracking-wider">Promoção em Destaque</p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-[10px] font-bold text-gray-700 mb-1 uppercase tracking-wider">Valor do Desconto (Ex: 10%)</label>
+                                <input type="text" name="wmDiscountText" defaultValue={wm.discountText ?? '10%'} required className="w-full px-3 py-2 border border-[#EEEEEE] rounded-xl text-sm font-bold outline-none" />
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-bold text-gray-700 mb-1 uppercase tracking-wider">Descrição do Desconto</label>
+                                <input type="text" name="wmDiscountSubtext" defaultValue={wm.discountSubtext ?? 'de desconto na sua primeira compra'} className="w-full px-3 py-2 border border-[#EEEEEE] rounded-xl text-xs outline-none" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-[10px] font-bold text-gray-700 mb-1 uppercase tracking-wider">Instagram (com @)</label>
+                            <input type="text" name="wmInstagram" defaultValue={wm.instagramHandle ?? '@merakistore'} className="w-full px-3 py-2 border border-[#EEEEEE] rounded-xl text-xs outline-none" />
+                        </div>
+                        <div>
+                            <label className="block text-[10px] font-bold text-gray-700 mb-1 uppercase tracking-wider">Aparece após quantos segundos</label>
+                            <input type="number" name="wmDelay" step="0.5" min="0" defaultValue={wm.delaySeconds ?? 2.5} className="w-full px-3 py-2 border border-[#EEEEEE] rounded-xl text-xs outline-none" />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-[10px] font-bold text-gray-700 mb-1 uppercase tracking-wider">Imagem Desktop (vertical, tela cheia)</label>
+                            <input type="file" name="wmDesktopImage" accept="image/*" className="w-full text-xs text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[#7A3E4A]/10 file:text-[#7A3E4A] hover:file:bg-[#7A3E4A]/20 cursor-pointer" />
+                            {wm.desktopImage && (
+                                <div className="w-full h-28 mt-2 rounded-lg overflow-hidden border border-[#EEEEEE] bg-gray-50">
+                                    <img src={getAssetUrl(wm.desktopImage)} alt="Preview desktop" className="w-full h-full object-cover" />
+                                </div>
+                            )}
+                        </div>
+                        <div>
+                            <label className="block text-[10px] font-bold text-gray-700 mb-1 uppercase tracking-wider">Imagem Mobile (faixa horizontal)</label>
+                            <input type="file" name="wmMobileImage" accept="image/*" className="w-full text-xs text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[#7A3E4A]/10 file:text-[#7A3E4A] hover:file:bg-[#7A3E4A]/20 cursor-pointer" />
+                            {wm.mobileImage && (
+                                <div className="w-full h-28 mt-2 rounded-lg overflow-hidden border border-[#EEEEEE] bg-gray-50">
+                                    <img src={getAssetUrl(wm.mobileImage)} alt="Preview mobile" className="w-full h-full object-cover" />
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="flex justify-end pt-2">
+                        <button type="submit" disabled={saving} className="px-5 py-3 bg-[#7A3E4A] hover:bg-[#603039] text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer disabled:opacity-50">
+                            Salvar Alterações
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    )
+}
+
 // ─── SECTION 7: EDITORIAL CONFIG ──────────────────────────────────────────────
 export function EditorialSection({
     editorial,

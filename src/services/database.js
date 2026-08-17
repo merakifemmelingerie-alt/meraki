@@ -36,7 +36,7 @@ const TABLE_COLUMNS = {
     ],
     store_config: [
         'id', 'whatsapp', 'sac_phone', 'address', 'cnpj', 'razao_social', 'origin_cep', 'meta_pixel_id', 'ga_tracking_id', 'infinitepay_handle',
-        'topbarmessages', 'topbarstyle', 'promocombo', 'editorial', 'available_colors', 'available_emojis', 'shipping_message',
+        'topbarmessages', 'topbarstyle', 'promocombo', 'editorial', 'welcome_modal', 'available_colors', 'available_emojis', 'shipping_message',
         'available_badges', 'installment_text', 'banner_transition', 'reward_bar', 'category_styles', 'pages_content', 'custom_pages_list', 'deleted_pages', 'categories_data', 'promo_message', 'available_sizes',
         'maintenance_mode', 'maintenance_title', 'maintenance_message', 'maintenance_eta'
     ],
@@ -71,6 +71,7 @@ const FIELD_MAPPING = {
     topbarstyle: ['topbarStyle', 'topbarstyle'],
     promocombo: ['promoCombo', 'promocombo'],
     editorial: ['editorial', 'editorial'],
+    welcome_modal: ['welcomeModal', 'welcome_modal'],
     available_colors: ['availableColors', 'available_colors'],
     available_emojis: ['availableEmojis', 'available_emojis'],
     shipping_message: ['shippingMessage', 'shipping_message'],
@@ -395,6 +396,9 @@ export async function initSupabaseSync() {
             if (dbConfig.editorial) {
                 setStorageIfChanged('meraki_editorial', JSON.stringify(dbConfig.editorial), 'editorialUpdated')
             }
+            if (dbConfig.welcomeModal) {
+                setStorageIfChanged('meraki_welcome_modal', JSON.stringify(dbConfig.welcomeModal), 'welcomeModalUpdated')
+            }
             if (dbConfig.shippingMessage) setStorageIfChanged('meraki_shipping_message', dbConfig.shippingMessage)
             if (dbConfig.promoMessage) setStorageIfChanged('meraki_promo_message', dbConfig.promoMessage)
             if (dbConfig.availableSizes && Array.isArray(dbConfig.availableSizes)) setStorageIfChanged('meraki_available_sizes', JSON.stringify(dbConfig.availableSizes))
@@ -596,6 +600,7 @@ localStorage.setItem = function(key, value) {
             key === 'meraki_topbar_messages' ||
             key === 'meraki_promo_combo' ||
             key === 'meraki_editorial' ||
+            key === 'meraki_welcome_modal' ||
             key === 'meraki_shipping_message' ||
             key === 'meraki_promo_message' ||
             key === 'meraki_available_sizes' ||
@@ -624,6 +629,7 @@ localStorage.setItem = function(key, value) {
             }
             else if (key === 'meraki_promo_combo') currentConfig.promoCombo = parsed
             else if (key === 'meraki_editorial') currentConfig.editorial = parsed
+            else if (key === 'meraki_welcome_modal') currentConfig.welcomeModal = parsed
             else if (key === 'meraki_shipping_message') currentConfig.shippingMessage = parsed
             else if (key === 'meraki_promo_message') currentConfig.promoMessage = parsed
             else if (key === 'meraki_available_sizes') currentConfig.availableSizes = parsed
@@ -642,6 +648,7 @@ localStorage.setItem = function(key, value) {
                 window.dispatchEvent(new Event('storeConfigUpdated'))
                 if (key === 'meraki_promo_combo') window.dispatchEvent(new Event('promoComboUpdated'))
                 if (key === 'meraki_editorial') window.dispatchEvent(new Event('editorialUpdated'))
+                if (key === 'meraki_welcome_modal') window.dispatchEvent(new Event('welcomeModalUpdated'))
             })
         }
     } catch (e) {
