@@ -259,8 +259,8 @@ export default function PromoModal({ onNotification }) {
                         alt="Meraki Femme"
                         className="absolute inset-0 w-full h-full object-cover"
                         style={{
-                            WebkitMaskImage: 'linear-gradient(90deg, transparent 0%, transparent 2%, rgba(0,0,0,0.08) 12%, rgba(0,0,0,0.22) 24%, rgba(0,0,0,0.42) 36%, rgba(0,0,0,0.68) 48%, rgba(0,0,0,0.88) 60%, #000 72%)',
-                            maskImage: 'linear-gradient(90deg, transparent 0%, transparent 2%, rgba(0,0,0,0.08) 12%, rgba(0,0,0,0.22) 24%, rgba(0,0,0,0.42) 36%, rgba(0,0,0,0.68) 48%, rgba(0,0,0,0.88) 60%, #000 72%)',
+                            WebkitMaskImage: 'linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.009) 2.6%, rgba(0,0,0,0.058) 5.2%, rgba(0,0,0,0.163) 7.8%, rgba(0,0,0,0.317) 10.4%, rgba(0,0,0,0.5) 13%, rgba(0,0,0,0.683) 15.6%, rgba(0,0,0,0.837) 18.2%, rgba(0,0,0,0.942) 20.8%, rgba(0,0,0,0.991) 23.4%, #000 26%)',
+                            maskImage: 'linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.009) 2.6%, rgba(0,0,0,0.058) 5.2%, rgba(0,0,0,0.163) 7.8%, rgba(0,0,0,0.317) 10.4%, rgba(0,0,0,0.5) 13%, rgba(0,0,0,0.683) 15.6%, rgba(0,0,0,0.837) 18.2%, rgba(0,0,0,0.942) 20.8%, rgba(0,0,0,0.991) 23.4%, #000 26%)',
                         }}
                     />
                     <div
