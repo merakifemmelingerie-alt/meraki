@@ -31,6 +31,30 @@ import {
     PlanningSection
 } from '../components/admin/AdminSections.jsx'
 
+// ─── Color helpers (case/whitespace-insensitive so "Rosa Blush" and "rosa blush " are the same color) ──
+function parseAvailableColors(raw) {
+    const seen = new Map()
+    const list = []
+    const hexMap = {}
+    ;(raw || '').split(',').forEach(pair => {
+        const [name, hex] = pair.split(':')
+        if (!name) return
+        const key = name.trim().toLowerCase()
+        if (!seen.has(key)) {
+            seen.set(key, name)
+            list.push(name)
+            hexMap[name] = hex || '#CCCCCC'
+        }
+    })
+    return { list, hexMap }
+}
+
+function findCanonicalColor(name, colorsList) {
+    if (!name) return name
+    const key = name.trim().toLowerCase()
+    return (colorsList || []).find(c => c.trim().toLowerCase() === key) || name
+}
+
 // ─── Icon Component ───────────────────────────────────────────────────────────
 function Icon({ path, className = 'w-5 h-5' }) {
     return (
@@ -406,7 +430,7 @@ export default function AdminPage() {
         try {
             const config = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
             if (config.availableColors) {
-                return config.availableColors.split(',').map(pair => pair.split(':')[0])
+                return parseAvailableColors(config.availableColors).list
             }
         } catch {}
         return ['Preto', 'Branco', 'Vermelho', 'Nude', 'Rosa', 'Bordô', 'Azul', 'Verde', 'Amarelo', 'Lilás', 'Marinho', 'Pink', 'Rubi', 'Preto/Renda', 'Branco/Renda']
@@ -416,12 +440,7 @@ export default function AdminPage() {
         try {
             const config = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
             if (config.availableColors) {
-                const map = {}
-                config.availableColors.split(',').forEach(pair => {
-                    const [name, hex] = pair.split(':')
-                    if (name) map[name] = hex || '#CCCCCC'
-                })
-                return map
+                return parseAvailableColors(config.availableColors).hexMap
             }
         } catch {}
         return {
@@ -442,6 +461,14 @@ export default function AdminPage() {
             'Branco/Renda': '#F5F5F5'
         }
     })
+
+    const getColorHex = (name) => {
+        if (!name) return '#CCCCCC'
+        if (colorHexMap[name]) return colorHexMap[name]
+        const key = name.trim().toLowerCase()
+        const found = Object.keys(colorHexMap).find(c => c.trim().toLowerCase() === key)
+        return found ? colorHexMap[found] : '#CCCCCC'
+    }
 
     const [masterEmojisList, setMasterEmojisList] = useState(() => {
         try {
@@ -691,20 +718,73 @@ export default function AdminPage() {
                 })
             }
             setSelectedModalSection(product?.section || 'best-sellers')
-            const prodColors = product?.colors || []
-            setSelectedModalColors(prodColors)
-            
+
             const rawColorStock = product?.colorStock || product?.color_stock || {}
             const parsedColorStock = typeof rawColorStock === 'string' ? (JSON.parse(rawColorStock) || {}) : (rawColorStock || {})
-            setModalColorStock(parsedColorStock)
 
             const rawVariantStock = product?.variantStock || product?.variant_stock || {}
             const parsedVariantStock = typeof rawVariantStock === 'string' ? (JSON.parse(rawVariantStock) || {}) : (rawVariantStock || {})
-            setModalVariantStock(parsedVariantStock)
 
             const rawColorImages = product?.colorImages || product?.color_images || {}
             const parsedColorImages = typeof rawColorImages === 'string' ? (JSON.parse(rawColorImages) || {}) : (rawColorImages || {})
-            setModalColorImages(parsedColorImages)
+
+            // Dedup cores que só diferem por maiúsculas/espaços (ex: "Rosa Blush" x "Rosa blush"),
+            // mesclando o estoque/imagem vinculados de cada variante duplicada na cor canônica.
+            const prodColorsRaw = product?.colors || []
+            const canonicalByLower = new Map()
+            const dedupedColors = []
+            prodColorsRaw.forEach(c => {
+                if (!c) return
+                const key = c.trim().toLowerCase()
+                if (!canonicalByLower.has(key)) {
+                    const canonical = findCanonicalColor(c, colorsList)
+                    canonicalByLower.set(key, canonical)
+                    dedupedColors.push(canonical)
+                }
+            })
+
+            const dedupedColorStock = {}
+            const dedupedColorImages = {}
+            Object.keys(parsedColorStock).forEach(c => {
+                const canonical = canonicalByLower.get(c.trim().toLowerCase()) || c
+                if (parsedColorStock[c] !== undefined && parsedColorStock[c] !== '') dedupedColorStock[canonical] = parsedColorStock[c]
+            })
+            Object.keys(parsedColorImages).forEach(c => {
+                const canonical = canonicalByLower.get(c.trim().toLowerCase()) || c
+                if (parsedColorImages[c]) dedupedColorImages[canonical] = parsedColorImages[c]
+            })
+
+            const dedupedVariantStock = {}
+            Object.keys(parsedVariantStock).forEach(key => {
+                const underscoreIdx = key.indexOf('_')
+                if (underscoreIdx === -1) {
+                    dedupedVariantStock[key] = parsedVariantStock[key]
+                    return
+                }
+                const size = key.slice(0, underscoreIdx)
+                const color = key.slice(underscoreIdx + 1)
+                const canonical = canonicalByLower.get(color.trim().toLowerCase()) || color
+                const newKey = `${size}_${canonical}`
+                const val = parseInt(parsedVariantStock[key]) || 0
+                dedupedVariantStock[newKey] = Math.max(dedupedVariantStock[newKey] || 0, val)
+            })
+
+            setSelectedModalColors(dedupedColors)
+            setModalColorStock(dedupedColorStock)
+            setModalVariantStock(dedupedVariantStock)
+            setModalColorImages(dedupedColorImages)
+
+            // Cor usada no produto mas ausente da lista global não aparece como chip
+            // em "Cores Disponíveis" e por isso não tem botão de excluir. Registra aqui.
+            const missingColors = dedupedColors.filter(c => !colorsList.some(lc => lc.trim().toLowerCase() === c.trim().toLowerCase()))
+            if (missingColors.length > 0) {
+                const updatedList = [...colorsList, ...missingColors]
+                const updatedHexMap = { ...colorHexMap }
+                missingColors.forEach(c => { if (!updatedHexMap[c]) updatedHexMap[c] = '#CCCCCC' })
+                setColorsList(updatedList)
+                setColorHexMap(updatedHexMap)
+                saveColorsToConfig(updatedList, updatedHexMap)
+            }
 
             // Badge: se o produto já tem badge que não está na lista, adiciona
             const prodBadge = product?.badge || ''
@@ -2359,7 +2439,7 @@ export default function AdminPage() {
                                         <div className="flex flex-wrap gap-1.5 bg-[#FAF9F5] p-3 rounded-xl border border-[#EEEEEE]">
                                             {(colorsList || []).map(color => {
                                                 const isSelected = selectedModalColors.includes(color)
-                                                const hex = colorHexMap[color] || '#CCCCCC'
+                                                const hex = getColorHex(color)
                                                 return (
                                                     <div 
                                                         key={color} 
@@ -2421,17 +2501,18 @@ export default function AdminPage() {
                                         <button 
                                             type="button" 
                                             onClick={async () => {
-                                                const name = newColorName.trim()
-                                                if (name) {
+                                                const typed = newColorName.trim()
+                                                if (typed) {
+                                                    const existing = findCanonicalColor(typed, colorsList)
+                                                    const alreadyExists = colorsList.some(c => c.trim().toLowerCase() === typed.toLowerCase())
+                                                    const name = alreadyExists ? existing : typed
+
                                                     const updatedMap = { ...colorHexMap, [name]: newColorHex }
-                                                    const updatedList = [...colorsList]
-                                                    if (!updatedList.includes(name)) {
-                                                        updatedList.push(name)
-                                                    }
+                                                    const updatedList = alreadyExists ? colorsList : [...colorsList, name]
                                                     setColorsList(updatedList)
                                                     setColorHexMap(updatedMap)
-                                                    
-                                                    if (!selectedModalColors.includes(name)) {
+
+                                                    if (!selectedModalColors.some(c => c.trim().toLowerCase() === name.toLowerCase())) {
                                                         setSelectedModalColors(prev => [...prev, name])
                                                     }
                                                     setNewColorName('')
@@ -2468,7 +2549,7 @@ export default function AdminPage() {
                                                     </div>
                                                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                                                         {(selectedModalColors || []).map(color => {
-                                                            const hex = colorHexMap[color] || '#CCCCCC'
+                                                            const hex = getColorHex(color)
                                                             const key = `${size}_${color}`
                                                             const qty = modalVariantStock[key] !== undefined ? modalVariantStock[key] : ''
                                                             return (
@@ -2521,7 +2602,7 @@ export default function AdminPage() {
 
                                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
                                             {(selectedModalColors || []).map(color => {
-                                                const hex = colorHexMap[color] || '#CCCCCC'
+                                                const hex = getColorHex(color)
                                                 const qty = modalColorStock[color] !== undefined ? modalColorStock[color] : ''
                                                 return (
                                                     <div key={color} className="flex items-center justify-between bg-white p-2.5 rounded-xl border border-gray-200 shadow-xs">
@@ -2571,7 +2652,7 @@ export default function AdminPage() {
 
                                         <div className="space-y-3">
                                             {(selectedModalColors || []).map(color => {
-                                                const hex = colorHexMap[color] || '#CCCCCC'
+                                                const hex = getColorHex(color)
                                                 const assignedImg = modalColorImages[color] || ''
                                                 const availablePhotos = existingImages
 
