@@ -93,7 +93,9 @@ export default function ProductPage() {
         
         let total = 0
         for (const char of customText) {
-            if (/[a-zA-Z\s]/i.test(char)) {
+            if (/\s/.test(char)) {
+                continue
+            } else if (/[a-zA-Z]/.test(char)) {
                 total += feeLetter
             } else if (/[0-9]/.test(char)) {
                 total += feeNumber
