@@ -276,6 +276,9 @@ export function mapDbToFrontend(table, item) {
 
 export let isInitialSyncComplete = false
 let isSyncing = false
+// Cache da lista publica de produtos (declarado aqui: initSupabaseSync roda ao carregar o modulo)
+let publicProductsCache = null
+const PUBLIC_PRODUCTS_TTL_MS = 15000
 
 /**
  * Sanitize all known localStorage array keys to remove null/invalid entries.
@@ -336,7 +339,16 @@ export async function initSupabaseSync() {
     isSyncing = true
     try {
         console.log('🔄 Sincronizando tabelas com o Supabase...')
-        
+
+        // Dispara em paralelo as consultas independentes (antes rodavam uma depois da outra,
+        // somando a latencia de cada uma). Os resultados sao consumidos nos passos abaixo.
+        const productsRawPromise = fetchPublicProductsRaw()
+        const ordersPromise = supabase.from('orders').select('*').then(r => r)
+        const couponsPromise = supabase.from('coupons').select('*').then(r => r)
+        const bannersPromise = supabase.from('banners').select('*').then(r => r)
+        const categoriesPromise = supabase.from('categories').select('*').then(r => r)
+        const returnsPromise = supabase.from('returns').select('*').then(r => r)
+
         // 1. Sync Store Config FIRST (Critical visual & UI settings)
         let dbConfigRaw = null
         try {
@@ -423,28 +435,28 @@ export async function initSupabaseSync() {
         }
 
         // 2. Sync Products (usa a view publica, sem cost_price, pois este cache alimenta paginas publicas)
-        const { data: dbProducts, error: pError } = await supabase.from('products_public').select('*')
+        const { data: dbProducts, error: pError } = await productsRawPromise
         if (!pError) {
             const cleanProducts = (dbProducts || []).filter(p => p && p.name)
             setStorageIfChanged('meraki_products', JSON.stringify(cleanProducts))
         }
 
         // 2. Sync Orders — always overwrite to clear stale cache
-        const { data: dbOrders, error: oError } = await supabase.from('orders').select('*')
+        const { data: dbOrders, error: oError } = await ordersPromise
         if (!oError) {
             const mappedOrders = (dbOrders || []).map(o => mapDbToFrontend('orders', o)).filter(o => o != null)
             localStorage.setItem('meraki_orders', JSON.stringify(mappedOrders))
         }
 
         // 3. Sync Coupons — always overwrite to clear stale cache
-        const { data: dbCoupons, error: cError } = await supabase.from('coupons').select('*')
+        const { data: dbCoupons, error: cError } = await couponsPromise
         if (!cError) {
             const mappedCoupons = (dbCoupons || []).map(c => mapDbToFrontend('coupons', c)).filter(c => c != null)
             localStorage.setItem('meraki_coupons', JSON.stringify(mappedCoupons))
         }
 
         // 4. Sync Banners
-        const { data: dbBanners, error: bError } = await supabase.from('banners').select('*')
+        const { data: dbBanners, error: bError } = await bannersPromise
         if (!bError) {
             if (dbBanners && dbBanners.length > 0) {
                 setStorageIfChanged('meraki_banners', JSON.stringify(dbBanners))
@@ -457,7 +469,7 @@ export async function initSupabaseSync() {
         }
 
         // 5. Sync Categories — merge DB categories & store_config with local to preserve custom images
-        const { data: dbCategories, error: catError } = await supabase.from('categories').select('*')
+        const { data: dbCategories, error: catError } = await categoriesPromise
         const storedConfig = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
         const configCategories = storedConfig.categories_data || storedConfig.categoriesData || []
 
@@ -494,7 +506,7 @@ export async function initSupabaseSync() {
         }
 
         // 6. Sync Returns — always overwrite to clear stale cache
-        const { data: dbReturns, error: rError } = await supabase.from('returns').select('*')
+        const { data: dbReturns, error: rError } = await returnsPromise
         if (!rError) {
             const mappedReturns = (dbReturns || []).map(r => mapDbToFrontend('returns', r)).filter(r => r != null)
             localStorage.setItem('meraki_all_returns', JSON.stringify(mappedReturns))
@@ -850,9 +862,24 @@ export async function getProducts() {
 // todos os papeis da API — o valor de volta e reidratado localmente a partir do payload enviado).
 const PUBLIC_PRODUCT_COLUMNS = 'id,name,category,subcategory,price,original_price,image,badge,section,sizes,description,stock,created_at,colors,inpromocombo,iscustomizable,custompricewith,custompricewithout,customfeeletter,customfeenumber,customfeeemoji,customizable_emojis,has_kits,kit_options,color_stock,variant_stock,color_images'
 
+// Varias partes da home (sync, Home, busca, categorias) pedem a mesma lista de produtos ao
+// mesmo tempo. Compartilha a mesma requisicao em andamento e reaproveita o resultado por
+// alguns segundos, em vez de baixar a lista inteira varias vezes.
+function fetchPublicProductsRaw() {
+    const now = Date.now()
+    if (publicProductsCache && now - publicProductsCache.at < PUBLIC_PRODUCTS_TTL_MS) {
+        return publicProductsCache.promise
+    }
+    const promise = supabase.from('products_public').select('*').then(r => r)
+    publicProductsCache = { at: now, promise }
+    promise.then(r => { if (r.error && publicProductsCache?.promise === promise) publicProductsCache = null })
+        .catch(() => { if (publicProductsCache?.promise === promise) publicProductsCache = null })
+    return promise
+}
+
 export async function getPublicProducts() {
     try {
-        const { data, error } = await supabase.from('products_public').select('*')
+        const { data, error } = await fetchPublicProductsRaw()
         if (error) throw error
         const mapped = (data || []).map(p => mapDbToFrontend('products', p))
         return { data: mapped, error: null }
