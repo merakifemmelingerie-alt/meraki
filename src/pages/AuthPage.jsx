@@ -486,7 +486,8 @@ export default function AuthPage() {
             if (error.message.includes('already registered')) showAlert('Este e-mail já está cadastrado.')
             else showAlert('Erro ao criar conta: ' + error.message)
         } else if (data.session) {
-            showAlert('Conta criada com sucesso!', 'success')
+            showAlert('Conta criada com sucesso! Redirecionando...', 'success')
+            setTimeout(() => navigate('/'), 1500)
         } else {
             showAlert('Conta criada! Verifique seu e-mail para confirmar.', 'success')
         }
