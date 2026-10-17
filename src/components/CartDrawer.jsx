@@ -177,13 +177,30 @@ export default function CartDrawer() {
         setShippingError('')
 
         try {
-            const res = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`)
-            const data = await res.json()
-
-            if (data.erro) {
-                setShippingError('CEP não encontrado. Tente novamente.')
-                setCalculatingCep(false)
-                return
+            // CEPs locais (75195-xxx) nem sempre existem na base do ViaCEP; não depender dela
+            const isLocalCep = cleanCep.startsWith('75195')
+            let data = null
+            try {
+                const res = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`)
+                if (res.ok) data = await res.json()
+            } catch { /* tenta o fallback abaixo */ }
+            if (!data || data.erro) {
+                try {
+                    const res2 = await fetch(`https://brasilapi.com.br/api/cep/v1/${cleanCep}`)
+                    if (res2.ok) {
+                        const b = await res2.json()
+                        data = { localidade: b.city, uf: b.state }
+                    }
+                } catch { /* sem fallback */ }
+            }
+            if (!data || data.erro) {
+                if (isLocalCep) {
+                    data = { localidade: 'Bonfinópolis', uf: 'GO' }
+                } else {
+                    setShippingError('CEP não encontrado. Tente novamente.')
+                    setCalculatingCep(false)
+                    return
+                }
             }
 
             const city = data.localidade || ''
