@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import ScrollReveal from './ScrollReveal.jsx'
 
 export default function Footer() {
@@ -121,9 +122,9 @@ export default function Footer() {
         return [...customPagesList, ...listFromContent]
     })()
 
-    const customSobre = allCustomPages.filter(p => p.category === 'Sobre').map(p => ({ id: p.id, href: `#/info/${p.id}`, label: p.label }))
-    const customAtendimento = allCustomPages.filter(p => p.category === 'Atendimento').map(p => ({ id: p.id, href: `#/info/${p.id}`, label: p.label }))
-    const customStores = allCustomPages.filter(p => p.category === 'Lojas').map(p => ({ id: p.id, href: `#/info/${p.id}`, label: p.label }))
+    const customSobre = allCustomPages.filter(p => p.category === 'Sobre').map(p => ({ id: p.id, href: `/info/${p.id}`, label: p.label }))
+    const customAtendimento = allCustomPages.filter(p => p.category === 'Atendimento').map(p => ({ id: p.id, href: `/info/${p.id}`, label: p.label }))
+    const customStores = allCustomPages.filter(p => p.category === 'Lojas').map(p => ({ id: p.id, href: `/info/${p.id}`, label: p.label }))
 
     const mapLinkTitle = (l) => {
         const customTitle = customPagesContent[l.id]?.title
@@ -131,26 +132,26 @@ export default function Footer() {
     }
 
     const sobreLinks = [
-        { id: 'story', href: '#/story', label: 'História' },
-        { id: 'interaja', href: '#/interaja', label: '💬 Sugestões & Pedidos' },
-        { id: 'revenda', href: '#/revenda', label: 'Seja um revendedor' },
-        { id: 'connect', href: '#/connect', label: 'Conecte-se' },
+        { id: 'story', href: '/story', label: 'História' },
+        { id: 'interaja', href: '/interaja', label: '💬 Sugestões & Pedidos' },
+        { id: 'revenda', href: '/revenda', label: 'Seja um revendedor' },
+        { id: 'connect', href: '/connect', label: 'Conecte-se' },
         ...customSobre
     ].filter(l => !deletedPages.includes(l.id)).map(mapLinkTitle)
 
     const atendimentoLinks = [
-        { id: 'security', href: '#/security', label: 'Compra Segura' },
-        { id: 'payment', href: '#/payment', label: 'Formas de Pagamento' },
-        { id: 'delivery', href: '#/delivery', label: 'Entrega e Frete' },
-        { id: 'returns', label: 'Política de Troca', href: '#/returns' },
-        { id: 'withdrawal', href: '#/withdrawal', label: 'Direito de Arrependimento' },
-        { id: 'privacy', href: '#/privacy', label: 'Política de Privacidade' },
-        { id: 'promotional-rules', href: '#/promotional-rules', label: 'Regras promocionais' },
+        { id: 'security', href: '/security', label: 'Compra Segura' },
+        { id: 'payment', href: '/payment', label: 'Formas de Pagamento' },
+        { id: 'delivery', href: '/delivery', label: 'Entrega e Frete' },
+        { id: 'returns', label: 'Política de Troca', href: '/returns' },
+        { id: 'withdrawal', href: '/withdrawal', label: 'Direito de Arrependimento' },
+        { id: 'privacy', href: '/privacy', label: 'Política de Privacidade' },
+        { id: 'promotional-rules', href: '/promotional-rules', label: 'Regras promocionais' },
         ...customAtendimento
     ].filter(l => !deletedPages.includes(l.id)).map(mapLinkTitle)
 
     const storesLinks = [
-        { id: 'stores', href: '#/stores', label: 'Encontre a loja mais próxima' },
+        { id: 'stores', href: '/stores', label: 'Encontre a loja mais próxima' },
         ...customStores
     ].filter(l => !deletedPages.includes(l.id)).map(mapLinkTitle)
 
@@ -160,8 +161,8 @@ export default function Footer() {
                 
                 {/* Center Brand Text Logo */}
                 <div className="flex justify-center mb-10">
-                    <a 
-                        href="#/" 
+                    <Link 
+                        to="/" 
                         className="text-2xl md:text-3xl lg:text-4xl font-bold text-[#1A1A1A] hover:text-[#7A3E4A] transition-colors inline-flex flex-col items-center justify-center gap-1"
                     >
                         <img 
@@ -175,7 +176,7 @@ export default function Footer() {
                             <span className="font-heading tracking-[0.25em] text-[20px] md:text-[25px] lg:text-[28px] font-black uppercase antialiased">MERAKI</span>
                             <span className="text-[9px] md:text-[10px] lg:text-[11px] uppercase tracking-[0.48em] text-[#7A3E4A] font-extrabold mt-1 ml-[0.48em] antialiased">---- FEMME ----</span>
                         </div>
-                    </a>
+                    </Link>
                 </div>
 
                 {/* Grid Links Section */}
@@ -186,7 +187,7 @@ export default function Footer() {
                             <h4 className="font-heading text-xs font-bold tracking-widest text-[#7A3E4A] mb-4 uppercase">Sobre</h4>
                             <ul className="flex flex-col gap-2 text-xs text-gray-500 font-medium">
                                 {sobreLinks.map(l => (
-                                    <li key={l.id}><a href={l.href} className="hover:text-[#7A3E4A] transition-colors">{l.label}</a></li>
+                                    <li key={l.id}><Link to={l.href} className="hover:text-[#7A3E4A] transition-colors">{l.label}</Link></li>
                                 ))}
                             </ul>
                         </div>
@@ -196,10 +197,10 @@ export default function Footer() {
                     <div>
                         <h4 className="font-heading text-xs font-bold tracking-widest text-[#7A3E4A] mb-4 uppercase">Conta</h4>
                         <ul className="flex flex-col gap-2 text-xs text-gray-500 font-medium">
-                            <li><a href="#/login" className="hover:text-[#7A3E4A] transition-colors">Login</a></li>
-                            <li><a href="#/account" className="hover:text-[#7A3E4A] transition-colors">Minha Conta</a></li>
-                            <li><a href="#/orders" className="hover:text-[#7A3E4A] transition-colors">Meus pedidos</a></li>
-                            <li><a href="#/wishlist" className="hover:text-[#7A3E4A] transition-colors">Wishlist</a></li>
+                            <li><Link to="/login" className="hover:text-[#7A3E4A] transition-colors">Login</Link></li>
+                            <li><Link to="/account" className="hover:text-[#7A3E4A] transition-colors">Minha Conta</Link></li>
+                            <li><Link to="/orders" className="hover:text-[#7A3E4A] transition-colors">Meus pedidos</Link></li>
+                            <li><Link to="/wishlist" className="hover:text-[#7A3E4A] transition-colors">Wishlist</Link></li>
                         </ul>
                     </div>
 
@@ -209,7 +210,7 @@ export default function Footer() {
                             <h4 className="font-heading text-xs font-bold tracking-widest text-[#7A3E4A] mb-4 uppercase">Atendimento</h4>
                             <ul className="flex flex-col gap-2 text-xs text-gray-500 font-medium">
                                 {atendimentoLinks.map(l => (
-                                    <li key={l.id}><a href={l.href} className="hover:text-[#7A3E4A] transition-colors">{l.label}</a></li>
+                                    <li key={l.id}><Link to={l.href} className="hover:text-[#7A3E4A] transition-colors">{l.label}</Link></li>
                                 ))}
                             </ul>
                         </div>
@@ -221,7 +222,7 @@ export default function Footer() {
                             <h4 className="font-heading text-xs font-bold tracking-widest text-[#7A3E4A] mb-4 uppercase">Nossas Lojas</h4>
                             <ul className="flex flex-col gap-2 text-xs text-gray-500 font-medium">
                                 {storesLinks.map(l => (
-                                    <li key={l.id}><a href={l.href} className="hover:text-[#7A3E4A] transition-colors">{l.label}</a></li>
+                                    <li key={l.id}><Link to={l.href} className="hover:text-[#7A3E4A] transition-colors">{l.label}</Link></li>
                                 ))}
                             </ul>
                         </div>
