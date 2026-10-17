@@ -187,7 +187,7 @@ export default function HeroBanner() {
                     <div
                         key={slide.id || idx}
                         className={`absolute inset-0 z-0 transition-all duration-700 ease-in-out ${
-                            isActive ? 'opacity-100 scale-100 z-10 pointer-events-auto' : isPrev ? 'opacity-0 scale-95 z-0 pointer-events-none' : 'opacity-0 scale-95 z-0 pointer-events-none'
+                            isActive ? 'opacity-100 scale-100 z-10 pointer-events-auto' : isPrev ? 'opacity-100 scale-100 z-0 pointer-events-none' : 'opacity-0 scale-95 z-0 pointer-events-none'
                         }`}
                     >
                         <Link to={slide.link || '/shop'} className="block w-full h-full">
