@@ -680,6 +680,23 @@ export default function AdminPage() {
         } catch (e) { console.error(e) }
     }, [activeSection])
 
+    // O sync com o banco termina depois do painel montar (e cores cadastradas em outra
+    // aba/dispositivo chegam depois), então recarrega a lista de cores quando o config muda.
+    useEffect(() => {
+        const syncColors = () => {
+            try {
+                const config = JSON.parse(localStorage.getItem('meraki_store_config') || '{}')
+                if (typeof config.availableColors === 'string' && config.availableColors) {
+                    const parsed = parseAvailableColors(config.availableColors)
+                    setColorsList(parsed.list)
+                    setColorHexMap(parsed.hexMap)
+                }
+            } catch {}
+        }
+        window.addEventListener('storeConfigUpdated', syncColors)
+        return () => window.removeEventListener('storeConfigUpdated', syncColors)
+    }, [])
+
     useEffect(() => {
         const syncTopbar = () => {
             try {

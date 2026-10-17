@@ -683,26 +683,6 @@ export default function CategoryPage() {
                 {/* Mobile & Desktop Filters Row */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#EEEEEE] pb-6 mb-8 text-sm">
                     <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-                        {/* Size Filter */}
-                        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 w-full sm:w-auto">
-                            <span className="text-gray-500 font-medium text-xs shrink-0">Tamanho:</span>
-                            <div className="flex gap-1.5 shrink-0 overflow-x-auto pb-0.5">
-                                {['all', 'P', 'M', 'G', 'GG', 'XG', 'EG'].map(sz => (
-                                    <button
-                                        key={sz}
-                                        onClick={() => setSelectedSize(sz)}
-                                        className={`px-3 py-1.5 text-xs uppercase font-bold tracking-wider rounded-lg border transition-all cursor-pointer shrink-0 ${
-                                            selectedSize === sz
-                                                ? 'bg-[#7A3E4A] border-[#7A3E4A] text-white shadow-xs'
-                                                : 'bg-white border-gray-200 text-gray-700 hover:border-gray-400'
-                                        }`}
-                                    >
-                                        {sz === 'all' ? 'Todos' : sz}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
                         {/* Reset Filters button when filter active */}
                         {(selectedSubcategory !== 'all' || selectedSize !== 'all') && (
                             <button
