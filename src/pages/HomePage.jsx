@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import ScrollReveal from '../components/ScrollReveal.jsx'
 import Seo from '../components/Seo.jsx'
 import { getAssetUrl } from '../utils/assets.js'
@@ -134,6 +134,11 @@ export default function HomePage() {
     })
 
     const { products: allProducts, loading: loadingAll } = useProducts()
+    const outletRef = useRef(null)
+    const scrollOutlet = (dir) => {
+        const el = outletRef.current
+        if (el) el.scrollBy({ left: dir * el.clientWidth * 0.8, behavior: 'smooth' })
+    }
     const { cartCount, addToCart } = useCart()
     const { wishlistCount, toggleWishlist, isWishlisted } = useWishlist()
 
@@ -424,10 +429,10 @@ export default function HomePage() {
                             </div>
                             {/* Navigation Arrows */}
                             <div className="flex gap-2">
-                                <button className="w-10 h-10 border border-gray-200 rounded-full flex items-center justify-center text-gray-600 hover:border-[#7A3E4A] hover:text-[#7A3E4A] transition-all cursor-pointer">
+                                <button type="button" aria-label="Anterior" onClick={() => scrollOutlet(-1)} className="w-10 h-10 border border-gray-200 rounded-full flex items-center justify-center text-gray-600 hover:border-[#7A3E4A] hover:text-[#7A3E4A] transition-all cursor-pointer">
                                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 19l-7-7 7-7" /></svg>
                                 </button>
-                                <button className="w-10 h-10 border border-gray-200 rounded-full flex items-center justify-center text-gray-600 hover:border-[#7A3E4A] hover:text-[#7A3E4A] transition-all cursor-pointer">
+                                <button type="button" aria-label="Próximo" onClick={() => scrollOutlet(1)} className="w-10 h-10 border border-gray-200 rounded-full flex items-center justify-center text-gray-600 hover:border-[#7A3E4A] hover:text-[#7A3E4A] transition-all cursor-pointer">
                                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" /></svg>
                                 </button>
                             </div>
@@ -438,13 +443,13 @@ export default function HomePage() {
                                 <div className="w-8 h-8 border-[1px] border-[#C6A76A] border-t-transparent rounded-full animate-spin" />
                             </div>
                         ) : (
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
-                                {allProducts.filter(p => p.original_price > 0).slice(0, 4).map(product => {
+                            <div ref={outletRef} className="flex gap-4 sm:gap-6 overflow-x-auto snap-x snap-mandatory no-scrollbar pb-2" style={{ scrollbarWidth: 'none' }}>
+                                {allProducts.filter(p => p.original_price > 0).slice(0, 12).map(product => {
                                     const isWish = isWishlisted(product.id)
                                     const discountPercent = Math.round(((product.original_price - product.price) / product.original_price) * 100)
                                     return (
-                                        <div key={product.id}>
-                                            <ProductCard 
+                                        <div key={product.id} className="snap-start shrink-0 w-[calc(50%-0.5rem)] md:w-[calc(25%-1.125rem)]">
+                                            <ProductCard
                                                 product={product}
                                                 onQuickView={setQuickViewProduct}
                                                 onToggleWishlist={toggleWishlist}
