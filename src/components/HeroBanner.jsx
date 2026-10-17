@@ -98,16 +98,13 @@ export default function HeroBanner() {
 
     const visibleSlides = useMemo(() => {
         if (!Array.isArray(slides)) return []
-        return slides.filter(s => {
-            if (!s) return false
-            const hasDesk = Boolean(s.image && String(s.image).trim() !== '')
-            const hasMob = Boolean(s.mobile_image && String(s.mobile_image).trim() !== '')
-            if (isMobile) {
-                return hasMob || hasDesk
-            } else {
-                return hasDesk
-            }
-        })
+        const hasDesk = s => Boolean(s.image && String(s.image).trim() !== '')
+        const hasMob = s => Boolean(s.mobile_image && String(s.mobile_image).trim() !== '')
+        const valid = slides.filter(Boolean)
+        if (!isMobile) return valid.filter(hasDesk)
+        // No celular, banner horizontal (sem versão mobile) só entra se nenhum banner tiver versão mobile
+        const mobileOnly = valid.filter(hasMob)
+        return mobileOnly.length > 0 ? mobileOnly : valid.filter(hasDesk)
     }, [slides, isMobile])
 
     useEffect(() => {
