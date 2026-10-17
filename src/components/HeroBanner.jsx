@@ -178,6 +178,8 @@ export default function HeroBanner() {
             {visibleSlides.map((slide, idx) => {
                 const isActive = idx === safeIndex
                 const isPrev = idx === previous && isTransitioning
+                // Só carrega a mídia do slide atual, do anterior e do próximo (evita baixar todos os vídeos/imagens de uma vez)
+                const isNear = isActive || isPrev || idx === (safeIndex + 1) % visibleSlides.length
                 const imageSrc = isMobile ? (slide.mobile_image || slide.image) : slide.image
                 
                 return (
@@ -188,11 +190,14 @@ export default function HeroBanner() {
                         }`}
                     >
                         <Link to={slide.link || '/shop'} className="block w-full h-full">
-                            <MediaDisplay
-                                src={imageSrc}
-                                alt={slide.alt || 'Banner Meraki'}
-                                className="w-full h-full object-cover object-center"
-                            />
+                            {isNear && (
+                                <MediaDisplay
+                                    src={imageSrc}
+                                    alt={slide.alt || 'Banner Meraki'}
+                                    className="w-full h-full object-cover object-center"
+                                    loading={isActive ? 'eager' : 'lazy'}
+                                />
+                            )}
                         </Link>
                     </div>
                 )

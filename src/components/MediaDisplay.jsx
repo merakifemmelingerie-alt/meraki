@@ -29,6 +29,7 @@ export default function MediaDisplay({ src, alt = '', className = '', style = {}
                 loop
                 muted
                 playsInline
+                preload="metadata"
                 className={className}
                 style={style}
                 {...props}
