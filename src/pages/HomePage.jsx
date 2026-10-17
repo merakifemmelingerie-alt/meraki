@@ -466,8 +466,8 @@ export default function HomePage() {
 
             <ProductSection
                 id="new-collection"
-                title="Novos Horizontes"
-                subtitle="Descubra o frescor da estação em nossa nova coleção."
+                title={editorial.collectionTitle || 'Novos Horizontes'}
+                subtitle={editorial.collectionSubtitle ?? 'Descubra o frescor da estação em nossa nova coleção.'}
                 products={newCollection}
                 loading={loadingNew}
                 onQuickView={setQuickViewProduct}

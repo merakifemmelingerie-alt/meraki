@@ -1004,6 +1004,8 @@ export function EditorialSection({
                         const title = form.edTitle.value.trim()
                         const description = form.edDescription.value.trim()
                         const buttonText = form.edButtonText.value.trim()
+                        const collectionTitle = form.edCollectionTitle.value.trim()
+                        const collectionSubtitle = form.edCollectionSubtitle.value.trim()
                         const files = form.edImage.files
 
                         setSaving(true)
@@ -1020,7 +1022,9 @@ export function EditorialSection({
                             description,
                             buttonText,
                             buttonLink: '/story',
-                            image: imageUrl
+                            image: imageUrl,
+                            collectionTitle,
+                            collectionSubtitle
                         }
                         setEditorial(updated)
                         localStorage.setItem('meraki_editorial', JSON.stringify(updated))
@@ -1052,6 +1056,17 @@ export function EditorialSection({
                     <div>
                         <label className="block text-[10px] font-bold text-gray-700 mb-1 uppercase tracking-wider">Texto do Botão</label>
                         <input type="text" name="edButtonText" defaultValue={editorial.buttonText} required className="w-full px-3 py-2 border border-[#EEEEEE] rounded-xl text-xs outline-none" />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-[#EEEEEE]">
+                        <div>
+                            <label className="block text-[10px] font-bold text-gray-700 mb-1 uppercase tracking-wider">Título da última seção da Home</label>
+                            <input type="text" name="edCollectionTitle" defaultValue={editorial.collectionTitle ?? 'Novos Horizontes'} className="w-full px-3 py-2 border border-[#EEEEEE] rounded-xl text-xs outline-none" />
+                        </div>
+                        <div>
+                            <label className="block text-[10px] font-bold text-gray-700 mb-1 uppercase tracking-wider">Subtítulo da última seção</label>
+                            <input type="text" name="edCollectionSubtitle" defaultValue={editorial.collectionSubtitle ?? 'Descubra o frescor da estação em nossa nova coleção.'} className="w-full px-3 py-2 border border-[#EEEEEE] rounded-xl text-xs outline-none" />
+                        </div>
                     </div>
 
                     <div>
