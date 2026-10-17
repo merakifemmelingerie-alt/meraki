@@ -4,7 +4,7 @@ import { useAuth } from '../hooks/useAuth.js'
 import { getAssetUrl } from '../utils/assets.js'
 import { useAdminProducts } from '../hooks/useProducts.js'
 import { supabase } from '../services/supabase.js'
-import { createProduct, updateProduct, deleteProduct, uploadMultipleImages, deleteImage, createCategory, getProfiles, updateStoreConfig, mergeTopbarStyle, clearProductBadges, generateUUID, getFinancialTransactions, createFinancialTransaction, updateFinancialTransactionStatus, deleteFinancialTransaction } from '../services/database.js'
+import { createProduct, updateProduct, deleteProduct, uploadMultipleImages, isForeignStorageUrl, deleteImage, createCategory, getProfiles, updateStoreConfig, mergeTopbarStyle, clearProductBadges, generateUUID, getFinancialTransactions, createFinancialTransaction, updateFinancialTransactionStatus, deleteFinancialTransaction } from '../services/database.js'
 import { signOut } from '../services/auth.js'
 import AdminSidebar from '../components/admin/AdminSidebar.jsx'
 import DashboardSection from '../components/admin/DashboardSection.jsx'
@@ -1022,9 +1022,22 @@ export default function AdminPage() {
         let uploadedUrls = []
         if (imageFiles.length > 0) {
             const { urls } = await uploadMultipleImages(imageFiles)
+            if (urls.length < imageFiles.length) {
+                // Falha no envio: não salva o produto com fotos faltando ou corrompidas
+                alert('Não foi possível enviar ' + (imageFiles.length - urls.length) + ' foto(s). O produto NÃO foi salvo. Verifique a internet e tente novamente.')
+                setSaving(false)
+                return
+            }
             uploadedUrls = urls
         }
         const allImages = [...existingImages, ...uploadedUrls].filter(Boolean)
+
+        // Avisa sobre fotos que apontam para um servidor antigo (não carregam no site)
+        const foreignCount = [...allImages, ...Object.values(modalColorImages || {})].filter(isForeignStorageUrl).length
+        if (foreignCount > 0 && !window.confirm(foreignCount + ' foto(s) deste produto estão em um servidor antigo e não aparecem no site. Envie as fotos novamente para corrigir. Salvar mesmo assim?')) {
+            setSaving(false)
+            return
+        }
 
         // Calculate size+color variant stock matrix
         const cleanedVariantStock = {}

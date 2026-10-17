@@ -1079,14 +1079,10 @@ export async function uploadImage(file) {
         })
         
         if (error) {
+            // Não grava a imagem como Base64 dentro do produto: isso estoura o tamanho do
+            // registro e gera imagem corrompida. Devolve o erro para o painel avisar.
             console.error('Supabase upload error:', error.message)
-            // Fallback to FileReader Base64 encoding if bucket is not configured
-            return new Promise((resolve) => {
-                const reader = new FileReader()
-                reader.onloadend = () => resolve({ url: reader.result, error: null })
-                reader.onerror = (e) => resolve({ url: null, error: e })
-                reader.readAsDataURL(webpFile)
-            })
+            return { url: null, error }
         }
 
         const { data: { publicUrl } } = supabase.storage.from('product-images').getPublicUrl(fileName)
@@ -1094,6 +1090,16 @@ export async function uploadImage(file) {
     } catch (e) {
         return { url: null, error: e }
     }
+}
+
+// Indica se a URL aponta para o storage de OUTRO projeto Supabase (ex: projeto antigo apagado
+// ou pausado). Essas imagens não carregam e precisam ser enviadas de novo.
+export function isForeignStorageUrl(url) {
+    if (typeof url !== 'string' || !url.startsWith('http')) return false
+    try {
+        const u = new URL(url)
+        return u.hostname.endsWith('.supabase.co') && u.origin !== new URL(supabaseUrl).origin
+    } catch { return false }
 }
 
 export async function uploadMultipleImages(files) {
